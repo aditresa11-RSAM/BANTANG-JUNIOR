@@ -7,19 +7,33 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE IF NOT EXISTS public.players (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
-  dob TEXT,
-  position TEXT,
-  height TEXT,
-  weight TEXT,
-  jersey_number TEXT,
+  overall NUMERIC,
   category TEXT,
+  position TEXT,
   photo TEXT,
-  parent_name TEXT,
-  phone TEXT,
-  address TEXT,
-  medical_history TEXT,
-  join_date TEXT,
+  photourl TEXT,
+  dribbling NUMERIC,
+  passing NUMERIC,
+  shooting NUMERIC,
+  pace NUMERIC,
+  strength NUMERIC,
+  tactical NUMERIC,
+  vision NUMERIC,
+  teamwork NUMERIC,
+  goals NUMERIC,
+  assists NUMERIC,
+  appearances NUMERIC,
+  attendance NUMERIC,
+  dob TEXT,
+  age NUMERIC,
+  stamina NUMERIC,
+  jersey NUMERIC,
   status TEXT DEFAULT 'Aktif',
+  height NUMERIC,
+  weight NUMERIC,
+  dominantfoot TEXT,
+  parent_id TEXT,
+  skillset JSONB,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -27,12 +41,14 @@ CREATE TABLE IF NOT EXISTS public.players (
 CREATE TABLE IF NOT EXISTS public.coaches (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
-  specialty TEXT,
-  license TEXT,
-  experience TEXT,
   role TEXT,
-  rating TEXT,
+  experience TEXT,
+  license TEXT,
   photo TEXT,
+  photourl TEXT,
+  specialty TEXT,
+  rating NUMERIC,
+  activeteams JSONB,
   phone TEXT,
   email TEXT,
   bio TEXT,
@@ -149,21 +165,23 @@ VALUES
   ('dashboard', 'dashboard', true),
   ('matches', 'matches', true),
   ('materials', 'materials', true)
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO UPDATE SET public = true;
 
--- Grant access policies to storage
+-- Grant access policies to storage for public buckets
+-- Remove existing policies to avoid conflicts
 DROP POLICY IF EXISTS "Public Access" ON storage.objects;
 DROP POLICY IF EXISTS "Public Upload" ON storage.objects;
 DROP POLICY IF EXISTS "Public Update" ON storage.objects;
 DROP POLICY IF EXISTS "Public Delete" ON storage.objects;
+DROP POLICY IF EXISTS "Allow All Storage" ON storage.objects;
+DROP POLICY IF EXISTS "Permissive Upload" ON storage.objects;
 
-CREATE POLICY "Public Access" ON storage.objects FOR SELECT USING (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'materials'));
-CREATE POLICY "Public Upload" ON storage.objects FOR INSERT WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'materials'));
-CREATE POLICY "Public Update" ON storage.objects FOR UPDATE USING (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'materials'));
-CREATE POLICY "Public Delete" ON storage.objects FOR DELETE USING (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'materials'));
-
--- Ensure RLS is enabled on storage.objects
-ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+-- Create a single permissive policy for the MVP
+-- This allows public/anon access to all buckets listed above
+CREATE POLICY "Allow All Storage" ON storage.objects 
+FOR ALL TO anon, authenticated, public 
+USING (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'materials')) 
+WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'materials'));
 */
 
 -- Set up Row Level Security (RLS)

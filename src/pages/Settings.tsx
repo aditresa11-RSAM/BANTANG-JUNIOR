@@ -104,6 +104,35 @@ export default function Settings() {
 
     try {
       let totalUpdated = 0;
+      
+      // 1. Sync standalone settings first
+      setSyncStatus('Memeriksa logo & background akademi...');
+      const settingsKeys = [
+        { key: 'ssb_logo_url', setter: setLogoUrl, localSetter: setLocalLogoUrl },
+        { key: 'ssb_hero_bg_url', setter: setHeroBgUrl, localSetter: setLocalHeroBgUrl }
+      ];
+
+      for (const s of settingsKeys) {
+        const val = localStorage.getItem(s.key);
+        if (val && val.startsWith('data:image')) {
+          try {
+            const res = await fetch(val);
+            const blob = await res.blob();
+            const file = new File([blob], `${s.key}.png`, { type: 'image/png' });
+            const publicUrl = await uploadFile(file, 'settings');
+            if (publicUrl) {
+              localStorage.setItem(s.key, publicUrl);
+              s.setter(publicUrl);
+              s.localSetter(publicUrl);
+              totalUpdated++;
+            }
+          } catch (e) {
+            console.error(`Failed to sync ${s.key}:`, e);
+          }
+        }
+      }
+
+      // 2. Sync table data
       for (const table of tables) {
         const localData = localStorage.getItem(`cms_${table}`);
         if (!localData) continue;
@@ -226,8 +255,9 @@ export default function Settings() {
         if (publicUrl) {
           setLocalLogoUrl(publicUrl);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Upload failed:", error);
+        alert(error.message || "Gagal mengunggah logo. Pastikan koneksi internet stabil dan bucket 'settings' sudah ada di Supabase.");
       } finally {
         setIsUploadingLogo(false);
       }
@@ -257,8 +287,9 @@ export default function Settings() {
         if (publicUrl) {
           setLocalHeroBgUrl(publicUrl);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Upload failed:", error);
+        alert(error.message || "Gagal mengunggah background. Pastikan koneksi internet stabil dan bucket 'settings' sudah ada di Supabase.");
       } finally {
         setIsUploadingHero(false);
       }
@@ -279,11 +310,12 @@ export default function Settings() {
 -- 1. Create/Patch Players
 CREATE TABLE IF NOT EXISTS players (
     id TEXT PRIMARY KEY, 
-    name TEXT, 
+    name TEXT NOT NULL, 
     overall NUMERIC, 
     category TEXT, 
     position TEXT, 
     photo TEXT, 
+    photourl TEXT,
     dribbling NUMERIC, 
     passing NUMERIC, 
     shooting NUMERIC, 
@@ -300,10 +332,12 @@ CREATE TABLE IF NOT EXISTS players (
     age NUMERIC,
     stamina NUMERIC,
     jersey NUMERIC,
-    status TEXT,
+    status TEXT DEFAULT 'Aktif',
     height NUMERIC, 
     weight NUMERIC, 
     dominantfoot TEXT, 
+    parent_id TEXT,
+    skillset JSONB,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -312,10 +346,11 @@ DO $$
 BEGIN 
     -- Players
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='dob') THEN ALTER TABLE players ADD COLUMN dob TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='photourl') THEN ALTER TABLE players ADD COLUMN photourl TEXT; END IF;
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='age') THEN ALTER TABLE players ADD COLUMN age NUMERIC; END IF;
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='stamina') THEN ALTER TABLE players ADD COLUMN stamina NUMERIC; END IF;
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='jersey') THEN ALTER TABLE players ADD COLUMN jersey NUMERIC; END IF;
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='status') THEN ALTER TABLE players ADD COLUMN status TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='status') THEN ALTER TABLE players ADD COLUMN status TEXT DEFAULT 'Aktif'; END IF;
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='pace') THEN ALTER TABLE players ADD COLUMN pace NUMERIC; END IF;
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='strength') THEN ALTER TABLE players ADD COLUMN strength NUMERIC; END IF;
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='tactical') THEN ALTER TABLE players ADD COLUMN tactical NUMERIC; END IF;
@@ -327,6 +362,9 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='attendance') THEN ALTER TABLE players ADD COLUMN attendance NUMERIC; END IF;
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='parent_id') THEN ALTER TABLE players ADD COLUMN parent_id TEXT; END IF;
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='skillset') THEN ALTER TABLE players ADD COLUMN skillset JSONB; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='height') THEN ALTER TABLE players ADD COLUMN height NUMERIC; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='weight') THEN ALTER TABLE players ADD COLUMN weight NUMERIC; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='dominantfoot') THEN ALTER TABLE players ADD COLUMN dominantfoot TEXT; END IF;
 
     -- Upcoming Matches
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='upcoming_matches' AND column_name='result') THEN ALTER TABLE upcoming_matches ADD COLUMN result TEXT; END IF;
@@ -359,6 +397,11 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='coaches' AND column_name='photourl') THEN ALTER TABLE coaches ADD COLUMN photourl TEXT; END IF;
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='coaches' AND column_name='specialty') THEN ALTER TABLE coaches ADD COLUMN specialty TEXT; END IF;
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='coaches' AND column_name='activeteams') THEN ALTER TABLE coaches ADD COLUMN activeteams JSONB; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='coaches' AND column_name='experience') THEN ALTER TABLE coaches ADD COLUMN experience TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='coaches' AND column_name='role') THEN ALTER TABLE coaches ADD COLUMN role TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='coaches' AND column_name='rating') THEN ALTER TABLE coaches ADD COLUMN rating TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='coaches' AND column_name='phone') THEN ALTER TABLE coaches ADD COLUMN phone TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='coaches' AND column_name='email') THEN ALTER TABLE coaches ADD COLUMN email TEXT; END IF;
 
 END $$;
 
@@ -381,7 +424,7 @@ CREATE TABLE IF NOT EXISTS dashboard_sliders (
 
 CREATE TABLE IF NOT EXISTS coaches (
     id TEXT PRIMARY KEY, 
-    name TEXT, 
+    name TEXT NOT NULL, 
     role TEXT, 
     experience TEXT, 
     license TEXT, 
@@ -390,6 +433,9 @@ CREATE TABLE IF NOT EXISTS coaches (
     specialty TEXT,
     rating NUMERIC,
     activeteams JSONB,
+    phone TEXT,
+    email TEXT,
+    bio TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -538,21 +584,22 @@ VALUES
   ('dashboard', 'dashboard', true),
   ('matches', 'matches', true),
   ('materials', 'materials', true)
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO UPDATE SET public = true;
 
--- Grant access policies to storage
+-- Grant access policies to storage for public buckets
+-- Remove existing policies to avoid conflicts
 DROP POLICY IF EXISTS "Public Access" ON storage.objects;
 DROP POLICY IF EXISTS "Public Upload" ON storage.objects;
 DROP POLICY IF EXISTS "Public Update" ON storage.objects;
 DROP POLICY IF EXISTS "Public Delete" ON storage.objects;
+DROP POLICY IF EXISTS "Allow All Storage" ON storage.objects;
+DROP POLICY IF EXISTS "Permissive Upload" ON storage.objects;
 
-CREATE POLICY "Public Access" ON storage.objects FOR SELECT USING (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'materials'));
-CREATE POLICY "Public Upload" ON storage.objects FOR INSERT WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'materials'));
-CREATE POLICY "Public Update" ON storage.objects FOR UPDATE USING (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'materials'));
-CREATE POLICY "Public Delete" ON storage.objects FOR DELETE USING (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'materials'));
-
--- Ensure RLS is enabled on storage.objects
-ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+-- Create a single permissive policy for the MVP
+CREATE POLICY "Allow All Storage" ON storage.objects 
+FOR ALL TO anon, authenticated, public 
+USING (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'materials')) 
+WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'materials'));
   `;
 
   const syncToCloud = async () => {
@@ -568,9 +615,9 @@ ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
       ];
       
       const allowedColumns: Record<string, string[]> = {
-        players: ['id', 'name', 'overall', 'category', 'position', 'photo', 'dribbling', 'passing', 'shooting', 'pace', 'strength', 'tactical', 'vision', 'teamwork', 'goals', 'assists', 'appearances', 'attendance', 'age', 'height', 'weight', 'dominantfoot', 'dob', 'stamina', 'jersey', 'status', 'created_at', 'parent_id', 'skillset'],
+        players: ['id', 'name', 'overall', 'category', 'position', 'photo', 'photourl', 'dribbling', 'passing', 'shooting', 'pace', 'strength', 'tactical', 'vision', 'teamwork', 'goals', 'assists', 'appearances', 'attendance', 'age', 'height', 'weight', 'dominantfoot', 'dob', 'stamina', 'jersey', 'status', 'created_at', 'parent_id', 'skillset'],
         dashboard_sliders: ['id', 'title', 'subtitle', 'description', 'img', 'created_at'],
-        coaches: ['id', 'name', 'role', 'experience', 'license', 'photourl', 'photo', 'specialty', 'rating', 'activeteams', 'created_at'],
+        coaches: ['id', 'name', 'role', 'experience', 'license', 'photourl', 'photo', 'specialty', 'rating', 'activeteams', 'phone', 'email', 'created_at'],
         upcoming_matches: ['id', 'tournament', 'rival', 'rivallogo', 'date', 'time', 'venue', 'category', 'result', 'created_at'],
         match_results: ['id', 'tournament', 'rival', 'rivallogo', 'score', 'date', 'category', 'result', 'scorers', 'created_at'],
         gallery: ['id', 'type', 'url', 'title', 'category', 'thumbnail', 'created_at'],
@@ -609,7 +656,10 @@ ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
                                  if ('playerName' in temp) temp.playername = temp.playerName;
                                  if ('estimatedReturn' in temp) temp.estimatedreturn = temp.estimatedReturn;
                                  if ('currentTeam' in temp) temp.currentteam = temp.currentTeam;
-                                 if ('specialty' in temp && table === 'coaches') temp.role = temp.specialty;
+                                 if ('specialty' in temp && table === 'coaches' && !temp.role) temp.role = temp.specialty;
+                                 if ('role' in temp && table === 'coaches' && !temp.specialty) temp.specialty = temp.role;
+                                 if ('photo' in temp && !temp.photourl) temp.photourl = temp.photo;
+                                 if ('photourl' in temp && !temp.photo) temp.photo = temp.photourl;
 
                                  // Final Sanitization: Lowercase keys and remove any field not in allowedColumns
                                  const sanitized: any = {};
