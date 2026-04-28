@@ -29,6 +29,7 @@ export async function uploadFile(file: File, bucket: string = 'images'): Promise
 
   // 1. NATIVE SUPABASE UPLOAD (High Quality, Prevents Pixelation/Black Backgrounds)
   if (isSupabase) {
+    let timeoutId: any;
     try {
       const fileExt = file.name.split('.').pop() || 'png';
       const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
@@ -39,10 +40,11 @@ export async function uploadFile(file: File, bucket: string = 'images'): Promise
       });
 
       const timeoutPromise = new Promise<{data: any, error: any}>((_, reject) => {
-        setTimeout(() => reject(new Error('Upload timeout after 15 seconds')), 15000);
+        timeoutId = setTimeout(() => reject(new Error('Upload timeout after 15 seconds')), 15000);
       });
 
       const { data, error } = await Promise.race([uploadPromise, timeoutPromise]);
+      clearTimeout(timeoutId);
       
       if (!error) {
         const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(fileName);
@@ -51,6 +53,7 @@ export async function uploadFile(file: File, bucket: string = 'images'): Promise
         console.warn('Supabase native upload failed:', error.message);
       }
     } catch (e) {
+      if (timeoutId) clearTimeout(timeoutId);
       console.warn('Exception during Supabase native upload:', e);
     }
   }

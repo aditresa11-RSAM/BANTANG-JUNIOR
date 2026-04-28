@@ -51,9 +51,20 @@ export default function Settings() {
              heroBgUrl: localHeroBgUrl
           };
           const blob = new Blob([JSON.stringify(settingsObj)], { type: 'application/json' });
-          await supabase.storage.from('settings').upload('global_settings.json', blob, { upsert: true });
-       } catch(e) {
+          const { error } = await supabase.storage.from('settings').upload('global_settings.json', blob, { upsert: true });
+          
+          if (error) {
+            console.error("Supabase Storage Error:", error);
+            // Check if it's a "bucket not found" error
+            if (error.message.includes('not found') || error.message.includes('bucket')) {
+              alert("PERINGATAN: Pengaturan tersimpan secara lokal tapi GAGAL dikirim ke Cloud karena bucket 'settings' tidak ditemukan di Supabase. Orang lain mungkin tidak akan melihat perubahan ini.");
+            } else {
+              alert("Gagal sinkronisasi ke Cloud: " + error.message);
+            }
+          }
+       } catch(e: any) {
           console.error("Failed to save settings to Supabase", e);
+          alert("Gelar kesalahan sinkronisasi Cloud: " + (e.message || "Pastikan Supabase Anda sudah benar."));
        }
     }
 
@@ -70,6 +81,13 @@ export default function Settings() {
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        alert("Ukuran logo melebihi 2MB. Silakan pilih file yang lebih kecil.");
+        if (fileInputRef.current) {
+           fileInputRef.current.value = '';
+        }
+        return;
+      }
       setIsUploadingLogo(true);
       try {
         const publicUrl = await uploadFile(file, 'settings');
@@ -94,6 +112,13 @@ export default function Settings() {
   const handleHeroBgChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 3 * 1024 * 1024) {
+        alert("Ukuran gambar melebihi 3MB. Silakan pilih file yang lebih kecil.");
+        if (heroBgInputRef.current) {
+           heroBgInputRef.current.value = '';
+        }
+        return;
+      }
       setIsUploadingHero(true);
       try {
         const publicUrl = await uploadFile(file, 'settings');
@@ -147,24 +172,28 @@ CREATE TABLE IF NOT EXISTS medicals (id TEXT PRIMARY KEY, name TEXT, position TE
              setSyncStatus(`Syncing tabel ${table}...`);
              const localData = localStorage.getItem(`cms_${table}`);
              if (localData) {
-                 const parsed = JSON.parse(localData);
-                 if (parsed && Array.isArray(parsed) && parsed.length > 0) {
-                     // For each item, upsert to Supabase
-                     for (let item of parsed) {
-                         // Migrate old keys
-                         if ('desc' in item) {
-                             item.description = item.desc;
-                             delete item.desc;
-                         }
-                         if ('match' in item) {
-                             item.match_rating = item.match;
-                             delete item.match;
-                         }
-                         const { error } = await supabase.from(table).upsert([item], { onConflict: 'id' });
-                         if (error) {
-                            console.error(`Failed to upsert ${table}: `, error);
+                 try {
+                     const parsed = JSON.parse(localData);
+                     if (parsed && Array.isArray(parsed) && parsed.length > 0) {
+                         // For each item, upsert to Supabase
+                         for (let item of parsed) {
+                             // Migrate old keys
+                             if ('desc' in item) {
+                                 item.description = item.desc;
+                                 delete item.desc;
+                             }
+                             if ('match' in item) {
+                                 item.match_rating = item.match;
+                                 delete item.match;
+                             }
+                             const { error } = await supabase.from(table).upsert([item], { onConflict: 'id' });
+                             if (error) {
+                                console.error(`Failed to upsert ${table}: `, error);
+                             }
                          }
                      }
+                 } catch (parseError) {
+                     console.error(`Failed to parse local data for ${table}:`, parseError);
                  }
              }
          }
@@ -398,7 +427,7 @@ CREATE TABLE IF NOT EXISTS medicals (id TEXT PRIMARY KEY, name TEXT, position TE
                      
                      <div className="flex justify-between items-center">
                         <p className="text-[10px] text-white/30 tracking-wide max-w-[200px]">
-                           Upload gambar lanskap untuk background Landing Page.
+                           Upload gambar lanskap untuk background Landing Page. Maks. 3MB.
                         </p>
                         <label 
                           htmlFor="hero-bg-upload"

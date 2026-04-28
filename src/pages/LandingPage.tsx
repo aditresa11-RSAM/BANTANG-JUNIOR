@@ -24,15 +24,6 @@ export default function LandingPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (user) return;
-    const hasVisited = localStorage.getItem('ssb_has_visited');
-    if (!hasVisited) {
-      localStorage.setItem('ssb_has_visited', 'true');
-      navigate('/login');
-    }
-  }, [navigate, user]);
-  
   return (
     <div className="bg-[var(--color-surface)]">
       {/* Navbar */}

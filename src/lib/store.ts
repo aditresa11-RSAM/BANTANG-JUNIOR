@@ -14,20 +14,43 @@ export function useCMSData<T extends { id: string }>(collectionName: string, ini
     const loadData = async () => {
       setIsLoading(true);
       if (checkSupabase()) {
-        const { data: supaData, error } = await supabase.from(collectionName).select('*').order('created_at', { ascending: false });
-        if (!error && supaData) {
-          setData(supaData as T[]);
-          setIsLoading(false);
-          return;
+        try {
+          const { data: supaData, error } = await supabase.from(collectionName).select('*').order('created_at', { ascending: false });
+          // If we got data and it's not empty, use it and cache it locally
+          if (!error && supaData && supaData.length > 0) {
+            setData(supaData as T[]);
+            // Also update local cache for offline/faster subsequent loads
+            try {
+              localStorage.setItem(`cms_${collectionName}`, JSON.stringify(supaData));
+            } catch (e) {
+               console.warn('Failed to cache Supabase data locally');
+            }
+            setIsLoading(false);
+            return;
+          }
+          if (error) {
+            console.warn(`Supabase fetch error for ${collectionName}:`, error.message);
+          }
+        } catch (err) {
+          console.warn(`Exception fetching Supabase data for ${collectionName}:`, err);
         }
       }
-      // Fallback
+      // Fallback to localStorage if Supabase is not configured, or if it returned empty/error
       const saved = localStorage.getItem(`cms_${collectionName}`);
       if (saved) {
-        setData(JSON.parse(saved));
+        try {
+          setData(JSON.parse(saved));
+        } catch (e) {
+          console.error(`Failed to parse cached data for ${collectionName}`, e);
+          setData(initialData);
+        }
       } else {
         setData(initialData);
-        localStorage.setItem(`cms_${collectionName}`, JSON.stringify(initialData));
+        try {
+          localStorage.setItem(`cms_${collectionName}`, JSON.stringify(initialData));
+        } catch (e) {
+           console.error('Storage quota exceeded');
+        }
       }
       setIsLoading(false);
     };

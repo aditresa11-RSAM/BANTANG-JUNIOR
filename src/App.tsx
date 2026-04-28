@@ -124,7 +124,12 @@ export default function App() {
     // Check for "remembered" session
     const savedUser = localStorage.getItem('ssb_user');
     if (savedUser) {
-      setUser(JSON.parse(savedUser));
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch (e) {
+        console.error('Failed to parse saved user', e);
+        localStorage.removeItem('ssb_user');
+      }
     }
     setIsLoading(false);
   }, []);
