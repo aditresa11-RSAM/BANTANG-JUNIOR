@@ -270,23 +270,218 @@ export default function Settings() {
     }
   };
 
-  const sqlSchema = `
--- Supabase SQL Editor Script
--- Paste this script to SQL Editor in your Supabase Dashboard to create tables for data sync.
+   const sqlSchema = `
+-- Supabase SQL Editor Script (Full Schema)
+-- Paste this script to SQL Editor in your Supabase Dashboard.
 
-CREATE TABLE IF NOT EXISTS players (id TEXT PRIMARY KEY, name TEXT, overall NUMERIC, category TEXT, position TEXT, photo TEXT, dribbling NUMERIC, passing NUMERIC, shooting NUMERIC, pace NUMERIC, strength NUMERIC, tactical NUMERIC, vision NUMERIC, teamwork NUMERIC, goals NUMERIC, assists NUMERIC, appearances NUMERIC, attendance NUMERIC, age NUMERIC, height NUMERIC, weight NUMERIC, dominantFoot TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL);
-CREATE TABLE IF NOT EXISTS dashboard_sliders (id TEXT PRIMARY KEY, title TEXT, subtitle TEXT, description TEXT, img TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL);
-CREATE TABLE IF NOT EXISTS coaches (id TEXT PRIMARY KEY, name TEXT, role TEXT, experience TEXT, license TEXT, photoUrl TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL);
-CREATE TABLE IF NOT EXISTS upcoming_matches (id TEXT PRIMARY KEY, tournament TEXT, rival TEXT, rivalLogo TEXT, date TEXT, time TEXT, venue TEXT, category TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL);
-CREATE TABLE IF NOT EXISTS match_results (id TEXT PRIMARY KEY, tournament TEXT, rival TEXT, score TEXT, date TEXT, category TEXT, result TEXT, scorers JSONB, created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL);
-CREATE TABLE IF NOT EXISTS gallery (id TEXT PRIMARY KEY, type TEXT, url TEXT, title TEXT, category TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL);
-CREATE TABLE IF NOT EXISTS financials (id TEXT PRIMARY KEY, player TEXT, date TEXT, amount NUMERIC, type TEXT, status TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL);
-CREATE TABLE IF NOT EXISTS schedules (id TEXT PRIMARY KEY, title TEXT, date TEXT, time TEXT, category TEXT, coach TEXT, field TEXT, status TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL);
-CREATE TABLE IF NOT EXISTS scouting (id TEXT PRIMARY KEY, name TEXT, position TEXT, currentTeam TEXT, price TEXT, status TEXT, rating NUMERIC, match_rating NUMERIC, photo TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL);
-CREATE TABLE IF NOT EXISTS medicals (id TEXT PRIMARY KEY, name TEXT, position TEXT, injury TEXT, estimatedReturn TEXT, status TEXT, progress NUMERIC, photo TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL);
-CREATE TABLE IF NOT EXISTS training_materials (id TEXT PRIMARY KEY, title TEXT, category TEXT, description TEXT, duration TEXT, age_group TEXT, level TEXT, media_url TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL);
-CREATE TABLE IF NOT EXISTS attendance (id TEXT PRIMARY KEY, player_id TEXT, date TEXT, status TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL);
-CREATE TABLE IF NOT EXISTS tactics (id TEXT PRIMARY KEY, formation JSONB, mode TEXT, strategy TEXT, notes TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL);
+-- 1. Create/Patch Players
+CREATE TABLE IF NOT EXISTS players (
+    id TEXT PRIMARY KEY, 
+    name TEXT, 
+    overall NUMERIC, 
+    category TEXT, 
+    position TEXT, 
+    photo TEXT, 
+    dribbling NUMERIC, 
+    passing NUMERIC, 
+    shooting NUMERIC, 
+    pace NUMERIC, 
+    strength NUMERIC, 
+    tactical NUMERIC, 
+    vision NUMERIC, 
+    teamwork NUMERIC, 
+    goals NUMERIC, 
+    assists NUMERIC, 
+    appearances NUMERIC, 
+    attendance NUMERIC, 
+    dob TEXT,
+    stamina NUMERIC,
+    jersey NUMERIC,
+    status TEXT,
+    height NUMERIC, 
+    weight NUMERIC, 
+    dominantFoot TEXT, 
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Patch missing columns for existing tables
+DO $$ 
+BEGIN 
+    -- Players
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='dob') THEN ALTER TABLE players ADD COLUMN dob TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='stamina') THEN ALTER TABLE players ADD COLUMN stamina NUMERIC; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='jersey') THEN ALTER TABLE players ADD COLUMN jersey NUMERIC; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='status') THEN ALTER TABLE players ADD COLUMN status TEXT; END IF;
+
+    -- Upcoming Matches
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='upcoming_matches' AND column_name='result') THEN ALTER TABLE upcoming_matches ADD COLUMN result TEXT; END IF;
+
+    -- Scouting
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='scouting' AND column_name='currentteam') THEN ALTER TABLE scouting ADD COLUMN currentTeam TEXT; END IF;
+
+    -- Medicals
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='medicals' AND column_name='estimatedreturn') THEN ALTER TABLE medicals ADD COLUMN estimatedReturn TEXT; END IF;
+
+    -- Dashboard Sliders (Ensure full schema)
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='dashboard_sliders' AND column_name='subtitle') THEN ALTER TABLE dashboard_sliders ADD COLUMN subtitle TEXT; END IF;
+
+END $$;
+
+CREATE TABLE IF NOT EXISTS dashboard_sliders (
+    id TEXT PRIMARY KEY, 
+    title TEXT, 
+    subtitle TEXT, 
+    description TEXT, 
+    img TEXT, 
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS coaches (
+    id TEXT PRIMARY KEY, 
+    name TEXT, 
+    role TEXT, 
+    experience TEXT, 
+    license TEXT, 
+    photoUrl TEXT, 
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS upcoming_matches (
+    id TEXT PRIMARY KEY, 
+    tournament TEXT, 
+    rival TEXT, 
+    rivalLogo TEXT, 
+    date TEXT, 
+    time TEXT, 
+    venue TEXT, 
+    category TEXT, 
+    result TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS match_results (
+    id TEXT PRIMARY KEY, 
+    tournament TEXT, 
+    rival TEXT, 
+    score TEXT, 
+    date TEXT, 
+    category TEXT, 
+    result TEXT, 
+    scorers JSONB, 
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS gallery (
+    id TEXT PRIMARY KEY, 
+    type TEXT, 
+    url TEXT, 
+    title TEXT, 
+    category TEXT, 
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS financials (
+    id TEXT PRIMARY KEY, 
+    player TEXT, 
+    date TEXT, 
+    amount NUMERIC, 
+    type TEXT, 
+    status TEXT, 
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS schedules (
+    id TEXT PRIMARY KEY, 
+    title TEXT, 
+    date TEXT, 
+    time TEXT, 
+    category TEXT, 
+    coach TEXT, 
+    field TEXT, 
+    status TEXT, 
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS scouting (
+    id TEXT PRIMARY KEY, 
+    name TEXT, 
+    position TEXT, 
+    currentTeam TEXT, 
+    price TEXT, 
+    status TEXT, 
+    rating NUMERIC, 
+    match_rating NUMERIC, 
+    photo TEXT, 
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS medicals (
+    id TEXT PRIMARY KEY, 
+    name TEXT, 
+    position TEXT, 
+    injury TEXT, 
+    estimatedReturn TEXT, 
+    status TEXT, 
+    progress NUMERIC, 
+    photo TEXT, 
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS training_materials (
+    id TEXT PRIMARY KEY, 
+    title TEXT, 
+    category TEXT, 
+    description TEXT, 
+    duration TEXT, 
+    age_group TEXT, 
+    level TEXT, 
+    media_url TEXT, 
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS attendance (
+    id TEXT PRIMARY KEY, 
+    player_id TEXT, 
+    date TEXT, 
+    status TEXT, 
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS tactics (
+    id TEXT PRIMARY KEY, 
+    formation JSONB, 
+    mode TEXT, 
+    strategy TEXT, 
+    notes TEXT, 
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 2. DISABLE RLS (CRITICAL for data sync from AI Studio)
+ALTER TABLE players DISABLE ROW LEVEL SECURITY;
+ALTER TABLE dashboard_sliders DISABLE ROW LEVEL SECURITY;
+ALTER TABLE coaches DISABLE ROW LEVEL SECURITY;
+ALTER TABLE upcoming_matches DISABLE ROW LEVEL SECURITY;
+ALTER TABLE match_results DISABLE ROW LEVEL SECURITY;
+ALTER TABLE gallery DISABLE ROW LEVEL SECURITY;
+ALTER TABLE financials DISABLE ROW LEVEL SECURITY;
+ALTER TABLE schedules DISABLE ROW LEVEL SECURITY;
+ALTER TABLE scouting DISABLE ROW LEVEL SECURITY;
+ALTER TABLE medicals DISABLE ROW LEVEL SECURITY;
+ALTER TABLE training_materials DISABLE ROW LEVEL SECURITY;
+ALTER TABLE attendance DISABLE ROW LEVEL SECURITY;
+ALTER TABLE tactics DISABLE ROW LEVEL SECURITY;
+
+-- 3. PERMISSIVE POLICIES (Safety backup if RLS is re-enabled)
+DO $$ 
+DECLARE 
+    t text;
+BEGIN
+    FOR t IN SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' 
+    LOOP
+        EXECUTE format('DROP POLICY IF EXISTS "Allow All" ON %I', t);
+        EXECUTE format('CREATE POLICY "Allow All" ON %I FOR ALL TO anon USING (true) WITH CHECK (true)', t);
+    END LOOP;
+END $$;
   `;
 
   const syncToCloud = async () => {
@@ -314,44 +509,64 @@ CREATE TABLE IF NOT EXISTS tactics (id TEXT PRIMARY KEY, formation JSONB, mode T
                          for (let i = 0; i < parsed.length; i += chunkSize) {
                              const chunk = parsed.slice(i, i + chunkSize).map(item => {
                                  const cleaned = { ...item };
-                                 if ('desc' in cleaned) {
-                                     cleaned.description = cleaned.desc;
-                                     delete cleaned.desc;
+                                 
+                                 // Global Mappings & Cleaning
+                                 if ('desc' in cleaned) { cleaned.description = cleaned.desc; delete cleaned.desc; }
+                                 if ('match' in cleaned) { cleaned.match_rating = cleaned.match; delete cleaned.match; }
+                                 
+                                 // Table Specific Mappings
+                                 if (table === 'players') {
+                                     if ('birth' in cleaned) { cleaned.dob = cleaned.birth; delete cleaned.birth; }
+                                     if ('age' in cleaned && !cleaned.dob) { cleaned.dob = String(cleaned.age); }
                                  }
-                                 if ('match' in cleaned) {
-                                     cleaned.match_rating = cleaned.match;
-                                     delete cleaned.match;
+                                 
+                                 if (table === 'scouting') {
+                                     if ('team' in cleaned) { cleaned.currentTeam = cleaned.team; delete cleaned.team; }
                                  }
+
+                                 if (table === 'medicals') {
+                                     if ('returnDate' in cleaned) { cleaned.estimatedReturn = cleaned.returnDate; delete cleaned.returnDate; }
+                                 }
+
                                  return cleaned;
                              });
 
                              const { error } = await supabase.from(table.trim()).upsert(chunk, { onConflict: 'id' });
                              if (error) {
                                 if (error.code === 'PGRST125') {
-                                  throw new Error(`[Supabase Error] URL Supabase tidak valid atau Tabel '${table}' belum dibuat. Pastikan URL hanya berisi https://xxx.supabase.co dan Anda sudah menjalankan SQL Script di atas.`);
+                                  throw new Error(`URL Supabase salah atau Tabel '${table}' tidak ditemukan. Paste kembali SQL script di bawah.`);
+                                }
+                                if (error.code === 'PGRST204') {
+                                  throw new Error(`Kolom di tabel '${table}' tidak lengkap (PGRST204). Silakan JALANKAN ULANG SQL script di bawah.`);
+                                }
+                                if (error.code === '42501') {
+                                  throw new Error(`Akses ditolak ke '${table}' (RLS Policy 42501). JALANKAN ULANG bagian DISABLE RLS di SQL script.`);
                                 }
                                 throw new Error(`[Supabase Error] ${error.message} (Code: ${error.code})`);
                              }
                          }
-                     }
-                 } catch (parseError) {
-                     console.error(`Failed to parse local data for ${table}:`, parseError);
-                 }
-             }
-         }
-         
-         // Also sync settings
-         setSyncStatus('Syncing pengaturan aplikasi...');
-         const settingsObj = { appName, logoUrl, heroBgUrl };
-         const blob = new Blob([JSON.stringify(settingsObj)], { type: 'application/json' });
-         await supabase.storage.from('settings').upload('global_settings.json', blob, { upsert: true });
+                      }
+                  } catch (parseError: any) {
+                      console.error(`Failed to sync ${table}:`, parseError);
+                      setSyncStatus(`Error ${table}: ${parseError.message}`);
+                      setIsSyncing(false);
+                      return;
+                  }
+              }
+          }
+          
+          // Also sync settings
+          setSyncStatus('Syncing pengaturan aplikasi...');
+          const settingsObj = { appName, logoUrl, heroBgUrl };
+          const blob = new Blob([JSON.stringify(settingsObj)], { type: 'application/json' });
+          await supabase.storage.from('settings').upload('global_settings.json', blob, { upsert: true });
 
-         setSyncStatus('Sinkronisasi selesai!');
-         setTimeout(() => setSyncStatus(''), 4000);
+          setSyncStatus('Sinkronisasi selesai!');
+          setTimeout(() => setSyncStatus(''), 4000);
       } catch(e: any) {
-         setSyncStatus(`Error: ${e.message}`);
+          setSyncStatus(`Error: ${e.message}`);
       } finally {
-         setIsSyncing(false);
+          setIsSyncing(false);
       }
   };
 
