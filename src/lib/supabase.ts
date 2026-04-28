@@ -25,7 +25,38 @@ export const isSupabaseConfigured = () => {
 };
 
 export async function uploadFile(file: File, bucket: string = 'images'): Promise<string | null> {
-  const resizeImage = (): Promise<string> => {
+  const isSupabase = isSupabaseConfigured();
+
+  // 1. NATIVE SUPABASE UPLOAD (High Quality, Prevents Pixelation/Black Backgrounds)
+  if (isSupabase) {
+    try {
+      const fileExt = file.name.split('.').pop() || 'png';
+      const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+      
+      const uploadPromise = supabase.storage.from(bucket).upload(fileName, file, {
+        upsert: true,
+        contentType: file.type || 'image/jpeg'
+      });
+
+      const timeoutPromise = new Promise<{data: any, error: any}>((_, reject) => {
+        setTimeout(() => reject(new Error('Upload timeout after 15 seconds')), 15000);
+      });
+
+      const { data, error } = await Promise.race([uploadPromise, timeoutPromise]);
+      
+      if (!error) {
+        const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(fileName);
+        return publicUrl;
+      } else {
+        console.warn('Supabase native upload failed:', error.message);
+      }
+    } catch (e) {
+      console.warn('Exception during Supabase native upload:', e);
+    }
+  }
+
+  // 2. FALLBACK BASE64 COMPRESSION (For Local Storage)
+  const getCompressedBase64 = (): Promise<string> => {
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -35,8 +66,14 @@ export async function uploadFile(file: File, bucket: string = 'images'): Promise
           let width = img.width;
           let height = img.height;
           
-          const MAX_WIDTH = 800;
-          const MAX_HEIGHT = 800;
+          let MAX_WIDTH = 1200;
+          let MAX_HEIGHT = 1200;
+
+          // Increase limit for Background / Hero images to avoid pixelation
+          if (bucket === 'settings' || bucket === 'gallery') {
+             MAX_WIDTH = 1920;
+             MAX_HEIGHT = 1080;
+          }
           
           if (width > height) {
             if (width > MAX_WIDTH) {
@@ -53,58 +90,30 @@ export async function uploadFile(file: File, bucket: string = 'images'): Promise
           canvas.width = width;
           canvas.height = height;
           const ctx = canvas.getContext('2d');
+          
+          const isPng = file.type === 'image/png' || file.name.toLowerCase().endsWith('.png');
+          
+          if (!isPng && ctx) {
+            // Fill with white instead of black for transparent jpg covers
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, width, height);
+          }
+
           ctx?.drawImage(img, 0, 0, width, height);
           
-          resolve(canvas.toDataURL('image/jpeg', 0.6));
+          // Preserve PNG transparency, use WebP for crisp JPEG alternatives
+          const format = isPng ? 'image/png' : 'image/webp';
+          resolve(canvas.toDataURL(format, 0.85));
         };
-        img.onerror = () => {
-          resolve(''); // Fallback securely
-        }
+        img.onerror = () => resolve('');
         img.src = e.target?.result as string;
       };
-      reader.onerror = () => {
-        resolve('');
-      };
+      reader.onerror = () => resolve('');
       reader.readAsDataURL(file);
     });
   };
 
-  const base64Data = await resizeImage();
-  if (!base64Data) return null;
-
-  if (!isSupabaseConfigured()) {
-    console.warn('Supabase URL not configured.');
-    return base64Data;
-  }
-
-  try {
-    const response = await fetch(base64Data);
-    const blob = await response.blob();
-    const fileName = `${Math.random().toString(36).substring(2)}.jpg`;
-    
-    // Convert to web compatible fast upload
-    const uploadPromise = supabase.storage.from(bucket).upload(fileName, blob, {
-      contentType: 'image/jpeg',
-      upsert: true
-    });
-
-    const timeoutPromise = new Promise<{data: any, error: any}>((_, reject) => {
-      setTimeout(() => reject(new Error('Upload timeout after 5 seconds')), 5000);
-    });
-
-    const { data, error } = await Promise.race([uploadPromise, timeoutPromise]);
-
-    if (error) {
-      console.warn(`Supabase array failed: ${error.message || 'Unknown error'}, falling back to base64.`);
-      return base64Data;
-    }
-
-    const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(fileName);
-    return publicUrl;
-  } catch (err) {
-    console.warn(`Exception during Supabase upload, falling back to base64.`, err);
-    return base64Data;
-  }
+  return await getCompressedBase64();
 }
 
 // Types for the database (simplified)
