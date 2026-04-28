@@ -172,23 +172,23 @@ export default function App() {
               <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" />} />
               
               {/* Protected Routes */}
-              <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/login" />} />
-              <Route path="/players" element={user ? <Players /> : <Navigate to="/login" />} />
-              <Route path="/players/:id" element={user ? <PlayerProfile /> : <Navigate to="/login" />} />
-              <Route path="/schedule" element={user ? <TrainingSchedule /> : <Navigate to="/login" />} />
-              <Route path="/performance" element={user ? <PerformanceCenter /> : <Navigate to="/login" />} />
-              <Route path="/tactics" element={user ? <Tactics /> : <Navigate to="/login" />} />
-              <Route path="/match-center" element={user ? <MatchCenter /> : <Navigate to="/login" />} />
-              <Route path="/scouting" element={user ? <Scouting /> : <Navigate to="/login" />} />
-              <Route path="/medical" element={user ? <Medical /> : <Navigate to="/login" />} />
-              <Route path="/parent-portal" element={user ? <ParentPortal /> : <Navigate to="/login" />} />
-              <Route path="/financials" element={user ? <Financials /> : <Navigate to="/login" />} />
-              <Route path="/coaches" element={user ? <Coaches /> : <Navigate to="/login" />} />
-              <Route path="/coaches/:id" element={user ? <CoachProfile /> : <Navigate to="/login" />} />
-              <Route path="/gallery" element={user ? <Gallery /> : <Navigate to="/login" />} />
-              <Route path="/announcements" element={user ? <Announcements /> : <Navigate to="/login" />} />
-              <Route path="/settings" element={user ? <Settings /> : <Navigate to="/login" />} />
-              <Route path="/ai-coach" element={user ? <AICoach /> : <Navigate to="/login" />} />
+              <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/" />} />
+              <Route path="/players" element={user ? <Players /> : <Navigate to="/" />} />
+              <Route path="/players/:id" element={user ? <PlayerProfile /> : <Navigate to="/" />} />
+              <Route path="/schedule" element={user ? <TrainingSchedule /> : <Navigate to="/" />} />
+              <Route path="/performance" element={user ? <PerformanceCenter /> : <Navigate to="/" />} />
+              <Route path="/tactics" element={user ? <Tactics /> : <Navigate to="/" />} />
+              <Route path="/match-center" element={user ? <MatchCenter /> : <Navigate to="/" />} />
+              <Route path="/scouting" element={user ? <Scouting /> : <Navigate to="/" />} />
+              <Route path="/medical" element={user ? <Medical /> : <Navigate to="/" />} />
+              <Route path="/parent-portal" element={user ? <ParentPortal /> : <Navigate to="/" />} />
+              <Route path="/financials" element={user ? <Financials /> : <Navigate to="/" />} />
+              <Route path="/coaches" element={user ? <Coaches /> : <Navigate to="/" />} />
+              <Route path="/coaches/:id" element={user ? <CoachProfile /> : <Navigate to="/" />} />
+              <Route path="/gallery" element={user ? <Gallery /> : <Navigate to="/" />} />
+              <Route path="/announcements" element={user ? <Announcements /> : <Navigate to="/" />} />
+              <Route path="/settings" element={user ? <Settings /> : <Navigate to="/" />} />
+              <Route path="/ai-coach" element={user ? <AICoach /> : <Navigate to="/" />} />
             </Routes>
           </AnimatePresence>
         </Router>
