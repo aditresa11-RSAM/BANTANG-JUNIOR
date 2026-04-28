@@ -674,7 +674,7 @@ function StatusBtn({ icon, active, onClick, tip }: any) {
 }
 
 function BoardPath({ path }: { path: any, key?: any }) {
-  if (!path || path.points.length < 2) return null;
+  if (!path || !path.points || path.points.length < 2) return null;
   const d = path.points.map((p: any, i: number) => 
     (i === 0 ? 'M' : 'L') + ` ${p.x}% ${p.y}%`
   ).join(' ');

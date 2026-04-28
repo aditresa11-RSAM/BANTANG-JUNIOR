@@ -43,7 +43,12 @@ export default function MatchCenter() {
   const handleOpenEdit = (match: any, type: 'upcoming' | 'result') => {
     setMatchType(type);
     setEditingMatch(match);
-    setMatchForm(match);
+    // Normalize: ensure scorers is an array
+    const normalizedMatch = {
+      ...match,
+      scorers: Array.isArray(match.scorers) ? match.scorers : []
+    };
+    setMatchForm(normalizedMatch);
     setIsMatchModalOpen(true);
   };
 
@@ -326,7 +331,7 @@ export default function MatchCenter() {
                 </div>
                 <div className="col-span-2">
                    <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-1.5 block">Pencetak Gol (Pisah Koma)</label>
-                   <input type="text" value={matchForm.scorers.join(', ')} onChange={(e) => setMatchForm({...matchForm, scorers: e.target.value.split(',').map(s => s.trim()).filter(s => s !== '')})} className="w-full bg-surface-raised border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]" placeholder="Alvaro, Haaland" />
+                   <input type="text" value={(matchForm.scorers || []).join(', ')} onChange={(e) => setMatchForm({...matchForm, scorers: e.target.value.split(',').map(s => s.trim()).filter(s => s !== '')})} className="w-full bg-surface-raised border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]" placeholder="Alvaro, Haaland" />
                 </div>
               </>
             )}

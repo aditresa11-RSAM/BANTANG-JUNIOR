@@ -71,7 +71,12 @@ export function useCMSData<T extends { id: string }>(collectionName: string, ini
 
     if (checkSupabase()) {
       try {
-        const { error } = await supabase.from(collectionName).insert([item]);
+        // Sanitize for Supabase: Lowercase keys to match DB schema
+        const sanitizedItem: any = {};
+        Object.keys(item).forEach(key => {
+          sanitizedItem[key.toLowerCase()] = item[key];
+        });
+        const { error } = await supabase.from(collectionName).insert([sanitizedItem]);
         if (error) throw error;
       } catch (err) {
         console.error(`Failed to sync add to ${collectionName}:`, err);
@@ -93,7 +98,12 @@ export function useCMSData<T extends { id: string }>(collectionName: string, ini
 
     if (checkSupabase()) {
       try {
-        const { error } = await supabase.from(collectionName).update(updatedFields).eq('id', id);
+        // Sanitize for Supabase: Lowercase keys
+        const sanitizedFields: any = {};
+        Object.keys(updatedFields).forEach(key => {
+          sanitizedFields[key.toLowerCase()] = updatedFields[key];
+        });
+        const { error } = await supabase.from(collectionName).update(sanitizedFields).eq('id', id);
         if (error) throw error;
       } catch (err) {
         console.error(`Failed to sync update to ${collectionName}:`, err);

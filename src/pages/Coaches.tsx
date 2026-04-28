@@ -75,7 +75,14 @@ export default function Coaches() {
     e.preventDefault();
     e.stopPropagation();
     setEditingCoach(coach);
-    setFormData(coach);
+    // Normalize data: ensure activeTeams exists and prioritize activeteams if it's from DB
+    const normalizedCoach = {
+      ...coach,
+      activeTeams: Array.isArray(coach.activeTeams) 
+        ? coach.activeTeams 
+        : (Array.isArray(coach.activeteams) ? coach.activeteams : [])
+    };
+    setFormData(normalizedCoach);
     setIsModalOpen(true);
   };
 
@@ -294,7 +301,7 @@ export default function Coaches() {
               <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-1.5 block">Tim Aktif (Pisah Koma)</label>
               <input 
                 type="text" 
-                value={formData.activeTeams.join(', ')} 
+                value={(formData.activeTeams || []).join(', ')} 
                 onChange={(e) => setFormData({...formData, activeTeams: e.target.value.split(',').map(t => t.trim()).filter(t => t !== '')})} 
                 className="w-full bg-[#0a0f1c] border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:border-blue-500" 
                 placeholder="U17, U19" 
