@@ -81,6 +81,17 @@ export default function App() {
          try {
             const { isSupabaseConfigured, supabase } = await import('./lib/supabase');
             if (isSupabaseConfigured()) {
+                // Try fetching from table first (more reliable/latest)
+                const { data: dbData, error: dbError } = await supabase.from('settings').select('*').eq('id', 'main').single();
+                
+                if (!dbError && dbData) {
+                    if (dbData.app_name) setAppName(dbData.app_name);
+                    if (dbData.logo_url !== undefined) setLogoUrl(dbData.logo_url);
+                    if (dbData.hero_bg_url !== undefined) setHeroBgUrl(dbData.hero_bg_url);
+                    return; // Successfully loaded from DB
+                }
+
+                // Fallback to JSON file in storage
                 const { data } = supabase.storage.from('settings').getPublicUrl('global_settings.json');
                 if (data.publicUrl) {
                     // Try fetch the JSON file to bypass caching issue, add timestamp

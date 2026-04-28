@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS public.dashboard_sliders (
   id TEXT PRIMARY KEY,
   title TEXT,
   subtitle TEXT,
-  desc TEXT,
+  description TEXT,
   img TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS public.leaderboard (
   score TEXT,
   attendance TEXT,
   trend TEXT,
-  trendUp BOOLEAN,
+  trendup BOOLEAN,
   photo TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS public.upcoming_matches (
   time TEXT,
   location TEXT,
   rival TEXT,
-  rivalLogo TEXT,
+  rivallogo TEXT,
   category TEXT,
   type TEXT,
   status TEXT,
@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS public.match_results (
   id TEXT PRIMARY KEY,
   date TEXT,
   rival TEXT,
-  rivalLogo TEXT,
+  rivallogo TEXT,
   category TEXT,
   type TEXT,
   score TEXT,
@@ -129,6 +129,43 @@ CREATE TABLE IF NOT EXISTS public.financials (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
+-- Table: settings
+CREATE TABLE IF NOT EXISTS public.settings (
+  id TEXT PRIMARY KEY,
+  app_name TEXT,
+  logo_url TEXT,
+  hero_bg_url TEXT,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Note: Run the following in the Supabase SQL Editor to initialize storage
+/*
+INSERT INTO storage.buckets (id, name, public)
+VALUES 
+  ('players', 'players', true),
+  ('settings', 'settings', true),
+  ('gallery', 'gallery', true),
+  ('coaches', 'coaches', true),
+  ('dashboard', 'dashboard', true),
+  ('matches', 'matches', true),
+  ('materials', 'materials', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Grant access policies to storage
+DROP POLICY IF EXISTS "Public Access" ON storage.objects;
+DROP POLICY IF EXISTS "Public Upload" ON storage.objects;
+DROP POLICY IF EXISTS "Public Update" ON storage.objects;
+DROP POLICY IF EXISTS "Public Delete" ON storage.objects;
+
+CREATE POLICY "Public Access" ON storage.objects FOR SELECT USING (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'materials'));
+CREATE POLICY "Public Upload" ON storage.objects FOR INSERT WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'materials'));
+CREATE POLICY "Public Update" ON storage.objects FOR UPDATE USING (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'materials'));
+CREATE POLICY "Public Delete" ON storage.objects FOR DELETE USING (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'materials'));
+
+-- Ensure RLS is enabled on storage.objects
+ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+*/
+
 -- Set up Row Level Security (RLS)
 -- Allow public access for now since this is an MVP without complex auth yet
 ALTER TABLE public.players ENABLE ROW LEVEL SECURITY;
@@ -140,6 +177,7 @@ ALTER TABLE public.upcoming_matches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.match_results ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.schedules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.financials ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.settings ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Allow public read access" ON public.players FOR SELECT USING (true);
 CREATE POLICY "Allow public insert access" ON public.players FOR INSERT WITH CHECK (true);
@@ -185,3 +223,8 @@ CREATE POLICY "Allow public read access" ON public.financials FOR SELECT USING (
 CREATE POLICY "Allow public insert access" ON public.financials FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow public update access" ON public.financials FOR UPDATE USING (true);
 CREATE POLICY "Allow public delete access" ON public.financials FOR DELETE USING (true);
+
+CREATE POLICY "Allow public read access" ON public.settings FOR SELECT USING (true);
+CREATE POLICY "Allow public insert access" ON public.settings FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update access" ON public.settings FOR UPDATE USING (true);
+CREATE POLICY "Allow public delete access" ON public.settings FOR DELETE USING (true);

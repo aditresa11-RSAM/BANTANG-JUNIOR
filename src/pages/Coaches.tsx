@@ -167,7 +167,7 @@ export default function Coaches() {
                      <div className="absolute bottom-4 left-4 right-4 z-20 transform transition-all duration-500 group-hover:-translate-y-4">
                         <h3 className="text-2xl font-display font-black text-white uppercase tracking-tighter mb-1 drop-shadow-md group-hover:text-blue-400 transition-colors">{coach.name}</h3>
                         <p className="text-xs font-bold text-yellow-500/90 uppercase tracking-widest mb-0.5 flex items-center gap-2">
-                           <Shield className="w-3 h-3" /> {coach.specialty}
+                           <Shield className="w-3 h-3" /> {coach.specialty || coach.role}
                         </p>
                         <p className="text-[10px] font-black text-blue-400/80 uppercase tracking-[0.2em] mb-3">
                            {coach.license}
@@ -182,7 +182,7 @@ export default function Coaches() {
                               </div>
                               <div>
                                  <span className="block text-[9px] uppercase text-white/40 font-bold mb-0.5 tracking-wider">Squads</span>
-                                 <span className="text-xs font-bold text-white/80">{coach.activeTeams?.length || 0} Teams</span>
+                                 <span className="text-xs font-bold text-white/80">{(coach.activeTeams || coach.activeteams)?.length || 0} Teams</span>
                               </div>
                            </div>
                            <button className="w-full py-2.5 rounded-xl bg-blue-600/90 hover:bg-blue-500 text-white text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-colors">

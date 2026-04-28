@@ -132,7 +132,7 @@ export default function MatchCenter() {
 
                    <div className="flex flex-col items-center gap-6 flex-1">
                       <div className="w-32 h-32 md:w-40 md:h-40 flex items-center justify-center shrink-0">
-                         <img src={upcomingMatches[0].rivalLogo} className="w-full h-full object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.1)] grayscale-0" />
+                         <img src={upcomingMatches[0].rivalLogo || upcomingMatches[0].rivallogo} className="w-full h-full object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.1)] grayscale-0" />
                       </div>
                       <div className="text-center w-full px-2 mt-4">
                          <p className="text-xl md:text-3xl font-display font-black tracking-tight uppercase break-words line-clamp-2 leading-tight">{upcomingMatches[0].rival}</p>
@@ -174,8 +174,8 @@ export default function MatchCenter() {
                           <button onClick={() => setDeleteConfirm({ isOpen: true, id: match.id, type: 'upcoming' })} className="p-2 rounded-lg bg-black/40 text-red-500 hover:text-white transition-colors"><Trash2 className="w-3.5 h-3.5"/></button>
                       </div>
                       <div className="w-12 h-12 rounded-xl bg-white/5 flex flex-col items-center justify-center text-center border border-white/5">
-                        <span className="text-xs font-bold leading-none text-white">{match.date.split('-')[2]}</span>
-                        <span className="text-[9px] uppercase text-white/40 mt-1">MAY</span>
+                        <span className="text-xs font-bold leading-none text-white">{(match.date || '').split('-')[2] || '--'}</span>
+                        <span className="text-[9px] uppercase text-white/40 mt-1">{(match.date || '').split('-')[1] ? new Date(match.date).toLocaleString('default', { month: 'short' }).toUpperCase() : 'MAY'}</span>
                       </div>
                       <div className="flex-1">
                         <p className="text-[9px] font-black text-[var(--color-primary)] uppercase tracking-widest mb-1">{match.category} • {match.tournament}</p>
@@ -223,7 +223,7 @@ export default function MatchCenter() {
                          <div className="flex items-center gap-4 flex-1 justify-end min-w-0">
                            <span className="font-bold text-white uppercase text-right break-words line-clamp-2 text-sm leading-tight">{match.rival}</span>
                            <div className="w-12 h-12 shrink-0 flex items-center justify-center">
-                              <img src={match.rivalLogo} alt={match.rival} className="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]" />
+                              <img src={match.rivalLogo || match.rivallogo} alt={match.rival} className="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]" />
                            </div>
                          </div>
                       </div>

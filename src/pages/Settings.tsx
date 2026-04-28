@@ -172,29 +172,31 @@ export default function Settings() {
     setLogoUrl(localLogoUrl || null);
     setHeroBgUrl(localHeroBgUrl || null);
     
-    // Save to Supabase Storage if configured
+    // Save to Supabase Storage and DB if configured
     if (isSupabaseConfigured()) {
        try {
+          // 1. Save JSON for backup
           const settingsObj = {
              appName: localAppName,
              logoUrl: localLogoUrl,
              heroBgUrl: localHeroBgUrl
           };
           const blob = new Blob([JSON.stringify(settingsObj)], { type: 'application/json' });
-          const { error } = await supabase.storage.from('settings').upload('global_settings.json', blob, { upsert: true });
+          await supabase.storage.from('settings').upload('global_settings.json', blob, { upsert: true });
           
-          if (error) {
-            console.error("Supabase Storage Error:", error);
-            // Check if it's a "bucket not found" error
-            if (error.message.includes('not found') || error.message.includes('bucket')) {
-              alert("PERINGATAN: Pengaturan tersimpan secara lokal tapi GAGAL dikirim ke Cloud karena bucket 'settings' tidak ditemukan di Supabase. Orang lain mungkin tidak akan melihat perubahan ini.");
-            } else {
-              alert("Gagal sinkronisasi ke Cloud: " + error.message);
-            }
-          }
+          // 2. Save to DB for real-time reactivity
+          const { error } = await supabase.from('settings').upsert({
+            id: 'main',
+            app_name: localAppName,
+            logo_url: localLogoUrl,
+            hero_bg_url: localHeroBgUrl,
+            updated_at: new Date().toISOString()
+          });
+
+          if (error) throw error;
        } catch(e: any) {
           console.error("Failed to save settings to Supabase", e);
-          alert("Gelar kesalahan sinkronisasi Cloud: " + (e.message || "Pastikan Supabase Anda sudah benar."));
+          alert("Gagal sinkronisasi Cloud: " + (e.message || "Pastikan Supabase Anda sudah benar."));
        }
     }
 
@@ -301,7 +303,7 @@ CREATE TABLE IF NOT EXISTS players (
     status TEXT,
     height NUMERIC, 
     weight NUMERIC, 
-    dominantFoot TEXT, 
+    dominantfoot TEXT, 
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -323,23 +325,50 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='assists') THEN ALTER TABLE players ADD COLUMN assists NUMERIC; END IF;
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='appearances') THEN ALTER TABLE players ADD COLUMN appearances NUMERIC; END IF;
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='attendance') THEN ALTER TABLE players ADD COLUMN attendance NUMERIC; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='parent_id') THEN ALTER TABLE players ADD COLUMN parent_id TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='skillset') THEN ALTER TABLE players ADD COLUMN skillset JSONB; END IF;
 
     -- Upcoming Matches
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='upcoming_matches' AND column_name='result') THEN ALTER TABLE upcoming_matches ADD COLUMN result TEXT; END IF;
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='upcoming_matches' AND column_name='venue') THEN ALTER TABLE upcoming_matches ADD COLUMN venue TEXT; END IF;
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='upcoming_matches' AND column_name='time') THEN ALTER TABLE upcoming_matches ADD COLUMN time TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='upcoming_matches' AND column_name='rivallogo') THEN ALTER TABLE upcoming_matches ADD COLUMN rivallogo TEXT; END IF;
+
+    -- Results
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='match_results' AND column_name='rivallogo') THEN ALTER TABLE match_results ADD COLUMN rivallogo TEXT; END IF;
 
     -- Scouting
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='scouting' AND column_name='currentteam') THEN ALTER TABLE scouting ADD COLUMN currentTeam TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='scouting' AND column_name='currentteam') THEN ALTER TABLE scouting ADD COLUMN currentteam TEXT; END IF;
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='scouting' AND column_name='match_rating') THEN ALTER TABLE scouting ADD COLUMN match_rating NUMERIC; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='scouting' AND column_name='photo') THEN ALTER TABLE scouting ADD COLUMN photo TEXT; END IF;
 
     -- Medicals
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='medicals' AND column_name='estimatedreturn') THEN ALTER TABLE medicals ADD COLUMN estimatedReturn TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='medicals' AND column_name='estimatedreturn') THEN ALTER TABLE medicals ADD COLUMN estimatedreturn TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='medicals' AND column_name='playername') THEN ALTER TABLE medicals ADD COLUMN playername TEXT; END IF;
 
-    -- Dashboard Sliders (Ensure full schema)
+    -- Dashboard Sliders
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='dashboard_sliders' AND column_name='subtitle') THEN ALTER TABLE dashboard_sliders ADD COLUMN subtitle TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='dashboard_sliders' AND column_name='description') THEN ALTER TABLE dashboard_sliders ADD COLUMN description TEXT; END IF;
+
+    -- Schedules
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='schedules' AND column_name='activity') THEN ALTER TABLE schedules ADD COLUMN activity TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='schedules' AND column_name='venue') THEN ALTER TABLE schedules ADD COLUMN venue TEXT; END IF;
+
+    -- Coaches
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='coaches' AND column_name='photo') THEN ALTER TABLE coaches ADD COLUMN photo TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='coaches' AND column_name='photourl') THEN ALTER TABLE coaches ADD COLUMN photourl TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='coaches' AND column_name='specialty') THEN ALTER TABLE coaches ADD COLUMN specialty TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='coaches' AND column_name='activeteams') THEN ALTER TABLE coaches ADD COLUMN activeteams JSONB; END IF;
 
 END $$;
+
+CREATE TABLE IF NOT EXISTS settings (
+    id TEXT PRIMARY KEY,
+    app_name TEXT,
+    logo_url TEXT,
+    hero_bg_url TEXT,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
 
 CREATE TABLE IF NOT EXISTS dashboard_sliders (
     id TEXT PRIMARY KEY, 
@@ -356,7 +385,11 @@ CREATE TABLE IF NOT EXISTS coaches (
     role TEXT, 
     experience TEXT, 
     license TEXT, 
-    photoUrl TEXT, 
+    photo TEXT, 
+    photourl TEXT,
+    specialty TEXT,
+    rating NUMERIC,
+    activeteams JSONB,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -364,7 +397,7 @@ CREATE TABLE IF NOT EXISTS upcoming_matches (
     id TEXT PRIMARY KEY, 
     tournament TEXT, 
     rival TEXT, 
-    rivalLogo TEXT, 
+    rivallogo TEXT, 
     date TEXT, 
     time TEXT, 
     venue TEXT, 
@@ -377,6 +410,7 @@ CREATE TABLE IF NOT EXISTS match_results (
     id TEXT PRIMARY KEY, 
     tournament TEXT, 
     rival TEXT, 
+    rivallogo TEXT,
     score TEXT, 
     date TEXT, 
     category TEXT, 
@@ -390,6 +424,7 @@ CREATE TABLE IF NOT EXISTS gallery (
     type TEXT, 
     url TEXT, 
     title TEXT, 
+    thumbnail TEXT,
     category TEXT, 
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -401,6 +436,8 @@ CREATE TABLE IF NOT EXISTS financials (
     amount NUMERIC, 
     type TEXT, 
     status TEXT, 
+    description TEXT,
+    category TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -412,6 +449,8 @@ CREATE TABLE IF NOT EXISTS schedules (
     category TEXT, 
     coach TEXT, 
     field TEXT, 
+    activity TEXT,
+    venue TEXT,
     status TEXT, 
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -420,21 +459,24 @@ CREATE TABLE IF NOT EXISTS scouting (
     id TEXT PRIMARY KEY, 
     name TEXT, 
     position TEXT, 
-    currentTeam TEXT, 
+    currentteam TEXT, 
     price TEXT, 
     status TEXT, 
     rating NUMERIC, 
     match_rating NUMERIC, 
     photo TEXT, 
+    notes TEXT,
+    age NUMERIC,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS medicals (
     id TEXT PRIMARY KEY, 
     name TEXT, 
+    playername TEXT,
     position TEXT, 
     injury TEXT, 
-    estimatedReturn TEXT, 
+    estimatedreturn TEXT, 
     status TEXT, 
     progress NUMERIC, 
     photo TEXT, 
@@ -470,30 +512,18 @@ CREATE TABLE IF NOT EXISTS tactics (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- 2. DISABLE RLS (CRITICAL for data sync from AI Studio)
-ALTER TABLE players DISABLE ROW LEVEL SECURITY;
-ALTER TABLE dashboard_sliders DISABLE ROW LEVEL SECURITY;
-ALTER TABLE coaches DISABLE ROW LEVEL SECURITY;
-ALTER TABLE upcoming_matches DISABLE ROW LEVEL SECURITY;
-ALTER TABLE match_results DISABLE ROW LEVEL SECURITY;
-ALTER TABLE gallery DISABLE ROW LEVEL SECURITY;
-ALTER TABLE financials DISABLE ROW LEVEL SECURITY;
-ALTER TABLE schedules DISABLE ROW LEVEL SECURITY;
-ALTER TABLE scouting DISABLE ROW LEVEL SECURITY;
-ALTER TABLE medicals DISABLE ROW LEVEL SECURITY;
-ALTER TABLE training_materials DISABLE ROW LEVEL SECURITY;
-ALTER TABLE attendance DISABLE ROW LEVEL SECURITY;
-ALTER TABLE tactics DISABLE ROW LEVEL SECURITY;
-
--- 3. PERMISSIVE POLICIES (Safety backup if RLS is re-enabled)
+-- 2. DISABLE RLS & PERMISSIVE POLICIES (CRITICAL for data sync from AI Studio)
 DO $$ 
 DECLARE 
     t text;
 BEGIN
     FOR t IN SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' 
     LOOP
+        EXECUTE format('ALTER TABLE %I DISABLE ROW LEVEL SECURITY', t);
         EXECUTE format('DROP POLICY IF EXISTS "Allow All" ON %I', t);
+        EXECUTE format('DROP POLICY IF EXISTS "Allow All Auth" ON %I', t);
         EXECUTE format('CREATE POLICY "Allow All" ON %I FOR ALL TO anon USING (true) WITH CHECK (true)', t);
+        EXECUTE format('CREATE POLICY "Allow All Auth" ON %I FOR ALL TO authenticated USING (true) WITH CHECK (true)', t);
     END LOOP;
 END $$;
 
@@ -511,9 +541,18 @@ VALUES
 ON CONFLICT (id) DO NOTHING;
 
 -- Grant access policies to storage
+DROP POLICY IF EXISTS "Public Access" ON storage.objects;
+DROP POLICY IF EXISTS "Public Upload" ON storage.objects;
+DROP POLICY IF EXISTS "Public Update" ON storage.objects;
+DROP POLICY IF EXISTS "Public Delete" ON storage.objects;
+
 CREATE POLICY "Public Access" ON storage.objects FOR SELECT USING (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'materials'));
 CREATE POLICY "Public Upload" ON storage.objects FOR INSERT WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'materials'));
 CREATE POLICY "Public Update" ON storage.objects FOR UPDATE USING (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'materials'));
+CREATE POLICY "Public Delete" ON storage.objects FOR DELETE USING (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'materials'));
+
+-- Ensure RLS is enabled on storage.objects
+ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
   `;
 
   const syncToCloud = async () => {
@@ -529,16 +568,16 @@ CREATE POLICY "Public Update" ON storage.objects FOR UPDATE USING (bucket_id IN 
       ];
       
       const allowedColumns: Record<string, string[]> = {
-        players: ['id', 'name', 'overall', 'category', 'position', 'photo', 'dribbling', 'passing', 'shooting', 'pace', 'strength', 'tactical', 'vision', 'teamwork', 'goals', 'assists', 'appearances', 'attendance', 'age', 'height', 'weight', 'dominantfoot', 'dob', 'stamina', 'jersey', 'status', 'created_at'],
+        players: ['id', 'name', 'overall', 'category', 'position', 'photo', 'dribbling', 'passing', 'shooting', 'pace', 'strength', 'tactical', 'vision', 'teamwork', 'goals', 'assists', 'appearances', 'attendance', 'age', 'height', 'weight', 'dominantfoot', 'dob', 'stamina', 'jersey', 'status', 'created_at', 'parent_id', 'skillset'],
         dashboard_sliders: ['id', 'title', 'subtitle', 'description', 'img', 'created_at'],
-        coaches: ['id', 'name', 'role', 'experience', 'license', 'photourl', 'created_at'],
+        coaches: ['id', 'name', 'role', 'experience', 'license', 'photourl', 'photo', 'specialty', 'rating', 'activeteams', 'created_at'],
         upcoming_matches: ['id', 'tournament', 'rival', 'rivallogo', 'date', 'time', 'venue', 'category', 'result', 'created_at'],
-        match_results: ['id', 'tournament', 'rival', 'score', 'date', 'category', 'result', 'scorers', 'created_at'],
-        gallery: ['id', 'type', 'url', 'title', 'category', 'created_at'],
-        financials: ['id', 'player', 'date', 'amount', 'type', 'status', 'created_at'],
-        schedules: ['id', 'title', 'date', 'time', 'category', 'coach', 'field', 'status', 'created_at'],
-        scouting: ['id', 'name', 'position', 'currentteam', 'price', 'status', 'rating', 'match_rating', 'photo', 'created_at'],
-        medicals: ['id', 'name', 'position', 'injury', 'estimatedreturn', 'status', 'progress', 'photo', 'created_at'],
+        match_results: ['id', 'tournament', 'rival', 'rivallogo', 'score', 'date', 'category', 'result', 'scorers', 'created_at'],
+        gallery: ['id', 'type', 'url', 'title', 'category', 'thumbnail', 'created_at'],
+        financials: ['id', 'player', 'date', 'amount', 'type', 'status', 'description', 'category', 'created_at'],
+        schedules: ['id', 'title', 'date', 'time', 'category', 'coach', 'field', 'status', 'venue', 'activity', 'created_at'],
+        scouting: ['id', 'name', 'position', 'currentteam', 'price', 'status', 'rating', 'match_rating', 'photo', 'notes', 'age', 'created_at'],
+        medicals: ['id', 'name', 'position', 'injury', 'estimatedreturn', 'status', 'progress', 'photo', 'playername', 'created_at'],
         training_materials: ['id', 'title', 'category', 'description', 'duration', 'age_group', 'level', 'media_url', 'created_at'],
         attendance: ['id', 'player_id', 'date', 'status', 'created_at'],
         tactics: ['id', 'formation', 'mode', 'strategy', 'notes', 'created_at']
@@ -557,23 +596,20 @@ CREATE POLICY "Public Update" ON storage.objects FOR UPDATE USING (bucket_id IN 
                              const chunk = parsed.slice(i, i + chunkSize).map(item => {
                                  const temp: any = { ...item };
                                  
-                                 // Global Mappings & Cleaning
-                                 if ('desc' in temp) { temp.description = temp.desc; delete temp.desc; }
-                                 if ('match' in temp) { temp.match_rating = temp.match; delete temp.match; }
-                                 
-                                 // Table Specific Mappings
-                                 if (table === 'players') {
-                                     if ('birth' in temp) { temp.dob = temp.birth; delete temp.birth; }
-                                     if ('age' in temp && !temp.dob) { temp.dob = String(temp.age); }
-                                 }
-                                 
-                                 if (table === 'scouting') {
-                                     if ('team' in temp) { temp.currentTeam = temp.team; delete temp.team; }
-                                 }
-
-                                 if (table === 'medicals') {
-                                     if ('returnDate' in temp) { temp.estimatedReturn = temp.returnDate; delete temp.returnDate; }
-                                 }
+                                 // Mappings for UI -> DB inconsistency
+                                 if ('desc' in temp) temp.description = temp.desc;
+                                 if ('match' in temp) temp.match_rating = temp.match;
+                                 if ('birth' in temp) temp.dob = temp.birth;
+                                 if ('team' in temp) temp.currentteam = temp.team;
+                                 if ('returnDate' in temp) temp.estimatedreturn = temp.returnDate;
+                                 if ('rivalLogo' in temp) temp.rivallogo = temp.rivalLogo;
+                                 if ('photoUrl' in temp) temp.photourl = temp.photoUrl;
+                                 if ('dominantFoot' in temp) temp.dominantfoot = temp.dominantFoot;
+                                 if ('activeTeams' in temp) temp.activeteams = temp.activeTeams;
+                                 if ('playerName' in temp) temp.playername = temp.playerName;
+                                 if ('estimatedReturn' in temp) temp.estimatedreturn = temp.estimatedReturn;
+                                 if ('currentTeam' in temp) temp.currentteam = temp.currentTeam;
+                                 if ('specialty' in temp && table === 'coaches') temp.role = temp.specialty;
 
                                  // Final Sanitization: Lowercase keys and remove any field not in allowedColumns
                                  const sanitized: any = {};
@@ -586,6 +622,9 @@ CREATE POLICY "Public Update" ON storage.objects FOR UPDATE USING (bucket_id IN 
                                          }
                                      });
                                  }
+                                 
+                                 if (!sanitized.id) sanitized.id = Math.random().toString(36).substring(2, 11);
+                                 if (!sanitized.created_at) sanitized.created_at = new Date().toISOString();
 
                                  return sanitized;
                              });
@@ -618,14 +657,16 @@ CREATE POLICY "Public Update" ON storage.objects FOR UPDATE USING (bucket_id IN 
           setSyncStatus('Syncing pengaturan aplikasi...');
           const settingsObj = { appName, logoUrl, heroBgUrl };
           const blob = new Blob([JSON.stringify(settingsObj)], { type: 'application/json' });
-          const { error: storageError } = await supabase.storage.from('settings').upload('global_settings.json', blob, { upsert: true });
+          await supabase.storage.from('settings').upload('global_settings.json', blob, { upsert: true });
           
-          if (storageError) {
-              if (storageError.message.includes('not found') || storageError.message.includes('bucket')) {
-                  throw new Error('Bucket "settings" tidak ditemukan. Silakan jalankan SQL Script bagian ke-4 di bawah!');
-              }
-              throw storageError;
-          }
+          // Sync settings to table
+          await supabase.from('settings').upsert({
+            id: 'main',
+            app_name: appName,
+            logo_url: logoUrl,
+            hero_bg_url: heroBgUrl,
+            updated_at: new Date().toISOString()
+          });
 
           setSyncStatus('Sinkronisasi selesai!');
           setTimeout(() => setSyncStatus(''), 4000);
@@ -911,8 +952,64 @@ CREATE POLICY "Public Update" ON storage.objects FOR UPDATE USING (bucket_id IN 
              </div>
           </div>
         </div>
+
+        {/* Integration Guide */}
+        <div className="space-y-6">
+           <h3 className="text-xs font-black uppercase text-[var(--color-primary)] tracking-[0.3em] flex items-center gap-3">
+              <Server className="w-4 h-4" /> INTEGRASI GITHUB & VERCEL <div className="h-px flex-1 bg-gradient-to-r from-[var(--color-primary)]/20 to-transparent" />
+           </h3>
+
+           <div className="glass-card p-8 space-y-8 border-t-2 border-t-[var(--color-primary)]">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                 <div className="space-y-4">
+                    <div className="flex items-center gap-3 mb-2">
+                       <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                          <span className="font-bold text-xs text-white">01</span>
+                       </div>
+                       <h4 className="font-bold text-white uppercase text-sm">GitHub Export</h4>
+                    </div>
+                    <p className="text-xs text-white/50 leading-relaxed">
+                       Gunakan menu <strong>Project Settings -&gt; Export to GitHub</strong> di AI Studio untuk memindahkan kode ini ke repositori Anda sendiri. GitHub akan menjadi pusat sinkronisasi kode antara AI Studio dan Vercel.
+                    </p>
+                 </div>
+
+                 <div className="space-y-4">
+                    <div className="flex items-center gap-3 mb-2">
+                       <div className="w-8 h-8 rounded-lg bg-[var(--color-primary)]/20 flex items-center justify-center">
+                          <span className="font-bold text-xs text-[var(--color-primary)]">02</span>
+                       </div>
+                       <h4 className="font-bold text-white uppercase text-sm">Vercel Deployment</h4>
+                    </div>
+                    <p className="text-xs text-white/50 leading-relaxed">
+                       Hubungkan repositori GitHub Anda ke <strong>Vercel</strong>. Pastikan Anda menambahkan Environment Variables berikut di dashboard Vercel:
+                    </p>
+                    <div className="space-y-2">
+                       <div className="flex items-center justify-between p-2 bg-black/40 rounded border border-white/5 font-mono text-[10px]">
+                          <span className="text-white/40">VITE_SUPABASE_URL</span>
+                          <span className="text-emerald-400 font-bold">Your_URL</span>
+                       </div>
+                       <div className="flex items-center justify-between p-2 bg-black/40 rounded border border-white/5 font-mono text-[10px]">
+                          <span className="text-white/40">VITE_SUPABASE_ANON_KEY</span>
+                          <span className="text-emerald-400 font-bold">Your_Key</span>
+                       </div>
+                    </div>
+                 </div>
+              </div>
+
+              <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-start gap-4">
+                 <AlertTriangle className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
+                 <div>
+                    <h5 className="text-xs font-bold text-blue-400 uppercase mb-1">Penting: Data & Image Sync</h5>
+                    <p className="text-[10px] text-white/60 leading-relaxed">
+                       Aplikasi di Vercel/GitHub akan otomatis menampilkan data dan gambar dari Supabase (bukan AI Studio). Pastikan Anda telah menekan tombol <span className="text-emerald-400 font-black">SINKRONISASI</span> di atas sebelum mengekspor kode.
+                    </p>
+                 </div>
+              </div>
+           </div>
+        </div>
       </div>
     </Layout>
+
   );
 }
 

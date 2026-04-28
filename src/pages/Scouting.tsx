@@ -65,7 +65,7 @@ export default function Scouting() {
               <div className="grid grid-cols-2 gap-4 mb-6">
                  <div>
                    <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold mb-1">Current Team</p>
-                   <p className="text-sm font-medium text-white">{target.currentTeam}</p>
+                   <p className="text-sm font-medium text-white">{target.currentTeam || target.currentteam}</p>
                  </div>
                  <div>
                    <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold mb-1">Est. Price</p>

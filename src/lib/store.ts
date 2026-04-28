@@ -17,16 +17,19 @@ export function useCMSData<T extends { id: string }>(collectionName: string, ini
         try {
           const { data: supaData, error } = await supabase.from(collectionName).select('*').order('created_at', { ascending: false });
           // If we got data and it's not empty, use it and cache it locally
-          if (!error && supaData && supaData.length > 0) {
-            setData(supaData as T[]);
-            // Also update local cache for offline/faster subsequent loads
-            try {
-              localStorage.setItem(`cms_${collectionName}`, JSON.stringify(supaData));
-            } catch (e) {
-               console.warn('Failed to cache Supabase data locally');
+          if (!error && supaData) {
+            // Check if we actually got results (could be empty array which is fine)
+            if (supaData.length > 0) {
+              setData(supaData as T[]);
+              // Also update local cache for offline/faster subsequent loads
+              try {
+                localStorage.setItem(`cms_${collectionName}`, JSON.stringify(supaData));
+              } catch (e) {
+                 console.warn('Failed to cache Supabase data locally');
+              }
+              setIsLoading(false);
+              return;
             }
-            setIsLoading(false);
-            return;
           }
           if (error) {
             console.warn(`Supabase fetch error for ${collectionName}:`, error.message);
@@ -36,91 +39,96 @@ export function useCMSData<T extends { id: string }>(collectionName: string, ini
         }
       }
       // Fallback to localStorage if Supabase is not configured, or if it returned empty/error
-      const saved = localStorage.getItem(`cms_${collectionName}`);
-      if (saved) {
-        try {
-          setData(JSON.parse(saved));
-        } catch (e) {
-          console.error(`Failed to parse cached data for ${collectionName}`, e);
+      try {
+        const saved = localStorage.getItem(`cms_${collectionName}`);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            setData(parsed);
+          } else {
+            setData(initialData);
+          }
+        } else {
           setData(initialData);
-        }
-      } else {
-        setData(initialData);
-        try {
           localStorage.setItem(`cms_${collectionName}`, JSON.stringify(initialData));
-        } catch (e) {
-           console.error('Storage quota exceeded');
         }
+      } catch (e) {
+        console.error(`Failed to handle local data for ${collectionName}:`, e);
+        setData(initialData);
       }
       setIsLoading(false);
     };
     loadData();
   }, [collectionName]);
 
-  const addItems = async (newItem: Omit<T, 'id'>) => {
-    const item = { ...newItem, id: Math.random().toString(36).substr(2, 9) } as unknown as T;
+  const addItems = async (newItem: any) => {
+    // Basic sanitization: Ensure id exists
+    const item = { ...newItem, id: newItem.id || Math.random().toString(36).substring(2, 11) };
     
+    // Optimistic Update
+    const previousData = [...data];
+    setData(prev => [item, ...prev]);
+
     if (checkSupabase()) {
-      const { error } = await supabase.from(collectionName).insert([item]);
-      if (!error) {
-        setData(prev => [item, ...prev]);
-        return;
+      try {
+        const { error } = await supabase.from(collectionName).insert([item]);
+        if (error) throw error;
+      } catch (err) {
+        console.error(`Failed to sync add to ${collectionName}:`, err);
       }
     }
     
-    // Fallback
-    setData(prev => {
-      const updated = [item, ...prev];
-      try {
-        localStorage.setItem(`cms_${collectionName}`, JSON.stringify(updated));
-      } catch (e) {
-        console.error('Storage quota exceeded, unable to save to localStorage', e);
-        // Continue using in-memory state
-      }
-      return updated;
-    });
+    // Sync to local
+    try {
+      const updated = [item, ...previousData];
+      localStorage.setItem(`cms_${collectionName}`, JSON.stringify(updated));
+    } catch (e) {
+      console.error('Storage error:', e);
+    }
   };
 
   const updateItem = async (id: string, updatedFields: any) => {
+    // Optimistic Update
+    setData(prev => prev.map(item => item.id === id ? { ...item, ...updatedFields } : item));
+
     if (checkSupabase()) {
-      const { error } = await supabase.from(collectionName).update(updatedFields).eq('id', id);
-      if (!error) {
-        setData(prev => prev.map(item => item.id === id ? { ...item, ...updatedFields } : item));
-        return;
+      try {
+        const { error } = await supabase.from(collectionName).update(updatedFields).eq('id', id);
+        if (error) throw error;
+      } catch (err) {
+        console.error(`Failed to sync update to ${collectionName}:`, err);
       }
     }
 
-    // Fallback
-    setData(prev => {
-      const updated = prev.map(item => item.id === id ? { ...item, ...updatedFields } : item);
-      try {
-        localStorage.setItem(`cms_${collectionName}`, JSON.stringify(updated));
-      } catch (e) {
-        console.error('Storage quota exceeded, unable to save to localStorage', e);
-      }
-      return updated;
-    });
+    // Sync to local
+    try {
+      const updated = data.map(item => item.id === id ? { ...item, ...updatedFields } : item);
+      localStorage.setItem(`cms_${collectionName}`, JSON.stringify(updated));
+    } catch (e) {
+      console.error('Storage error:', e);
+    }
   };
 
   const deleteItem = async (id: string) => {
+    // Optimistic Update
+    setData(prev => prev.filter(item => item.id !== id));
+
     if (checkSupabase()) {
-      const { error } = await supabase.from(collectionName).delete().eq('id', id);
-      if (!error) {
-        setData(prev => prev.filter(item => item.id !== id));
-        return;
+      try {
+        const { error } = await supabase.from(collectionName).delete().eq('id', id);
+        if (error) throw error;
+      } catch (err) {
+        console.error(`Failed to sync delete from ${collectionName}:`, err);
       }
     }
 
-    // Fallback
-    setData(prev => {
-      const updated = prev.filter(item => item.id !== id);
-      try {
-        localStorage.setItem(`cms_${collectionName}`, JSON.stringify(updated));
-      } catch (e) {
-        console.error('Storage quota exceeded, unable to save to localStorage', e);
-      }
-      return updated;
-    });
+    // Sync to local
+    try {
+      const updated = data.filter(item => item.id !== id);
+      localStorage.setItem(`cms_${collectionName}`, JSON.stringify(updated));
+    } catch (e) {
+      console.error('Storage error:', e);
+    }
   };
 
   return { data, addItems, updateItem, deleteItem, isLoading };

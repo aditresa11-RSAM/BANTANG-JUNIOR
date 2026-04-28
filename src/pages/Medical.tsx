@@ -70,7 +70,7 @@ export default function Medical() {
                  </div>
                  <div>
                    <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold mb-1">Kembali Bermain</p>
-                   <p className="text-sm font-black text-white">{record.estimatedReturn}</p>
+                   <p className="text-sm font-black text-white">{record.estimatedReturn || record.estimatedreturn}</p>
                  </div>
               </div>
 
