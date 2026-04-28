@@ -147,10 +147,10 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { age: 'U8-U10', name: 'SSB BANTANG JUNIOR', desc: 'Fokus pada kesenangan & teknik dasar bola.', img: 'https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&q=80&w=1000' },
-              { age: 'U12-U14', name: 'Bantang Development', desc: 'Pemantapan visi bermain & taktik tim.', img: 'https://images.unsplash.com/photo-1543351611-58f69d7c1781?auto=format&fit=crop&q=80&w=1000' },
-              { age: 'U15-U17', name: 'Bantang Performance', desc: 'Persiapan fisik & mental level kompetisi.', img: 'https://images.unsplash.com/photo-1517466787929-bc94061c5c50?auto=format&fit=crop&q=80&w=1000' },
-              { age: 'Pro', name: 'Scouting Path', desc: 'Jalur karir menuju klub profesional.', img: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=1000' }
+              { age: 'U8-U10', name: 'SSB BANTANG JUNIOR', description: 'Fokus pada kesenangan & teknik dasar bola.', img: 'https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&q=80&w=1000' },
+              { age: 'U12-U14', name: 'Bantang Development', description: 'Pemantapan visi bermain & taktik tim.', img: 'https://images.unsplash.com/photo-1543351611-58f69d7c1781?auto=format&fit=crop&q=80&w=1000' },
+              { age: 'U15-U17', name: 'Bantang Performance', description: 'Persiapan fisik & mental level kompetisi.', img: 'https://images.unsplash.com/photo-1517466787929-bc94061c5c50?auto=format&fit=crop&q=80&w=1000' },
+              { age: 'Pro', name: 'Scouting Path', description: 'Jalur karir menuju klub profesional.', img: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=1000' }
             ].map((program, idx) => (
               <motion.div
                 key={idx}
@@ -166,7 +166,7 @@ export default function LandingPage() {
                 </div>
                 <div className="p-6">
                   <h3 className="text-xl font-bold mb-2">{program.name}</h3>
-                  <p className="text-sm text-white/50 mb-6 leading-relaxed">{program.desc}</p>
+                  <p className="text-sm text-white/50 mb-6 leading-relaxed">{program.description || (program as any).desc}</p>
                   <button className="text-xs font-bold flex items-center gap-2 text-[var(--color-primary)] hover:gap-3 transition-all">
                     PELAJARI LEBIH LANJUT <ArrowRight className="w-3 h-3" />
                   </button>

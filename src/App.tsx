@@ -76,6 +76,31 @@ export default function App() {
   const [heroBgUrl, setHeroBgUrl] = useState<string | null>(() => localStorage.getItem('ssb_hero_bg_url') || 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=2693');
 
   useEffect(() => {
+      // Try to load global settings from Supabase if we don't have it or we just started up
+      const fetchGlobalSettings = async () => {
+         try {
+            const { isSupabaseConfigured, supabase } = await import('./lib/supabase');
+            if (isSupabaseConfigured()) {
+                const { data } = supabase.storage.from('settings').getPublicUrl('global_settings.json');
+                if (data.publicUrl) {
+                    // Try fetch the JSON file to bypass caching issue, add timestamp
+                    const response = await fetch(`${data.publicUrl}?t=${new Date().getTime()}`);
+                    if (response.ok) {
+                        const json = await response.json();
+                        if (json.appName) setAppName(json.appName);
+                        if (json.logoUrl !== undefined) setLogoUrl(json.logoUrl);
+                        if (json.heroBgUrl !== undefined) setHeroBgUrl(json.heroBgUrl);
+                    }
+                }
+            }
+         } catch(e) {
+            console.log('No global settings found in Supabase or fetch error');
+         }
+      };
+      fetchGlobalSettings();
+  }, []);
+
+  useEffect(() => {
     localStorage.setItem('ssb_app_name', appName);
   }, [appName]);
 

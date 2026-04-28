@@ -13,11 +13,12 @@ import {
   Server,
   AlertTriangle,
   Database,
-  Cloud
+  Cloud,
+  Code
 } from 'lucide-react';
 import Layout from '../components/ui/Layout';
 import { useSettings } from '../App';
-import { uploadFile, isSupabaseConfigured } from '../lib/supabase';
+import { uploadFile, isSupabaseConfigured, supabase } from '../lib/supabase';
 
 export default function Settings() {
   const { appName, setAppName, logoUrl, setLogoUrl, heroBgUrl, setHeroBgUrl } = useSettings();
@@ -28,16 +29,34 @@ export default function Settings() {
   const [isSaved, setIsSaved] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isUploadingHero, setIsUploadingHero] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<string>('');
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   const heroBgInputRef = useRef<HTMLInputElement>(null);
 
   const isDbConfigured = isSupabaseConfigured();
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setAppName(localAppName);
     setLogoUrl(localLogoUrl || null);
     setHeroBgUrl(localHeroBgUrl || null);
     
+    // Save to Supabase Storage if configured
+    if (isSupabaseConfigured()) {
+       try {
+          const settingsObj = {
+             appName: localAppName,
+             logoUrl: localLogoUrl,
+             heroBgUrl: localHeroBgUrl
+          };
+          const blob = new Blob([JSON.stringify(settingsObj)], { type: 'application/json' });
+          await supabase.storage.from('settings').upload('global_settings.json', blob, { upsert: true });
+       } catch(e) {
+          console.error("Failed to save settings to Supabase", e);
+       }
+    }
+
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 3000);
   };
@@ -96,6 +115,75 @@ export default function Settings() {
     }
   };
 
+  const sqlSchema = `
+-- Supabase SQL Editor Script
+-- Paste this script to SQL Editor in your Supabase Dashboard to create tables for data sync.
+
+CREATE TABLE IF NOT EXISTS players (id TEXT PRIMARY KEY, name TEXT, overall NUMERIC, category TEXT, position TEXT, photo TEXT, dribbling NUMERIC, passing NUMERIC, shooting NUMERIC, pace NUMERIC, strength NUMERIC, tactical NUMERIC, vision NUMERIC, teamwork NUMERIC, goals NUMERIC, assists NUMERIC, appearances NUMERIC, attendance NUMERIC, age NUMERIC, height NUMERIC, weight NUMERIC, dominantFoot TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL);
+CREATE TABLE IF NOT EXISTS dashboard_sliders (id TEXT PRIMARY KEY, title TEXT, subtitle TEXT, description TEXT, img TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL);
+CREATE TABLE IF NOT EXISTS coaches (id TEXT PRIMARY KEY, name TEXT, role TEXT, experience TEXT, license TEXT, photoUrl TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL);
+CREATE TABLE IF NOT EXISTS upcoming_matches (id TEXT PRIMARY KEY, tournament TEXT, rival TEXT, rivalLogo TEXT, date TEXT, time TEXT, venue TEXT, category TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL);
+CREATE TABLE IF NOT EXISTS match_results (id TEXT PRIMARY KEY, tournament TEXT, rival TEXT, score TEXT, date TEXT, category TEXT, result TEXT, scorers JSONB, created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL);
+CREATE TABLE IF NOT EXISTS gallery (id TEXT PRIMARY KEY, type TEXT, url TEXT, title TEXT, category TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL);
+CREATE TABLE IF NOT EXISTS financials (id TEXT PRIMARY KEY, player TEXT, date TEXT, amount NUMERIC, type TEXT, status TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL);
+CREATE TABLE IF NOT EXISTS schedules (id TEXT PRIMARY KEY, title TEXT, date TEXT, time TEXT, category TEXT, coach TEXT, field TEXT, status TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL);
+CREATE TABLE IF NOT EXISTS scouting (id TEXT PRIMARY KEY, name TEXT, position TEXT, currentTeam TEXT, price TEXT, status TEXT, rating NUMERIC, match_rating NUMERIC, photo TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL);
+CREATE TABLE IF NOT EXISTS medicals (id TEXT PRIMARY KEY, name TEXT, position TEXT, injury TEXT, estimatedReturn TEXT, status TEXT, progress NUMERIC, photo TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL);
+  `;
+
+  const syncToCloud = async () => {
+      if (!isDbConfigured) return;
+      setIsSyncing(true);
+      setSyncStatus('Menganalisa tabel data lokal...');
+      
+      const tables = [
+        'players', 'dashboard_sliders', 'coaches', 
+        'upcoming_matches', 'match_results', 'gallery', 
+        'financials', 'schedules', 'scouting', 'medicals'
+      ];
+      
+      try {
+         for (const table of tables) {
+             setSyncStatus(`Syncing tabel ${table}...`);
+             const localData = localStorage.getItem(`cms_${table}`);
+             if (localData) {
+                 const parsed = JSON.parse(localData);
+                 if (parsed && Array.isArray(parsed) && parsed.length > 0) {
+                     // For each item, upsert to Supabase
+                     for (let item of parsed) {
+                         // Migrate old keys
+                         if ('desc' in item) {
+                             item.description = item.desc;
+                             delete item.desc;
+                         }
+                         if ('match' in item) {
+                             item.match_rating = item.match;
+                             delete item.match;
+                         }
+                         const { error } = await supabase.from(table).upsert([item], { onConflict: 'id' });
+                         if (error) {
+                            console.error(`Failed to upsert ${table}: `, error);
+                         }
+                     }
+                 }
+             }
+         }
+         
+         // Also sync settings
+         setSyncStatus('Syncing pengaturan aplikasi...');
+         const settingsObj = { appName, logoUrl, heroBgUrl };
+         const blob = new Blob([JSON.stringify(settingsObj)], { type: 'application/json' });
+         await supabase.storage.from('settings').upload('global_settings.json', blob, { upsert: true });
+
+         setSyncStatus('Sinkronisasi selesai!');
+         setTimeout(() => setSyncStatus(''), 4000);
+      } catch(e: any) {
+         setSyncStatus(`Error: ${e.message}`);
+      } finally {
+         setIsSyncing(false);
+      }
+  };
+
   return (
     <Layout>
       <div className="max-w-4xl space-y-10">
@@ -142,27 +230,48 @@ export default function Settings() {
                      {isDbConfigured ? 'Database Cloud Supabase Aktif' : 'Mode Penyimpanan Lokal (Risiko Data Hilang)'}
                    </h4>
                    {isDbConfigured ? (
-                     <p className="text-sm text-white/60">
-                       Aplikasi berhasil terhubung ke server Supabase Anda. Semua data, gambar profil, dan media yang diunggah akan disimpan dengan aman di cloud. File gambar disimpan di storage bucket, jadi ketika kode disalin atau di-deploy, semua data tetap utuh tanpa risiko terhapus.
-                     </p>
+                     <div className="space-y-4">
+                       <p className="text-sm text-white/60">
+                         Aplikasi berhasil terhubung ke server Supabase. Agar data dari AI Studio (Local Storage) bisa tampil saat aplikasi ini di-deploy ke Vercel, jalankan panduan ini.
+                       </p>
+                       <div className="bg-black/50 p-4 border border-white/10 rounded-xl space-y-4">
+                          <div>
+                             <h5 className="text-[var(--color-primary)] text-xs font-bold uppercase mb-2 flex items-center gap-2"><Code className="w-4 h-4" /> 1. Execute SQL Tables</h5>
+                             <p className="text-[10px] text-white/50 mb-2">Buka dashboard Supabase -&gt; SQL Editor, dan paste kode berikut agar Supabase dapat menyimpan data (wajib sebelum sinkronisasi):</p>
+                             <textarea 
+                                readOnly 
+                                value={sqlSchema} 
+                                className="w-full h-24 bg-white/5 border border-white/10 rounded text-xs text-emerald-400 p-2 font-mono"
+                             />
+                          </div>
+                          <div>
+                             <h5 className="text-[var(--color-primary)] text-xs font-bold uppercase mb-2">2. Publish Data</h5>
+                             <p className="text-[10px] text-white/50 mb-2">Pindahkan semua data dari Storage Browser (AI Studio) Anda ke Server Supabase Database.</p>
+                             <button
+                                onClick={syncToCloud}
+                                disabled={isSyncing}
+                                className="px-4 py-2 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-400 hover:text-black font-bold text-xs rounded transition-colors disabled:opacity-50"
+                             >
+                                {isSyncing ? <Loader2 className="w-4 h-4 animate-spin inline mr-2" /> : <Cloud className="w-4 h-4 inline mr-2" />}
+                                Push Data AI Studio ke Supabase
+                             </button>
+                             {syncStatus && <span className="ml-3 text-xs text-yellow-500">{syncStatus}</span>}
+                          </div>
+                       </div>
+                     </div>
                    ) : (
                      <div className="space-y-3">
                        <p className="text-sm text-white/60">
-                         Saat ini aplikasi menyimpan data menggunakan browser (Local Storage) dan memori sementara (Base64). Ini berarti jika Anda menghapus cache browser, berpindah komputer, atau aplikasi ini disalin ke tempat lain, <strong>semua data gambar dan profil pemain akan HILANG</strong>.
+                         Saat ini aplikasi menyimpan data menggunakan browser (Local Storage). Ini berarti saat di deploy ke <strong>Vercel</strong>, semua datanya akan TAMPIL KOSONG.
                        </p>
                        <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-                         <h5 className="text-xs font-bold text-[var(--color-primary)] uppercase mb-2">Cara Mengatasi (Agar Data Permanen):</h5>
+                         <h5 className="text-xs font-bold text-[var(--color-primary)] uppercase mb-2">Cara Mengatasi (Agar Data Muncul di Vercel):</h5>
                          <ol className="list-decimal pl-4 text-xs text-white/70 space-y-2">
                            <li>Buat proyek baru di <a href="https://supabase.com" target="_blank" rel="noreferrer" className="text-blue-400 hover:text-blue-300 underline">Supabase.com</a>.</li>
                            <li>Buka menu <strong>Storage</strong> di Supabase dan buat bucket bernama: <span className="font-mono text-emerald-400 bg-white/5 px-1 rounded">players</span>, <span className="font-mono text-emerald-400 bg-white/5 px-1 rounded">settings</span>, <span className="font-mono text-emerald-400 bg-white/5 px-1 rounded">gallery</span>, <span className="font-mono text-emerald-400 bg-white/5 px-1 rounded">coaches</span>.</li>
                            <li>Ubah Bucket Policies menjadi <strong>Public</strong>.</li>
-                           <li>Pilih menu <strong>Project Settings -&gt; API</strong>. Salin URL dan anon key.</li>
-                           <li>Masukkan nilainya di platform ini pada menu <strong>Environment Variables / Secrets</strong> (atau file <span className="font-mono text-amber-400 bg-white/5 px-1 rounded">.env.example</span>), dengan kunci:</li>
+                           <li>Masukkan <strong>VITE_SUPABASE_URL</strong> dan <strong>VITE_SUPABASE_ANON_KEY</strong> ke Environment Variables Vercel & AI Studio Anda.</li>
                          </ol>
-                         <div className="mt-3 bg-black/50 p-3 rounded-lg font-mono text-[10px] text-white/80 border border-white/10 uppercase tracking-widest break-all">
-                           <div className="text-emerald-400 mb-1">VITE_SUPABASE_URL = "URL ANDA"</div>
-                           <div className="text-emerald-400">VITE_SUPABASE_ANON_KEY = "KEY ANDA"</div>
-                         </div>
                        </div>
                      </div>
                    )}
@@ -248,7 +357,7 @@ export default function Settings() {
                      <div className="w-full h-32 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden relative group">
                        {isUploadingHero && (
                          <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10">
-                           <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+                           <Loader2 className="w-8 h-8 text-[var(--color-primary)] animate-spin" />
                          </div>
                        )}
                        {localHeroBgUrl ? (
@@ -332,3 +441,4 @@ export default function Settings() {
     </Layout>
   );
 }
+

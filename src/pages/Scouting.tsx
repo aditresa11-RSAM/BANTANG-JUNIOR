@@ -5,9 +5,9 @@ import { Search, Plus, Filter, Target, Crosshair, Star, CheckCircle2, XCircle } 
 import { cn } from '../lib/utils';
 
 const initialTargets = [
-  { id: '1', name: 'Ronaldo Kwateh', position: 'Winger', currentTeam: 'Muangthong Utd', price: 'Rp 2.5 Milyar', status: 'In Talks', rating: 88, match: 92, photo: 'https://images.unsplash.com/photo-1511886929837-354d827aae26?q=80&w=200&fit=crop' },
-  { id: '2', name: 'Jens Raven', position: 'Striker', currentTeam: 'FC Dordrecht', price: 'Rp 4.1 Milyar', status: 'Monitoring', rating: 90, match: 95, photo: 'https://images.unsplash.com/photo-1628103323049-c43916298516?q=80&w=200&fit=crop' },
-  { id: '3', name: 'Arkhan Kaka', position: 'Striker', currentTeam: 'Persis Solo', price: 'Rp 1.8 Milyar', status: 'Bid Submitted', rating: 85, match: 88, photo: 'https://images.unsplash.com/photo-1543351611-58f69d7c1781?q=80&w=200&fit=crop' },
+  { id: '1', name: 'Ronaldo Kwateh', position: 'Winger', currentTeam: 'Muangthong Utd', price: 'Rp 2.5 Milyar', status: 'In Talks', rating: 88, match_rating: 92, photo: 'https://images.unsplash.com/photo-1511886929837-354d827aae26?q=80&w=200&fit=crop' },
+  { id: '2', name: 'Jens Raven', position: 'Striker', currentTeam: 'FC Dordrecht', price: 'Rp 4.1 Milyar', status: 'Monitoring', rating: 90, match_rating: 95, photo: 'https://images.unsplash.com/photo-1628103323049-c43916298516?q=80&w=200&fit=crop' },
+  { id: '3', name: 'Arkhan Kaka', position: 'Striker', currentTeam: 'Persis Solo', price: 'Rp 1.8 Milyar', status: 'Bid Submitted', rating: 85, match_rating: 88, photo: 'https://images.unsplash.com/photo-1543351611-58f69d7c1781?q=80&w=200&fit=crop' },
 ];
 
 export default function Scouting() {
@@ -83,7 +83,7 @@ export default function Scouting() {
                    <span className="text-xs font-bold uppercase tracking-wider text-white/70">{target.status}</span>
                  </div>
                  <div className="flex items-center gap-1 text-[10px] uppercase font-bold text-white/40 bg-white/5 px-2 py-1 rounded-lg">
-                   Match: <span className="text-white">{target.match}%</span>
+                   Match: <span className="text-white">{target.match_rating || target.match}%</span>
                  </div>
               </div>
 

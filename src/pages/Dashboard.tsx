@@ -21,8 +21,8 @@ import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { useNavigate } from 'react-router-dom';
 
 const initialSliders = [
-  { id: '1', title: 'SSB BANTANG', subtitle: 'JUNIOR ACADEMY', desc: 'Membentuk Generasi Juara Dengan Sistem Latihan Modern, Fasilitas Elite, dan Pendekatan Taktikal Terbaik.', img: "https://images.unsplash.com/photo-1543351611-58f69d7c1781?q=80&w=1200&auto=format&fit=crop" },
-  { id: '2', title: 'FASILITAS', subtitle: 'LATIHAN MODERN', desc: 'Dilengkapi dengan peralatan latihan standar FIFA untuk mendukung perkembangan pemain', img: "https://images.unsplash.com/photo-1518605368461-1ee7e54728f1?q=80&w=1200&auto=format&fit=crop" },
+  { id: '1', title: 'SSB BANTANG', subtitle: 'JUNIOR ACADEMY', description: 'Membentuk Generasi Juara Dengan Sistem Latihan Modern, Fasilitas Elite, dan Pendekatan Taktikal Terbaik.', img: "https://images.unsplash.com/photo-1543351611-58f69d7c1781?q=80&w=1200&auto=format&fit=crop" },
+  { id: '2', title: 'FASILITAS', subtitle: 'LATIHAN MODERN', description: 'Dilengkapi dengan peralatan latihan standar FIFA untuk mendukung perkembangan pemain', img: "https://images.unsplash.com/photo-1518605368461-1ee7e54728f1?q=80&w=1200&auto=format&fit=crop" },
 ];
 
 const attendanceData = [
@@ -105,7 +105,7 @@ export default function Dashboard() {
   const [isSliderModalOpen, setIsSliderModalOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [editingSlider, setEditingSlider] = useState<any>(null);
-  const [sliderForm, setSliderForm] = useState({ title: '', subtitle: '', desc: '', img: '' });
+  const [sliderForm, setSliderForm] = useState({ title: '', subtitle: '', description: '', img: '' });
   const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, id: '' });
 
   useEffect(() => {
@@ -117,7 +117,7 @@ export default function Dashboard() {
   const nextSlide = () => setCurrentSlide((p) => (p + 1) % sliders.length);
   const prevSlide = () => setCurrentSlide((p) => (p - 1 + sliders.length) % sliders.length);
 
-  const handleOpenSliderAdd = () => { setEditingSlider(null); setSliderForm({ title: '', subtitle: '', desc: '', img: '' }); setIsSliderModalOpen(true); };
+  const handleOpenSliderAdd = () => { setEditingSlider(null); setSliderForm({ title: '', subtitle: '', description: '', img: '' }); setIsSliderModalOpen(true); };
   const handleOpenSliderEdit = (slider: any) => { setEditingSlider(slider); setSliderForm(slider); setIsSliderModalOpen(true); };
   
   const handleSliderSubmit = (e: React.FormEvent) => {
@@ -180,7 +180,7 @@ export default function Dashboard() {
                         {sliders[currentSlide].title} <span className="text-[var(--color-primary)]">{sliders[currentSlide].subtitle}</span>
                       </h1>
                     </div>
-                    <p className="text-sm md:text-base text-white/80 max-w-2xl font-medium tracking-wide drop-shadow-md">{sliders[currentSlide].desc}</p>
+                    <p className="text-sm md:text-base text-white/80 max-w-2xl font-medium tracking-wide drop-shadow-md">{sliders[currentSlide]?.description || sliders[currentSlide]?.desc}</p>
                   </motion.div>
                 </div>
               </motion.div>
@@ -423,7 +423,7 @@ export default function Dashboard() {
           </div>
           <div>
             <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-1.5 block">Deskripsi Singkat</label>
-            <textarea required value={sliderForm.desc} onChange={(e) => setSliderForm({...sliderForm, desc: e.target.value})} className="w-full bg-[#111827] border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] h-20 resize-none" placeholder="Isi deskripsi banner..." />
+            <textarea required value={sliderForm.description} onChange={(e) => setSliderForm({...sliderForm, description: e.target.value})} className="w-full bg-[#111827] border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] h-20 resize-none" placeholder="Isi deskripsi banner..." />
           </div>
           <div className="pt-4 flex gap-3">
             <button type="button" onClick={() => setIsSliderModalOpen(false)} className="flex-1 py-3 rounded-xl border border-white/10 text-white font-bold text-sm hover:bg-white/5 transition-colors">Batal</button>
