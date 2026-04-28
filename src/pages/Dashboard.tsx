@@ -252,7 +252,7 @@ export default function Dashboard() {
               </select>
             </div>
             <div className="w-full h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300}>
                 <AreaChart data={attendanceData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
@@ -276,7 +276,7 @@ export default function Dashboard() {
               <h3 className="text-base font-bold text-white uppercase tracking-wider">Performance Radar</h3>
             </div>
             <div className="w-full flex-1 min-h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300}>
                 <RadarChart cx="50%" cy="50%" outerRadius="70%" data={skillsRadarData}>
                   <PolarGrid stroke="rgba(255,255,255,0.1)" />
                   <PolarAngleAxis dataKey="subject" tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 10 }} />
@@ -295,7 +295,7 @@ export default function Dashboard() {
               <h3 className="text-base font-bold text-white uppercase tracking-wider">Attendance Rate</h3>
             </div>
             <div className="w-full h-[250px]">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={250}>
                 <BarChart data={attendanceData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                   <XAxis dataKey="name" stroke="rgba(255,255,255,0.4)" fontSize={12} tickLine={false} axisLine={false} />
@@ -313,7 +313,7 @@ export default function Dashboard() {
               <h3 className="text-base font-bold text-white uppercase tracking-wider">Revenue</h3>
             </div>
             <div className="w-full h-[250px]">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={250}>
                 <BarChart data={revenueData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                   <XAxis dataKey="name" stroke="rgba(255,255,255,0.4)" fontSize={12} tickLine={false} axisLine={false} />
@@ -331,7 +331,7 @@ export default function Dashboard() {
               <h3 className="text-base font-bold text-white uppercase tracking-wider">Age Category</h3>
             </div>
             <div className="w-full h-[250px] flex items-center justify-center relative">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={250}>
                 <PieChart>
                   <Pie data={ageCategoryStats} innerRadius={70} outerRadius={100} paddingAngle={5} dataKey="value">
                     {ageCategoryStats.map((entry, index) => (

@@ -242,7 +242,7 @@ export default function PlayerProfile() {
                 <h3 className="text-xl font-display font-black text-white uppercase tracking-tight">Performance Radar</h3>
               </div>
               <div className="flex-1 w-full min-h-[400px] relative z-10">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <RadarChart cx="50%" cy="50%" outerRadius="75%" data={radarData}>
                     <PolarGrid stroke="rgba(255,255,255,0.1)" />
                     <PolarAngleAxis dataKey="subject" tick={{ fill: 'rgba(255,255,255,0.8)', fontSize: 12, fontWeight: 'bold' }} />

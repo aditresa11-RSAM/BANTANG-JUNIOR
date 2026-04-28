@@ -9,6 +9,19 @@ if (supabaseUrl && !supabaseUrl.startsWith('http')) {
   supabaseUrl = `https://${supabaseUrl}`;
 }
 
+// More thorough URL cleaning: users often copy-paste with trailing slashes or extra paths
+if (supabaseUrl) {
+  try {
+    const url = new URL(supabaseUrl);
+    supabaseUrl = `${url.protocol}//${url.hostname}`;
+  } catch (e) {
+    // If not a valid URL yet, at least clean trailing slash
+    if (supabaseUrl.endsWith('/')) {
+      supabaseUrl = supabaseUrl.slice(0, -1);
+    }
+  }
+}
+
 export const supabase = createClient(supabaseUrl || 'https://placeholder.supabase.co', supabaseAnonKey || 'placeholder');
 
 export const isSupabaseConfigured = () => {

@@ -31,6 +31,136 @@ export default function Settings() {
   const [isUploadingHero, setIsUploadingHero] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncStatus, setSyncStatus] = useState<string>('');
+
+  const clearImageCache = () => {
+    if (window.confirm("Peringatan: Ini akan menghapus data gambar lokal (base64) yang belum tersimpan di Cloud. Gunakan ini jika Anda mendapat error 'Quota Exceeded'. Data teks (nama, skor, dll) akan tetap aman. Lanjutkan?")) {
+      const tables = [
+        'players', 'dashboard_sliders', 'coaches', 
+        'upcoming_matches', 'match_results', 'gallery', 
+        'financials', 'schedules', 'scouting', 'medicals',
+        'training_materials', 'attendance', 'tactics'
+      ];
+      
+      let count = 0;
+      let tablesCleaned: string[] = [];
+
+      tables.forEach(table => {
+        const key = `cms_${table}`;
+        const data = localStorage.getItem(key);
+        if (data) {
+          try {
+            let items = JSON.parse(data);
+            let updated = false;
+            const imageFields = ['photo', 'img', 'photoUrl', 'rivalLogo', 'url', 'media_url'];
+            
+            const cleanedItems = items.map((item: any) => {
+              imageFields.forEach(field => {
+                const value = item[field];
+                // Check for any base64 data (images or videos)
+                if (typeof value === 'string' && value.startsWith('data:')) {
+                  item[field] = ''; // Strip heavy data
+                  updated = true;
+                  count++;
+                }
+              });
+              return item;
+            });
+
+            if (updated) {
+              try {
+                // Remove first to ensure we have space to write the smaller version
+                localStorage.removeItem(key);
+                localStorage.setItem(key, JSON.stringify(cleanedItems));
+                tablesCleaned.push(table);
+              } catch (writeError) {
+                console.error(`Failed to rewrite ${table} during cleaning:`, writeError);
+              }
+            }
+          } catch (e) {
+            console.error(`Error parsing ${table} record:`, e);
+          }
+        }
+      });
+      
+      if (count > 0) {
+        alert(`Berhasil membersihkan ${count} file gambar lokal dari tabel: ${tablesCleaned.join(', ')}. Silakan coba sinkronisasi ulang.`);
+      } else {
+        alert("Tidak ditemukan data gambar lokal (base64) untuk dibersihkan. Memori penuh mungkin disebabkan oleh data lain.");
+      }
+    }
+  };
+
+  const syncImagesToCloud = async () => {
+    if (!isDbConfigured) return;
+    setIsSyncing(true);
+    setSyncStatus('Menganalisa data gambar lokal...');
+
+    const tables = [
+      'players', 'dashboard_sliders', 'coaches', 
+      'upcoming_matches', 'match_results', 'gallery', 
+      'financials', 'schedules', 'scouting', 'medicals',
+      'training_materials', 'attendance', 'tactics'
+    ];
+
+    try {
+      let totalUpdated = 0;
+      for (const table of tables) {
+        const localData = localStorage.getItem(`cms_${table}`);
+        if (!localData) continue;
+
+        let items = JSON.parse(localData);
+        let tableUpdated = false;
+
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          const imageFields = ['photo', 'img', 'photoUrl', 'rivalLogo', 'url', 'media_url'];
+          
+          for (const field of imageFields) {
+            if (item[field] && item[field].startsWith('data:image')) {
+              setSyncStatus(`Mengunggah gambar: ${item.name || item.title || table}...`);
+              try {
+                // Convert base64 to file
+                const res = await fetch(item[field]);
+                const blob = await res.blob();
+                const file = new File([blob], `${table}_${item.id}_${field}.png`, { type: 'image/png' });
+                
+                const publicUrl = await uploadFile(file, table === 'dashboard_sliders' ? 'dashboard' : (table === 'training_materials' ? 'materials' : table));
+                if (publicUrl) {
+                  item[field] = publicUrl;
+                  tableUpdated = true;
+                  totalUpdated++;
+                }
+              } catch (uploadError) {
+                console.error("Single item upload failed:", uploadError);
+              }
+            }
+          }
+        }
+
+        if (tableUpdated) {
+          try {
+            const stringified = JSON.stringify(items);
+            // Optimization: Remove old first to avoid double storage during setItem transaction
+            localStorage.removeItem(`cms_${table}`);
+            localStorage.setItem(`cms_${table}`, stringified);
+          } catch (storageError: any) {
+            if (storageError.name === 'QuotaExceededError' || storageError.code === 22) {
+              setSyncStatus(`Error: Kuota penuh saat menyimpan ${table}. Segera klik 'Bersihkan Cache Gambar'!`);
+              setIsSyncing(false);
+              return;
+            }
+            throw storageError;
+          }
+        }
+      }
+      setSyncStatus(`Selesai! ${totalUpdated} gambar berhasil diunggah.`);
+    } catch (error: any) {
+      console.error('Image sync error:', error);
+      setSyncStatus(`Gagal: ${error.message || 'Error sinkronisasi'}`);
+    } finally {
+      setTimeout(() => setIsSyncing(false), 3000);
+    }
+  };
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const heroBgInputRef = useRef<HTMLInputElement>(null);
@@ -154,6 +284,9 @@ CREATE TABLE IF NOT EXISTS financials (id TEXT PRIMARY KEY, player TEXT, date TE
 CREATE TABLE IF NOT EXISTS schedules (id TEXT PRIMARY KEY, title TEXT, date TEXT, time TEXT, category TEXT, coach TEXT, field TEXT, status TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL);
 CREATE TABLE IF NOT EXISTS scouting (id TEXT PRIMARY KEY, name TEXT, position TEXT, currentTeam TEXT, price TEXT, status TEXT, rating NUMERIC, match_rating NUMERIC, photo TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL);
 CREATE TABLE IF NOT EXISTS medicals (id TEXT PRIMARY KEY, name TEXT, position TEXT, injury TEXT, estimatedReturn TEXT, status TEXT, progress NUMERIC, photo TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL);
+CREATE TABLE IF NOT EXISTS training_materials (id TEXT PRIMARY KEY, title TEXT, category TEXT, description TEXT, duration TEXT, age_group TEXT, level TEXT, media_url TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL);
+CREATE TABLE IF NOT EXISTS attendance (id TEXT PRIMARY KEY, player_id TEXT, date TEXT, status TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL);
+CREATE TABLE IF NOT EXISTS tactics (id TEXT PRIMARY KEY, formation JSONB, mode TEXT, strategy TEXT, notes TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL);
   `;
 
   const syncToCloud = async () => {
@@ -164,7 +297,8 @@ CREATE TABLE IF NOT EXISTS medicals (id TEXT PRIMARY KEY, name TEXT, position TE
       const tables = [
         'players', 'dashboard_sliders', 'coaches', 
         'upcoming_matches', 'match_results', 'gallery', 
-        'financials', 'schedules', 'scouting', 'medicals'
+        'financials', 'schedules', 'scouting', 'medicals',
+        'training_materials', 'attendance', 'tactics'
       ];
       
       try {
@@ -175,20 +309,28 @@ CREATE TABLE IF NOT EXISTS medicals (id TEXT PRIMARY KEY, name TEXT, position TE
                  try {
                      const parsed = JSON.parse(localData);
                      if (parsed && Array.isArray(parsed) && parsed.length > 0) {
-                         // For each item, upsert to Supabase
-                         for (let item of parsed) {
-                             // Migrate old keys
-                             if ('desc' in item) {
-                                 item.description = item.desc;
-                                 delete item.desc;
-                             }
-                             if ('match' in item) {
-                                 item.match_rating = item.match;
-                                 delete item.match;
-                             }
-                             const { error } = await supabase.from(table).upsert([item], { onConflict: 'id' });
+                         // Chunk the upserts to avoid payload limits
+                         const chunkSize = 20;
+                         for (let i = 0; i < parsed.length; i += chunkSize) {
+                             const chunk = parsed.slice(i, i + chunkSize).map(item => {
+                                 const cleaned = { ...item };
+                                 if ('desc' in cleaned) {
+                                     cleaned.description = cleaned.desc;
+                                     delete cleaned.desc;
+                                 }
+                                 if ('match' in cleaned) {
+                                     cleaned.match_rating = cleaned.match;
+                                     delete cleaned.match;
+                                 }
+                                 return cleaned;
+                             });
+
+                             const { error } = await supabase.from(table.trim()).upsert(chunk, { onConflict: 'id' });
                              if (error) {
-                                console.error(`Failed to upsert ${table}: `, error);
+                                if (error.code === 'PGRST125') {
+                                  throw new Error(`[Supabase Error] URL Supabase tidak valid atau Tabel '${table}' belum dibuat. Pastikan URL hanya berisi https://xxx.supabase.co dan Anda sudah menjalankan SQL Script di atas.`);
+                                }
+                                throw new Error(`[Supabase Error] ${error.message} (Code: ${error.code})`);
                              }
                          }
                      }
@@ -276,14 +418,31 @@ CREATE TABLE IF NOT EXISTS medicals (id TEXT PRIMARY KEY, name TEXT, position TE
                           <div>
                              <h5 className="text-[var(--color-primary)] text-xs font-bold uppercase mb-2">2. Publish Data</h5>
                              <p className="text-[10px] text-white/50 mb-2">Pindahkan semua data dari Storage Browser (AI Studio) Anda ke Server Supabase Database.</p>
-                             <button
-                                onClick={syncToCloud}
-                                disabled={isSyncing}
-                                className="px-4 py-2 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-400 hover:text-black font-bold text-xs rounded transition-colors disabled:opacity-50"
-                             >
-                                {isSyncing ? <Loader2 className="w-4 h-4 animate-spin inline mr-2" /> : <Cloud className="w-4 h-4 inline mr-2" />}
-                                Push Data AI Studio ke Supabase
-                             </button>
+                             <div className="flex flex-col gap-3">
+                               <button
+                                  onClick={syncToCloud}
+                                  disabled={isSyncing}
+                                  className="px-4 py-2 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-400 hover:text-black font-bold text-xs rounded transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                               >
+                                  {isSyncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Cloud className="w-4 h-4" />}
+                                  Push Data AI Studio ke Supabase
+                               </button>
+                               <button
+                                  onClick={syncImagesToCloud}
+                                  disabled={isSyncing}
+                                  className="px-4 py-2 bg-blue-500/20 text-blue-400 hover:bg-blue-400 hover:text-black font-bold text-xs rounded transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                               >
+                                  {isSyncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                                  Sinkronisasi Gambar (Lokal ke Cloud)
+                               </button>
+                               <button
+                                  onClick={clearImageCache}
+                                  className="px-4 py-2 bg-red-500/20 text-red-400 hover:bg-red-400 hover:text-black font-bold text-xs rounded transition-colors flex items-center justify-center gap-2"
+                               >
+                                  <Trash2 className="w-4 h-4" />
+                                  Bersihkan Cache Gambar Lokal (Fix Quota)
+                               </button>
+                            </div>
                              {syncStatus && <span className="ml-3 text-xs text-yellow-500">{syncStatus}</span>}
                           </div>
                        </div>
@@ -297,8 +456,13 @@ CREATE TABLE IF NOT EXISTS medicals (id TEXT PRIMARY KEY, name TEXT, position TE
                          <h5 className="text-xs font-bold text-[var(--color-primary)] uppercase mb-2">Cara Mengatasi (Agar Data Muncul di Vercel):</h5>
                          <ol className="list-decimal pl-4 text-xs text-white/70 space-y-2">
                            <li>Buat proyek baru di <a href="https://supabase.com" target="_blank" rel="noreferrer" className="text-blue-400 hover:text-blue-300 underline">Supabase.com</a>.</li>
-                           <li>Buka menu <strong>Storage</strong> di Supabase dan buat bucket bernama: <span className="font-mono text-emerald-400 bg-white/5 px-1 rounded">players</span>, <span className="font-mono text-emerald-400 bg-white/5 px-1 rounded">settings</span>, <span className="font-mono text-emerald-400 bg-white/5 px-1 rounded">gallery</span>, <span className="font-mono text-emerald-400 bg-white/5 px-1 rounded">coaches</span>.</li>
-                           <li>Ubah Bucket Policies menjadi <strong>Public</strong>.</li>
+                           <li>Buka menu <strong>Storage</strong> di Supabase dan buat bucket-bucket berikut (Set as **Public**):</li>
+                             <div className="flex flex-wrap gap-2 mt-2">
+                               {['players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'materials'].map(b => (
+                                 <span key={b} className="font-mono text-[10px] text-emerald-400 bg-white/5 px-2 py-0.5 rounded border border-white/10">{b}</span>
+                               ))}
+                             </div>
+                           <li className="text-yellow-400 font-bold">Pastikan Bucket Policies diubah menjadi PUBLIC agar gambar muncul di Vercel.</li>
                            <li>Masukkan <strong>VITE_SUPABASE_URL</strong> dan <strong>VITE_SUPABASE_ANON_KEY</strong> ke Environment Variables Vercel & AI Studio Anda.</li>
                          </ol>
                        </div>
