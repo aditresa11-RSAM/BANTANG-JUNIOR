@@ -627,7 +627,7 @@ WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboar
         medicals: ['id', 'name', 'position', 'injury', 'estimatedreturn', 'status', 'progress', 'photo', 'playername', 'created_at'],
         training_materials: ['id', 'title', 'category', 'description', 'duration', 'age_group', 'level', 'media_url', 'created_at'],
         attendance: ['id', 'player_id', 'date', 'status', 'created_at'],
-        tactics: ['id', 'formation', 'mode', 'strategy', 'notes', 'created_at']
+        tactics: ['id', 'name', 'mode', 'formation_id', 'strategy', 'positions', 'paths', 'is_template', 'created_at']
       };
       
       try {

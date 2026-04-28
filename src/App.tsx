@@ -22,6 +22,8 @@ import MatchCenter from './pages/MatchCenter';
 import Gallery from './pages/Gallery';
 import Settings from './pages/Settings';
 import Tactics from './pages/Tactics';
+import Attendance from './pages/Attendance';
+import Materials from './pages/Materials';
 import Scouting from './pages/Scouting';
 import Medical from './pages/Medical';
 import ParentPortal from './pages/ParentPortal';
@@ -194,6 +196,8 @@ export default function App() {
               <Route path="/schedule" element={user ? <TrainingSchedule /> : <Navigate to="/" />} />
               <Route path="/performance" element={user ? <PerformanceCenter /> : <Navigate to="/" />} />
               <Route path="/tactics" element={user ? <Tactics /> : <Navigate to="/" />} />
+              <Route path="/attendance" element={user ? <Attendance /> : <Navigate to="/" />} />
+              <Route path="/materials" element={user ? <Materials /> : <Navigate to="/" />} />
               <Route path="/match-center" element={user ? <MatchCenter /> : <Navigate to="/" />} />
               <Route path="/scouting" element={user ? <Scouting /> : <Navigate to="/" />} />
               <Route path="/medical" element={user ? <Medical /> : <Navigate to="/" />} />

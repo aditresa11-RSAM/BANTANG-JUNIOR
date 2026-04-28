@@ -246,3 +246,58 @@ CREATE POLICY "Allow public read access" ON public.settings FOR SELECT USING (tr
 CREATE POLICY "Allow public insert access" ON public.settings FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow public update access" ON public.settings FOR UPDATE USING (true);
 CREATE POLICY "Allow public delete access" ON public.settings FOR DELETE USING (true);
+
+-- Table: attendance
+CREATE TABLE IF NOT EXISTS public.attendance (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  player_id TEXT NOT NULL,
+  date TEXT NOT NULL,
+  status TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Table: training_materials
+CREATE TABLE IF NOT EXISTS public.training_materials (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  title TEXT NOT NULL,
+  category TEXT,
+  description TEXT,
+  duration TEXT,
+  age_group TEXT,
+  level TEXT,
+  media_url TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- RLS for new tables
+ALTER TABLE public.attendance ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.training_materials ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow public read access" ON public.attendance FOR SELECT USING (true);
+CREATE POLICY "Allow public insert access" ON public.attendance FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update access" ON public.attendance FOR UPDATE USING (true);
+CREATE POLICY "Allow public delete access" ON public.attendance FOR DELETE USING (true);
+
+CREATE POLICY "Allow public read access" ON public.training_materials FOR SELECT USING (true);
+CREATE POLICY "Allow public insert access" ON public.training_materials FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update access" ON public.training_materials FOR UPDATE USING (true);
+CREATE POLICY "Allow public delete access" ON public.training_materials FOR DELETE USING (true);
+
+-- Table: tactics
+CREATE TABLE IF NOT EXISTS public.tactics (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  mode TEXT DEFAULT '11v11',
+  formation_id TEXT,
+  strategy TEXT,
+  positions JSONB,
+  paths JSONB,
+  is_template BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.tactics ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read access" ON public.tactics FOR SELECT USING (true);
+CREATE POLICY "Allow public insert access" ON public.tactics FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update access" ON public.tactics FOR UPDATE USING (true);
+CREATE POLICY "Allow public delete access" ON public.tactics FOR DELETE USING (true);

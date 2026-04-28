@@ -1,7 +1,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { BarChart3, Users, Calendar, Activity, CreditCard, UserSquare2, Trophy, ImageIcon, LogOut, Bell, Search, Menu, X, Home, Settings, Goal, ScanSearch, Stethoscope, Users2, Megaphone, Bot } from 'lucide-react';
+import { BarChart3, Users, Calendar, Activity, CreditCard, UserSquare2, Trophy, ImageIcon, LogOut, Bell, Search, Menu, X, Home, Settings, Goal, ScanSearch, Stethoscope, Users2, Megaphone, Bot, CheckSquare, BookOpen } from 'lucide-react';
 import { useAuth, useSettings } from '../../App';
 import { cn } from '../../lib/utils';
 
@@ -23,10 +23,9 @@ export default function Layout({ children }: LayoutProps) {
     { name: 'Jadwal', path: '/schedule', icon: Calendar },
     { name: 'Performance', path: '/performance', icon: Activity },
     { name: 'Taktik', path: '/tactics', icon: Goal },
+    { name: 'Absensi Pemain', path: '/attendance', icon: CheckSquare },
+    { name: 'Materi Latihan', path: '/materials', icon: BookOpen },
     { name: 'Match Center', path: '/match-center', icon: Trophy },
-    { name: 'Scouting', path: '/scouting', icon: ScanSearch },
-    { name: 'Medical', path: '/medical', icon: Stethoscope },
-    { name: 'Parent Portal', path: '/parent-portal', icon: Users2 },
     { name: 'Keuangan', path: '/financials', icon: CreditCard },
     { name: 'Galeri', path: '/gallery', icon: ImageIcon },
     { name: 'Pengumuman', path: '/announcements', icon: Megaphone },
