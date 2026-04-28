@@ -496,6 +496,24 @@ BEGIN
         EXECUTE format('CREATE POLICY "Allow All" ON %I FOR ALL TO anon USING (true) WITH CHECK (true)', t);
     END LOOP;
 END $$;
+
+-- 4. STORAGE BUCKETS (CRITICAL for settings & images)
+-- Jalankan ini di SQL Editor untuk membuat bucket otomatis
+INSERT INTO storage.buckets (id, name, public)
+VALUES 
+  ('players', 'players', true),
+  ('settings', 'settings', true),
+  ('gallery', 'gallery', true),
+  ('coaches', 'coaches', true),
+  ('dashboard', 'dashboard', true),
+  ('matches', 'matches', true),
+  ('materials', 'materials', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Grant access policies to storage
+CREATE POLICY "Public Access" ON storage.objects FOR SELECT USING (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'materials'));
+CREATE POLICY "Public Upload" ON storage.objects FOR INSERT WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'materials'));
+CREATE POLICY "Public Update" ON storage.objects FOR UPDATE USING (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'materials'));
   `;
 
   const syncToCloud = async () => {
@@ -600,7 +618,14 @@ END $$;
           setSyncStatus('Syncing pengaturan aplikasi...');
           const settingsObj = { appName, logoUrl, heroBgUrl };
           const blob = new Blob([JSON.stringify(settingsObj)], { type: 'application/json' });
-          await supabase.storage.from('settings').upload('global_settings.json', blob, { upsert: true });
+          const { error: storageError } = await supabase.storage.from('settings').upload('global_settings.json', blob, { upsert: true });
+          
+          if (storageError) {
+              if (storageError.message.includes('not found') || storageError.message.includes('bucket')) {
+                  throw new Error('Bucket "settings" tidak ditemukan. Silakan jalankan SQL Script bagian ke-4 di bawah!');
+              }
+              throw storageError;
+          }
 
           setSyncStatus('Sinkronisasi selesai!');
           setTimeout(() => setSyncStatus(''), 4000);
