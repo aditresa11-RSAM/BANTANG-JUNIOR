@@ -25,8 +25,7 @@ export const isSupabaseConfigured = () => {
 };
 
 export async function uploadFile(file: File, bucket: string = 'images'): Promise<string | null> {
-  const fallbackToBase64 = (): Promise<string> => {
-    console.warn('Falling back to base64 format for image storage');
+  const resizeImage = (): Promise<string> => {
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -36,8 +35,8 @@ export async function uploadFile(file: File, bucket: string = 'images'): Promise
           let width = img.width;
           let height = img.height;
           
-          const MAX_WIDTH = 400;
-          const MAX_HEIGHT = 400;
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 800;
           
           if (width > height) {
             if (width > MAX_WIDTH) {
@@ -56,36 +55,55 @@ export async function uploadFile(file: File, bucket: string = 'images'): Promise
           const ctx = canvas.getContext('2d');
           ctx?.drawImage(img, 0, 0, width, height);
           
-          resolve(canvas.toDataURL('image/jpeg', 0.7));
+          resolve(canvas.toDataURL('image/jpeg', 0.6));
         };
+        img.onerror = () => {
+          resolve(''); // Fallback securely
+        }
         img.src = e.target?.result as string;
+      };
+      reader.onerror = () => {
+        resolve('');
       };
       reader.readAsDataURL(file);
     });
   };
 
+  const base64Data = await resizeImage();
+  if (!base64Data) return null;
+
   if (!isSupabaseConfigured()) {
     console.warn('Supabase URL not configured.');
-    return fallbackToBase64();
+    return base64Data;
   }
 
   try {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
-    const filePath = `${fileName}`;
+    const response = await fetch(base64Data);
+    const blob = await response.blob();
+    const fileName = `${Math.random().toString(36).substring(2)}.jpg`;
+    
+    // Convert to web compatible fast upload
+    const uploadPromise = supabase.storage.from(bucket).upload(fileName, blob, {
+      contentType: 'image/jpeg',
+      upsert: true
+    });
 
-    const { data, error } = await supabase.storage.from(bucket).upload(filePath, file);
+    const timeoutPromise = new Promise<{data: any, error: any}>((_, reject) => {
+      setTimeout(() => reject(new Error('Upload timeout after 5 seconds')), 5000);
+    });
+
+    const { data, error } = await Promise.race([uploadPromise, timeoutPromise]);
 
     if (error) {
-      console.warn(`Supabase storage upload failed: ${error.message || 'Unknown error'}, falling back to base64.`);
-      return fallbackToBase64();
+      console.warn(`Supabase array failed: ${error.message || 'Unknown error'}, falling back to base64.`);
+      return base64Data;
     }
 
-    const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(filePath);
+    const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(fileName);
     return publicUrl;
   } catch (err) {
     console.warn(`Exception during Supabase upload, falling back to base64.`, err);
-    return fallbackToBase64();
+    return base64Data;
   }
 }
 
