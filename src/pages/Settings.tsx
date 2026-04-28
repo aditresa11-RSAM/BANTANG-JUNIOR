@@ -295,6 +295,7 @@ CREATE TABLE IF NOT EXISTS players (
     appearances NUMERIC, 
     attendance NUMERIC, 
     dob TEXT,
+    age NUMERIC,
     stamina NUMERIC,
     jersey NUMERIC,
     status TEXT,
@@ -309,15 +310,28 @@ DO $$
 BEGIN 
     -- Players
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='dob') THEN ALTER TABLE players ADD COLUMN dob TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='age') THEN ALTER TABLE players ADD COLUMN age NUMERIC; END IF;
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='stamina') THEN ALTER TABLE players ADD COLUMN stamina NUMERIC; END IF;
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='jersey') THEN ALTER TABLE players ADD COLUMN jersey NUMERIC; END IF;
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='status') THEN ALTER TABLE players ADD COLUMN status TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='pace') THEN ALTER TABLE players ADD COLUMN pace NUMERIC; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='strength') THEN ALTER TABLE players ADD COLUMN strength NUMERIC; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='tactical') THEN ALTER TABLE players ADD COLUMN tactical NUMERIC; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='vision') THEN ALTER TABLE players ADD COLUMN vision NUMERIC; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='teamwork') THEN ALTER TABLE players ADD COLUMN teamwork NUMERIC; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='goals') THEN ALTER TABLE players ADD COLUMN goals NUMERIC; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='assists') THEN ALTER TABLE players ADD COLUMN assists NUMERIC; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='appearances') THEN ALTER TABLE players ADD COLUMN appearances NUMERIC; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='attendance') THEN ALTER TABLE players ADD COLUMN attendance NUMERIC; END IF;
 
     -- Upcoming Matches
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='upcoming_matches' AND column_name='result') THEN ALTER TABLE upcoming_matches ADD COLUMN result TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='upcoming_matches' AND column_name='venue') THEN ALTER TABLE upcoming_matches ADD COLUMN venue TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='upcoming_matches' AND column_name='time') THEN ALTER TABLE upcoming_matches ADD COLUMN time TEXT; END IF;
 
     -- Scouting
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='scouting' AND column_name='currentteam') THEN ALTER TABLE scouting ADD COLUMN currentTeam TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='scouting' AND column_name='match_rating') THEN ALTER TABLE scouting ADD COLUMN match_rating NUMERIC; END IF;
 
     -- Medicals
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='medicals' AND column_name='estimatedreturn') THEN ALTER TABLE medicals ADD COLUMN estimatedReturn TEXT; END IF;
@@ -496,6 +510,22 @@ END $$;
         'training_materials', 'attendance', 'tactics'
       ];
       
+      const allowedColumns: Record<string, string[]> = {
+        players: ['id', 'name', 'overall', 'category', 'position', 'photo', 'dribbling', 'passing', 'shooting', 'pace', 'strength', 'tactical', 'vision', 'teamwork', 'goals', 'assists', 'appearances', 'attendance', 'age', 'height', 'weight', 'dominantfoot', 'dob', 'stamina', 'jersey', 'status', 'created_at'],
+        dashboard_sliders: ['id', 'title', 'subtitle', 'description', 'img', 'created_at'],
+        coaches: ['id', 'name', 'role', 'experience', 'license', 'photourl', 'created_at'],
+        upcoming_matches: ['id', 'tournament', 'rival', 'rivallogo', 'date', 'time', 'venue', 'category', 'result', 'created_at'],
+        match_results: ['id', 'tournament', 'rival', 'score', 'date', 'category', 'result', 'scorers', 'created_at'],
+        gallery: ['id', 'type', 'url', 'title', 'category', 'created_at'],
+        financials: ['id', 'player', 'date', 'amount', 'type', 'status', 'created_at'],
+        schedules: ['id', 'title', 'date', 'time', 'category', 'coach', 'field', 'status', 'created_at'],
+        scouting: ['id', 'name', 'position', 'currentteam', 'price', 'status', 'rating', 'match_rating', 'photo', 'created_at'],
+        medicals: ['id', 'name', 'position', 'injury', 'estimatedreturn', 'status', 'progress', 'photo', 'created_at'],
+        training_materials: ['id', 'title', 'category', 'description', 'duration', 'age_group', 'level', 'media_url', 'created_at'],
+        attendance: ['id', 'player_id', 'date', 'status', 'created_at'],
+        tactics: ['id', 'formation', 'mode', 'strategy', 'notes', 'created_at']
+      };
+      
       try {
          for (const table of tables) {
              setSyncStatus(`Syncing tabel ${table}...`);
@@ -504,31 +534,42 @@ END $$;
                  try {
                      const parsed = JSON.parse(localData);
                      if (parsed && Array.isArray(parsed) && parsed.length > 0) {
-                         // Chunk the upserts to avoid payload limits
                          const chunkSize = 20;
                          for (let i = 0; i < parsed.length; i += chunkSize) {
                              const chunk = parsed.slice(i, i + chunkSize).map(item => {
-                                 const cleaned = { ...item };
+                                 const temp: any = { ...item };
                                  
                                  // Global Mappings & Cleaning
-                                 if ('desc' in cleaned) { cleaned.description = cleaned.desc; delete cleaned.desc; }
-                                 if ('match' in cleaned) { cleaned.match_rating = cleaned.match; delete cleaned.match; }
+                                 if ('desc' in temp) { temp.description = temp.desc; delete temp.desc; }
+                                 if ('match' in temp) { temp.match_rating = temp.match; delete temp.match; }
                                  
                                  // Table Specific Mappings
                                  if (table === 'players') {
-                                     if ('birth' in cleaned) { cleaned.dob = cleaned.birth; delete cleaned.birth; }
-                                     if ('age' in cleaned && !cleaned.dob) { cleaned.dob = String(cleaned.age); }
+                                     if ('birth' in temp) { temp.dob = temp.birth; delete temp.birth; }
+                                     if ('age' in temp && !temp.dob) { temp.dob = String(temp.age); }
                                  }
                                  
                                  if (table === 'scouting') {
-                                     if ('team' in cleaned) { cleaned.currentTeam = cleaned.team; delete cleaned.team; }
+                                     if ('team' in temp) { temp.currentTeam = temp.team; delete temp.team; }
                                  }
 
                                  if (table === 'medicals') {
-                                     if ('returnDate' in cleaned) { cleaned.estimatedReturn = cleaned.returnDate; delete cleaned.returnDate; }
+                                     if ('returnDate' in temp) { temp.estimatedReturn = temp.returnDate; delete temp.returnDate; }
                                  }
 
-                                 return cleaned;
+                                 // Final Sanitization: Lowercase keys and remove any field not in allowedColumns
+                                 const sanitized: any = {};
+                                 const allowed = allowedColumns[table];
+                                 if (allowed) {
+                                     Object.keys(temp).forEach(key => {
+                                         const lowKey = key.toLowerCase();
+                                         if (allowed.includes(lowKey)) {
+                                             sanitized[lowKey] = temp[key];
+                                         }
+                                     });
+                                 }
+
+                                 return sanitized;
                              });
 
                              const { error } = await supabase.from(table.trim()).upsert(chunk, { onConflict: 'id' });
@@ -537,14 +578,14 @@ END $$;
                                   throw new Error(`URL Supabase salah atau Tabel '${table}' tidak ditemukan. Paste kembali SQL script di bawah.`);
                                 }
                                 if (error.code === 'PGRST204') {
-                                  throw new Error(`Kolom di tabel '${table}' tidak lengkap (PGRST204). Silakan JALANKAN ULANG SQL script di bawah.`);
+                                  throw new Error(`Kolom di tabel '${table}' tidak lengkap (PGRST204: ${error.message}). JALANKAN ULANG SQL script di bawah.`);
                                 }
                                 if (error.code === '42501') {
                                   throw new Error(`Akses ditolak ke '${table}' (RLS Policy 42501). JALANKAN ULANG bagian DISABLE RLS di SQL script.`);
                                 }
                                 throw new Error(`[Supabase Error] ${error.message} (Code: ${error.code})`);
                              }
-                         }
+                          }
                       }
                   } catch (parseError: any) {
                       console.error(`Failed to sync ${table}:`, parseError);
