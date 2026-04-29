@@ -10,9 +10,9 @@
   --color-secondary: #3B82F6;
   --color-accent: #EAB308;
   
-  --color-surface: #0B1120;
-  --color-surface-raised: #172554;
-  --color-surface-glass: rgba(23, 37, 84, 0.7);
+  --color-surface: #0a0f1c;
+  --color-surface-raised: #111827;
+  --color-surface-glass: rgba(17, 24, 39, 0.7);
 }
 
 @layer base {

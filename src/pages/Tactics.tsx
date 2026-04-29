@@ -105,8 +105,10 @@ export default function Tactics() {
     return () => clearTimeout(timer);
   }, [positions, paths, autoSave]);
 
-  const handlePointerDown = (e: React.PointerEvent) => {
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (activeTool === 'cursor') return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    e.stopPropagation();
     const rect = boardRef.current?.getBoundingClientRect();
     if (!rect) return;
     const x = ((e.clientX - rect.left) / rect.width) * 100;
@@ -114,7 +116,7 @@ export default function Tactics() {
     setCurrentPath({ points: [{x, y}], tool: activeTool, color: toolColor, size: toolSize });
   };
 
-  const handlePointerMove = (e: React.PointerEvent) => {
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!currentPath) return;
     const rect = boardRef.current?.getBoundingClientRect();
     if (!rect) return;
@@ -123,7 +125,8 @@ export default function Tactics() {
     setCurrentPath({ ...currentPath, points: [...currentPath.points, {x, y}] });
   };
 
-  const handlePointerUp = () => {
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.currentTarget.releasePointerCapture(e.pointerId);
     if (currentPath) {
       setPaths([...paths, currentPath]);
       setCurrentPath(null);
@@ -229,7 +232,7 @@ export default function Tactics() {
                 <div className="absolute bottom-[3%] left-1/2 -translate-x-1/2 w-[22%] h-[6%] border-[3px] border-white/15" />
 
                 {/* Drawing Layer - SVG */}
-                <svg className="absolute inset-0 w-full h-full pointer-events-none z-10 filter-drop-shadow">
+                <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full pointer-events-none z-10 filter-drop-shadow">
                   <defs>
                     <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orientation="auto">
                       <polygon points="0 0, 10 3.5, 0 7" fill={toolColor} />
@@ -500,7 +503,11 @@ const PlayerIcon: React.FC<PlayerProps> = ({ idx, x, y, isGK, active, onSelect, 
         transform: 'translate(-50%, -50%)',
         touchAction: 'none'
       }}
-      className={cn("absolute pointer-events-auto transition-none", isDragging && "z-50")}
+      className={cn(
+        "absolute transition-none",
+        !disabled ? "pointer-events-auto" : "pointer-events-none",
+        isDragging && "z-50"
+      )}
     >
       <motion.div
         onPointerDown={handlePointerDown}
@@ -543,14 +550,14 @@ const BoardPath: React.FC<{ path: any }> = ({ path }) => {
   if (!path || !path.points || path.points.length < 2) return null;
   
   const d = path.points.map((p: any, i: number) => 
-    (i === 0 ? 'M' : 'L') + ` ${p.x}% ${p.y}%`
+    (i === 0 ? 'M' : 'L') + ` ${p.x} ${p.y}`
   ).join(' ');
 
   const commonProps = {
     d,
     fill: "none",
     stroke: path.color,
-    strokeWidth: path.size || 4,
+    strokeWidth: (path.size || 4) / 4, // Scale down stroke widths logically since viewBox is 0-100
     strokeLinecap: "round" as const,
     strokeLinejoin: "round" as const,
     style: { filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.2))" }
@@ -582,7 +589,7 @@ const BoardPath: React.FC<{ path: any }> = ({ path }) => {
       <path 
         {...commonProps}
         stroke="#123e20"
-        strokeWidth={(path.size || 4) * 3}
+        strokeWidth={((path.size || 4) * 3) / 4}
         className="mix-blend-normal"
       />
     );

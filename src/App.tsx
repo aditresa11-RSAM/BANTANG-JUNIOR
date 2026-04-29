@@ -167,7 +167,7 @@ export default function App() {
 
   if (isLoading) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center bg-[#0a0a0c]">
+      <div className="h-screen w-screen flex items-center justify-center bg-[var(--color-surface)]">
         <motion.div
           animate={{ scale: [1, 1.2, 1], rotate: [0, 180, 360] }}
           transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}

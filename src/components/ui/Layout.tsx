@@ -56,7 +56,6 @@ export default function Layout({ children }: LayoutProps) {
             </div>
             <div className="min-w-0 flex-1">
               <h1 className="font-display font-black text-lg leading-tight text-[var(--color-primary)] truncate" title={appName}>{appName}</h1>
-              <p className="text-[9px] text-white/50 uppercase tracking-[0.2em] font-bold truncate">Elite Academy System</p>
             </div>
           </div>
         </div>
