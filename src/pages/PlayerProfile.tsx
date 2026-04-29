@@ -20,7 +20,7 @@ export default function PlayerProfile() {
     id: id || 'placeholder',
     name: 'Unknown Player',
     overall: 85,
-    category: 'U17',
+    category: 'U15',
     position: 'Striker',
     photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=600',
     dribbling: 85,

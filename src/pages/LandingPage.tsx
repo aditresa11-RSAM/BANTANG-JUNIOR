@@ -138,8 +138,8 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               { age: 'U8-U10', name: 'SSB BANTANG JUNIOR', description: 'Fokus pada kesenangan & teknik dasar bola.', img: 'https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&q=80&w=1000' },
-              { age: 'U12-U14', name: 'Bantang Development', description: 'Pemantapan visi bermain & taktik tim.', img: 'https://images.unsplash.com/photo-1543351611-58f69d7c1781?auto=format&fit=crop&q=80&w=1000' },
-              { age: 'U15-U17', name: 'Bantang Performance', description: 'Persiapan fisik & mental level kompetisi.', img: 'https://images.unsplash.com/photo-1517466787929-bc94061c5c50?auto=format&fit=crop&q=80&w=1000' },
+              { age: 'U11-U13', name: 'Bantang Development', description: 'Pemantapan visi bermain & taktik tim.', img: 'https://images.unsplash.com/photo-1543351611-58f69d7c1781?auto=format&fit=crop&q=80&w=1000' },
+              { age: 'U14-U15', name: 'Bantang Performance', description: 'Persiapan fisik & mental level kompetisi.', img: 'https://images.unsplash.com/photo-1517466787929-bc94061c5c50?auto=format&fit=crop&q=80&w=1000' },
               { age: 'Pro', name: 'Scouting Path', description: 'Jalur karir menuju klub profesional.', img: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=1000' }
             ].map((program, idx) => (
               <motion.div

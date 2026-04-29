@@ -16,14 +16,14 @@ import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { Loader2 } from 'lucide-react';
 
 const initialPlayers = [
-  { id: '1', name: 'Alvaro Morata', category: 'U17', position: 'Striker', age: 16, height: 178, weight: 68, jersey: 9, status: 'Active', photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200', dominantFoot: 'Right', dob: '2010-05-14', overall: 85, dribbling: 82, passing: 80, shooting: 88, stamina: 85, attendance: 95 },
+  { id: '1', name: 'Alvaro Morata', category: 'U14', position: 'Striker', age: 14, height: 178, weight: 68, jersey: 9, status: 'Active', photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200', dominantFoot: 'Right', dob: '2012-05-14', overall: 85, dribbling: 82, passing: 80, shooting: 88, stamina: 85, attendance: 95 },
   { id: '2', name: 'Kevin De Bruyne', category: 'U15', position: 'Midfielder', age: 14, height: 165, weight: 55, jersey: 10, status: 'Active', photo: 'https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?auto=format&fit=crop&q=80&w=200', dominantFoot: 'Right', dob: '2012-06-28', overall: 88, dribbling: 86, passing: 94, shooting: 82, stamina: 80, attendance: 98 },
-  { id: '3', name: 'Virgil Van Dijk', category: 'U17', position: 'Defender', age: 16, height: 185, weight: 75, jersey: 4, status: 'Injured', photo: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200', dominantFoot: 'Right', dob: '2010-01-08', overall: 84, dribbling: 70, passing: 80, shooting: 60, stamina: 88, attendance: 75 },
-  { id: '4', name: 'Erling Haaland', category: 'U17', position: 'Striker', age: 16, height: 182, weight: 72, jersey: 99, status: 'Active', photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200', dominantFoot: 'Left', dob: '2010-07-21', overall: 90, dribbling: 84, passing: 75, shooting: 96, stamina: 88, attendance: 90 },
-  { id: '5', name: 'Pedri Gonzalez', category: 'U14', position: 'Midfielder', age: 13, height: 158, weight: 48, jersey: 8, status: 'Active', photo: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=200', dominantFoot: 'Right', dob: '2013-11-25', overall: 86, dribbling: 88, passing: 90, shooting: 78, stamina: 85, attendance: 100 },
+  { id: '3', name: 'Virgil Van Dijk', category: 'U13', position: 'Defender', age: 13, height: 185, weight: 75, jersey: 4, status: 'Injured', photo: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200', dominantFoot: 'Right', dob: '2013-01-08', overall: 84, dribbling: 70, passing: 80, shooting: 60, stamina: 88, attendance: 75 },
+  { id: '4', name: 'Erling Haaland', category: 'U15', position: 'Striker', age: 15, height: 182, weight: 72, jersey: 99, status: 'Active', photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200', dominantFoot: 'Left', dob: '2011-07-21', overall: 90, dribbling: 84, passing: 75, shooting: 96, stamina: 88, attendance: 90 },
+  { id: '5', name: 'Pedri Gonzalez', category: 'U12', position: 'Midfielder', age: 12, height: 158, weight: 48, jersey: 8, status: 'Active', photo: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=200', dominantFoot: 'Right', dob: '2014-11-25', overall: 86, dribbling: 88, passing: 90, shooting: 78, stamina: 85, attendance: 100 },
 ];
 
-const categories = ['All', 'U10', 'U12', 'U15', 'U17', 'U19'];
+const categories = ['All', 'U8', 'U9', 'U10', 'U11', 'U12', 'U13', 'U14', 'U15'];
 const positions: string[] = ['All', 'Goalkeeper', 'Defender', 'Midfielder', 'Striker'];
 
 export default function Players() {
@@ -42,7 +42,7 @@ export default function Players() {
   const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, id: '', name: '' });
   
   const defaultForm = {
-    name: '', category: 'U17', position: 'Striker', dob: '', height: 170, weight: 60, jersey: 10, status: 'Active', photo: '', dominantFoot: 'Right',
+    name: '', category: 'U15', position: 'Striker', dob: '', height: 170, weight: 60, jersey: 10, status: 'Active', photo: '', dominantFoot: 'Right',
     dribbling: 70, passing: 70, shooting: 70, stamina: 70, attendance: 100
   };
   const [formData, setFormData] = useState(defaultForm);

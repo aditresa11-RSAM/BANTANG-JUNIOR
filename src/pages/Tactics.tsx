@@ -60,11 +60,14 @@ export default function Tactics() {
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   
   const boardRef = useRef<HTMLDivElement>(null);
+  const activePathRef = useRef<SVGPathElement>(null);
+  const drawingRef = useRef<{ points: {x:number, y:number}[], tool: string, color: string, size: number } | null>(null);
+
   const [positions, setPositions] = useState(formation.pos);
   const [paths, setPaths] = useState<any[]>([]);
   const [redoStack, setRedoStack] = useState<any[]>([]);
-  const [currentPath, setCurrentPath] = useState<any>(null);
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const { data: savedTactics, addItems: syncTactics } = useCMSData('tactics', []);
 
@@ -113,24 +116,64 @@ export default function Tactics() {
     if (!rect) return;
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
-    setCurrentPath({ points: [{x, y}], tool: activeTool, color: toolColor, size: toolSize });
+    
+    drawingRef.current = { points: [{x, y}], tool: activeTool, color: toolColor, size: toolSize };
+    
+    if (activePathRef.current) {
+        const pathEl = activePathRef.current;
+        const d = `M ${x} ${y}`;
+        pathEl.setAttribute('d', d);
+        pathEl.setAttribute('stroke', activeTool === 'eraser' ? '#123e20' : toolColor);
+        pathEl.setAttribute('stroke-width', String((activeTool === 'eraser' ? (toolSize * 3) : toolSize) / 4));
+        
+        if (activeTool === 'arrow') {
+           pathEl.setAttribute('stroke-dasharray', '8,4');
+           pathEl.setAttribute('marker-end', 'url(#arrowhead)');
+           pathEl.removeAttribute('fill');
+        } else if (activeTool === 'circle') {
+           pathEl.setAttribute('stroke-dasharray', '4,4');
+           pathEl.setAttribute('fill', toolColor);
+           pathEl.setAttribute('fill-opacity', '0.1');
+           pathEl.removeAttribute('marker-end');
+        } else {
+           pathEl.removeAttribute('stroke-dasharray');
+           pathEl.removeAttribute('marker-end');
+           pathEl.removeAttribute('fill');
+           if (activeTool === 'eraser') {
+             pathEl.setAttribute('class', 'mix-blend-normal');
+           } else {
+             pathEl.removeAttribute('class');
+           }
+        }
+        pathEl.style.display = 'block';
+    }
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!currentPath) return;
+    if (!drawingRef.current) return;
     const rect = boardRef.current?.getBoundingClientRect();
     if (!rect) return;
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
-    setCurrentPath({ ...currentPath, points: [...currentPath.points, {x, y}] });
+    
+    drawingRef.current.points.push({x, y});
+    
+    if (activePathRef.current) {
+        const d = activePathRef.current.getAttribute('d') || '';
+        activePathRef.current.setAttribute('d', d + ` L ${x} ${y}`);
+    }
   };
 
   const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     e.currentTarget.releasePointerCapture(e.pointerId);
-    if (currentPath) {
-      setPaths([...paths, currentPath]);
-      setCurrentPath(null);
+    if (drawingRef.current) {
+      setPaths(prev => [...prev, drawingRef.current!]);
+      drawingRef.current = null;
       setRedoStack([]);
+    }
+    if (activePathRef.current) {
+      activePathRef.current.style.display = 'none';
+      activePathRef.current.setAttribute('d', '');
     }
   };
 
@@ -197,8 +240,11 @@ export default function Tactics() {
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-10">
           
           {/* PITCH AREA - LEFT */}
-          <div className="xl:col-span-8 flex flex-col items-center relative">
-            <div className="relative group/board w-full max-w-[650px] aspect-[2/3] perspective-1000">
+          <div className={cn("xl:col-span-8 flex flex-col items-center", isFullscreen ? "" : "relative")}>
+            <div className={cn(
+               "group/board perspective-1000",
+               isFullscreen ? "fixed inset-0 z-[100] bg-[var(--color-surface)] flex flex-col items-center justify-center p-4 pb-28 md:p-10 md:pb-32" : "relative w-full max-w-[650px] aspect-[2/3]"
+            )}>
               
               {/* FIELD CONTAINER */}
               <motion.div 
@@ -206,8 +252,10 @@ export default function Tactics() {
                 initial={{ rotateX: 20 }}
                 animate={{ rotateX: 0 }}
                 transition={{ duration: 1.5, ease: "easeOut" }}
+                style={isFullscreen ? { aspectRatio: '2/3', maxWidth: '100%', maxHeight: '85vh' } : {}}
                 className={cn(
-                  "w-full h-full bg-[#123e20] border-[12px] border-white/5 rounded-[3.5rem] relative shadow-[0_100px_150px_rgba(0,0,0,0.7)] overflow-hidden touch-none select-none ring-1 ring-white/10",
+                  "bg-[#123e20] relative overflow-hidden touch-none select-none ring-1 ring-white/10 w-full",
+                  isFullscreen ? "h-auto border-[6px] md:border-[12px] border-white/5 rounded-[2.5rem] md:rounded-[3.5rem] shadow-2xl" : "h-full border-[12px] border-white/5 rounded-[3.5rem] shadow-[0_100px_150px_rgba(0,0,0,0.7)]",
                   activeTool !== 'cursor' ? 'cursor-crosshair' : 'cursor-default'
                 )}
                 onPointerDown={handlePointerDown}
@@ -239,7 +287,13 @@ export default function Tactics() {
                     </marker>
                   </defs>
                   {paths.map((p, i) => <BoardPath key={i} path={p} />)}
-                  {currentPath && <BoardPath path={currentPath} />}
+                  <path 
+                    ref={activePathRef} 
+                    fill="none" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    style={{display: 'none', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))'}} 
+                  />
                 </svg>
 
                 {/* Player Drag Layer */}
@@ -270,15 +324,15 @@ export default function Tactics() {
               </motion.div>
 
               {/* FLOATING GLASS TOOLBAR */}
-              <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-surface/40 backdrop-blur-3xl border border-white/10 p-2.5 rounded-[2.5rem] shadow-[0_25px_50px_rgba(0,0,0,0.5)] z-50 flex items-center gap-2 ring-1 ring-white/5">
+              <div className={cn("absolute left-1/2 -translate-x-1/2 bg-surface/40 backdrop-blur-3xl border border-white/10 p-2.5 rounded-[1.5rem] sm:rounded-[2.5rem] shadow-[0_25px_50px_rgba(0,0,0,0.5)] z-50 flex items-center gap-1 sm:gap-2 ring-1 ring-white/5 w-[95vw] md:w-auto overflow-x-auto hide-scrollbar sm:overflow-visible justify-start sm:justify-center max-w-max", isFullscreen ? "bottom-4 md:bottom-8 lg:bottom-12" : "-bottom-16 sm:-bottom-8")}>
                  <ToolBtn icon={MousePointer} active={activeTool === 'cursor'} onClick={() => setActiveTool('cursor')} label="MOVE" />
                  <div className="w-px h-8 bg-white/10 mx-1" />
                  <ToolBtn icon={PenTool} active={activeTool === 'pen'} onClick={() => setActiveTool('pen')} label="DRAW" />
                  <ToolBtn icon={ArrowRight} active={activeTool === 'arrow'} onClick={() => setActiveTool('arrow')} label="PASS" />
                  <ToolBtn icon={Circle} active={activeTool === 'circle'} onClick={() => setActiveTool('circle')} label="ZONE" />
                  <ToolBtn icon={Eraser} active={activeTool === 'eraser'} onClick={() => setActiveTool('eraser')} label="ERASE" />
-                 <div className="w-px h-8 bg-white/10 mx-1" />
-                 <div className="flex flex-col items-center gap-1 ml-2">
+                 <div className="w-px h-8 bg-white/10 mx-1 hidden sm:block" />
+                 <div className="hidden sm:flex flex-col items-center gap-1 ml-2">
                     <div className="flex gap-1">
                       {COLORS.map(c => (
                         <button 
@@ -298,9 +352,16 @@ export default function Tactics() {
                       ))}
                     </div>
                  </div>
-                 <div className="w-px h-8 bg-white/10 mx-2" />
+                 <div className="w-px h-8 bg-white/10 mx-2 hidden sm:block" />
                  <ToolBtn icon={Undo} onClick={handleUndo} className="opacity-40 hover:opacity-100" />
                  <ToolBtn icon={Trash2} onClick={() => setPaths([])} className="text-red-400 opacity-40 hover:opacity-100" />
+                 <div className="w-px h-8 bg-white/10 mx-1" />
+                 <ToolBtn 
+                    icon={isFullscreen ? Minimize2 : Maximize2} 
+                    onClick={() => setIsFullscreen(!isFullscreen)} 
+                    label="FULL" 
+                    className="text-[var(--color-primary)] bg-[var(--color-primary)]/10 hover:bg-[var(--color-primary)] hover:text-black"
+                 />
               </div>
             </div>
           </div>
@@ -428,14 +489,14 @@ function ToolBtn({ icon: Icon, active, onClick, label, className }: any) {
     <button 
       onClick={onClick}
       className={cn(
-        "p-4 rounded-[1.75rem] flex flex-col items-center justify-center gap-2 transition-all duration-300 min-w-[70px]",
+        "p-2.5 sm:p-4 rounded-[1rem] sm:rounded-[1.75rem] flex flex-col items-center justify-center gap-1 sm:gap-2 transition-all duration-300 min-w-[44px] sm:min-w-[70px] shrink-0",
         active 
           ? "bg-white text-black shadow-2xl scale-110" 
           : "hover:bg-white/10 text-white/40 hover:text-white",
         className
       )}
     >
-      <Icon className="w-5 h-5 shrink-0" />
+      <Icon className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
       {label && <span className="text-[8px] font-black uppercase tracking-[0.2em]">{label}</span>}
     </button>
   );

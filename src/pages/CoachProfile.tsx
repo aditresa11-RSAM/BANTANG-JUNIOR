@@ -70,7 +70,7 @@ export default function CoachProfile() {
                <textarea 
                   className="w-full bg-[#050a14] border border-white/5 rounded-xl p-4 text-sm text-white/80 focus:outline-none focus:border-blue-500/50 min-h-[120px] resize-none transition-colors"
                   placeholder="Insert confidential notes about this coach performance or contract..."
-                  defaultValue="Coach shows outstanding performance in tactical development for the U17 squad. Contract due for renewal in 6 months."
+                  defaultValue="Coach shows outstanding performance in tactical development for the U15 squad. Contract due for renewal in 6 months."
                />
                <button className="w-full mt-4 py-3 bg-blue-600/10 hover:bg-blue-600 border border-blue-500/20 text-blue-400 hover:text-white rounded-xl text-xs font-bold uppercase tracking-widest transition-all">
                   Save Note
@@ -149,7 +149,7 @@ export default function CoachProfile() {
                  Team Performance Indicator
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                 {(coach.activeTeams || ['U17-Pro']).map((team: string) => (
+                 {(coach.activeTeams || ['U15-Pro']).map((team: string) => (
                    <div key={team} className="p-6 bg-[#0a0f1c] rounded-2xl border border-white/5 hover:border-white/10 transition-colors">
                       <div className="flex flex-col gap-1 mb-6 border-b border-white/5 pb-4">
                          <span className="text-[10px] font-black text-white/30 tracking-widest uppercase">Squad Performance</span>

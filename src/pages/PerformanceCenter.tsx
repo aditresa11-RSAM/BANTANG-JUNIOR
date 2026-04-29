@@ -208,7 +208,7 @@ export default function PerformanceCenter() {
               <div className="space-y-4">
                  <div className="relative pt-1">
                    <div className="flex mb-2 items-center justify-between">
-                     <div><span className="text-[10px] font-black inline-block py-1 px-2 uppercase rounded-full text-emerald-500 bg-emerald-500/10">U17 Positional Play</span></div>
+                     <div><span className="text-[10px] font-black inline-block py-1 px-2 uppercase rounded-full text-emerald-500 bg-emerald-500/10">U15 Positional Play</span></div>
                      <div className="text-right"><span className="text-xs font-bold inline-block text-emerald-400">88%</span></div>
                    </div>
                    <div className="overflow-hidden h-2 mb-4 text-xs flex rounded-full bg-white/5">
@@ -217,7 +217,7 @@ export default function PerformanceCenter() {
                  </div>
                  <div className="relative pt-1">
                    <div className="flex mb-2 items-center justify-between">
-                     <div><span className="text-[10px] font-black inline-block py-1 px-2 uppercase rounded-full text-blue-500 bg-blue-500/10">U15 Counter Pressing</span></div>
+                     <div><span className="text-[10px] font-black inline-block py-1 px-2 uppercase rounded-full text-blue-500 bg-blue-500/10">U14 Counter Pressing</span></div>
                      <div className="text-right"><span className="text-xs font-bold inline-block text-blue-400">65%</span></div>
                    </div>
                    <div className="overflow-hidden h-2 mb-4 text-xs flex rounded-full bg-white/5">

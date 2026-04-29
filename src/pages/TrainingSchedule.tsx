@@ -13,7 +13,7 @@ import { ConfirmModal } from '../components/ui/ConfirmModal';
 const initialSessions = [
   { id: '1', title: 'Individual Technique & Ball Mastery', date: '2026-04-28', time: '16:00 - 17:30', category: 'U12', coach: 'Coach Andre', field: 'Lapangan A', status: 'Upcoming' },
   { id: '2', title: 'Tactical Awareness & Positioning', date: '2026-04-28', time: '16:00 - 18:00', category: 'U15', coach: 'Coach Sarah', field: 'Lapangan B', status: 'Upcoming' },
-  { id: '3', title: 'Physical Conditioning (Endurance)', date: '2026-04-29', time: '08:00 - 10:00', category: 'U17', coach: 'Coach Mike', field: 'Gym Area', status: 'Upcoming' },
+  { id: '3', title: 'Physical Conditioning (Endurance)', date: '2026-04-29', time: '08:00 - 10:00', category: 'U14', coach: 'Coach Mike', field: 'Gym Area', status: 'Upcoming' },
   { id: '4', title: 'Goalkeeper Specialist Training', date: '2026-04-29', time: '16:00 - 17:30', category: 'All GK', coach: 'Coach Budi', field: 'Lapangan C', status: 'Upcoming' },
   { id: '5', title: 'Set Piece Execution', date: '2026-04-25', time: '16:00 - 18:00', category: 'U15', coach: 'Coach Sarah', field: 'Lapangan B', status: 'Completed' },
 ];

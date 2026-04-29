@@ -15,7 +15,7 @@ export default function Attendance() {
   const { data: players } = useCMSData('players', []);
   const { data: attendance, addItems: addAttendance } = useCMSData('attendance', []);
 
-  const categories = ['All', 'U10', 'U12', 'U15', 'U17'];
+  const categories = ['All', 'U8', 'U9', 'U10', 'U11', 'U12', 'U13', 'U14', 'U15'];
 
   const filteredPlayers = players.filter(p => {
     const matchCat = filterCat === 'All' || p.category === filterCat;

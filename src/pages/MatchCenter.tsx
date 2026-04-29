@@ -10,13 +10,13 @@ import { Modal } from '../components/ui/Modal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 
 const initialUpcomingMatches = [
-  { id: '1', tournament: 'Bantang Academy League', rival: 'City Football Academy', rivalLogo: 'https://cdn-icons-png.flaticon.com/128/3163/3163351.png', date: '2026-05-02', time: '15:00', venue: 'Gelora Bantang Stadium', category: 'U17-Pro' },
-  { id: '2', tournament: 'Regional Junior Cup', rival: 'Persija Academy', rivalLogo: 'https://cdn-icons-png.flaticon.com/128/3163/3163351.png', date: '2026-05-04', time: '09:00', venue: 'National Training Center', category: 'U12-Junior' },
+  { id: '1', tournament: 'Bantang Academy League', rival: 'City Football Academy', rivalLogo: 'https://cdn-icons-png.flaticon.com/128/3163/3163351.png', date: '2026-05-02', time: '15:00', venue: 'Gelora Bantang Stadium', category: 'U15' },
+  { id: '2', tournament: 'Regional Junior Cup', rival: 'Persija Academy', rivalLogo: 'https://cdn-icons-png.flaticon.com/128/3163/3163351.png', date: '2026-05-04', time: '09:00', venue: 'National Training Center', category: 'U12' },
 ];
 
 const initialResults = [
-  { id: '1', tournament: 'Friendly Match', rival: 'United FA', score: '3 - 1', date: '2026-04-24', category: 'U15-Dev', result: 'Win', scorers: ['Alvaro (2)', 'De Bruyne'] },
-  { id: '2', tournament: 'Bantang Academy League', rival: 'Red Bull Academy', score: '2 - 2', date: '2026-04-20', category: 'U17-Pro', result: 'Draw', scorers: ['Alvaro', 'Haaland'] },
+  { id: '1', tournament: 'Friendly Match', rival: 'United FA', score: '3 - 1', date: '2026-04-24', category: 'U14', result: 'Win', scorers: ['Alvaro (2)', 'De Bruyne'] },
+  { id: '2', tournament: 'Bantang Academy League', rival: 'Red Bull Academy', score: '2 - 2', date: '2026-04-20', category: 'U15', result: 'Draw', scorers: ['Alvaro', 'Haaland'] },
 ];
 
 export default function MatchCenter() {
@@ -268,7 +268,7 @@ export default function MatchCenter() {
 
             <div>
               <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-1.5 block">Kategori Tim</label>
-              <input type="text" required value={matchForm.category} onChange={(e) => setMatchForm({...matchForm, category: e.target.value})} className="w-full bg-surface-raised border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]" placeholder="U17-Pro" />
+              <input type="text" required value={matchForm.category} onChange={(e) => setMatchForm({...matchForm, category: e.target.value})} className="w-full bg-surface-raised border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]" placeholder="U15" />
             </div>
 
             <div className="col-span-2">

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
-  Plus, Edit2, Trash2, Image as ImageIcon, Star, Shield, Award, Calendar, ChevronRight, Loader2
+  Plus, Edit2, Trash2, Image as ImageIcon, Star, Shield, Award, Calendar, ChevronRight, Loader2, Check, ChevronDown
 } from 'lucide-react';
 import Layout from '../components/ui/Layout';
 import { cn } from '../lib/utils';
@@ -20,7 +20,7 @@ const initialCoaches = [
     experience: '12', 
     photo: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&q=80&w=600',
     rating: 4.9,
-    activeTeams: ['U17-Pro', 'U19-Pro']
+    activeTeams: ['U14-Pro', 'U15-Pro']
   },
   { 
     id: '2', 
@@ -30,7 +30,7 @@ const initialCoaches = [
     experience: '8', 
     photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=600',
     rating: 4.8,
-    activeTeams: ['U12-Junior', 'U15-Dev']
+    activeTeams: ['U12-Junior', 'U13-Dev']
   },
   { 
     id: '3', 
@@ -64,6 +64,7 @@ export default function Coaches() {
   const [formData, setFormData] = useState({
     name: '', license: '', specialty: '', experience: '', photo: '', rating: 4.5, activeTeams: [] as string[]
   });
+  const [isJabatanOpen, setIsJabatanOpen] = useState(false);
 
   const handleOpenAdd = () => {
     setEditingCoach(null);
@@ -272,16 +273,56 @@ export default function Coaches() {
               </select>
             </div>
 
-            <div className="col-span-2 md:col-span-1">
-              <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-1.5 block">Jabatan</label>
-              <select required value={formData.specialty} onChange={(e) => setFormData({...formData, specialty: e.target.value})} className="w-full bg-[#0a0f1c] border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:border-blue-500">
-                <option value="">Pilih Jabatan</option>
-                <option value="Head Coach">Head Coach</option>
-                <option value="Assistant Coach">Assistant Coach</option>
-                <option value="Goalkeeper Coach">Goalkeeper Coach</option>
-                <option value="Fitness Coach">Fitness Coach</option>
-                <option value="Tactical Analyst">Tactical Analyst</option>
-              </select>
+            <div className="col-span-2 md:col-span-2 relative">
+              <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-1.5 block">Jabatan (Pilih 1 atau Lebih)</label>
+              
+              <div 
+                className="w-full bg-[#0a0f1c] border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus-within:border-blue-500 cursor-pointer min-h-[44px] relative"
+                onClick={() => setIsJabatanOpen(!isJabatanOpen)}
+              >
+                <div className="flex flex-wrap gap-1.5 pr-8">
+                  {formData.specialty ? formData.specialty.split(',').map(s => s.trim()).filter(Boolean).map(s => (
+                    <span key={s} className="bg-blue-600/30 text-blue-400 px-2 py-0.5 rounded text-xs border border-blue-500/30">
+                      {s}
+                    </span>
+                  )) : (
+                    <span className="text-white/50">Pilih Jabatan</span>
+                  )}
+                </div>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/40">
+                  <ChevronDown className="w-4 h-4" />
+                </div>
+              </div>
+
+              {isJabatanOpen && (
+                <div className="absolute top-[100%] left-0 w-full mt-2 bg-[#0a0f1c] border border-white/10 rounded-xl shadow-xl z-50 py-2"
+                     onMouseLeave={() => setIsJabatanOpen(false)}>
+                  {['Head Coach', 'Assistant Coach', 'Goalkeeper Coach', 'Fitness Coach', 'Tactical Analyst'].map(opt => {
+                    const selectedSpecs = formData.specialty ? formData.specialty.split(',').map(s => s.trim()).filter(Boolean) : [];
+                    const isSelected = selectedSpecs.includes(opt);
+                    return (
+                      <div 
+                        key={opt}
+                        className="px-4 py-2 hover:bg-white/5 cursor-pointer flex items-center gap-2"
+                        onClick={() => {
+                          let newSpecs;
+                          if (isSelected) {
+                            newSpecs = selectedSpecs.filter(s => s !== opt);
+                          } else {
+                            newSpecs = [...selectedSpecs, opt];
+                          }
+                          setFormData({...formData, specialty: newSpecs.join(', ')});
+                        }}
+                      >
+                        <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${isSelected ? 'bg-blue-500 border-blue-500' : 'border-white/30'}`}>
+                          {isSelected && <Check className="w-3 h-3 text-white" />}
+                        </div>
+                        <span className="text-sm text-white/80">{opt}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             <div className="col-span-2 md:col-span-1">

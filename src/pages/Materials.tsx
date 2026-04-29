@@ -229,10 +229,14 @@ export default function Materials() {
               <div>
                 <label className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-2 block">Usia Target</label>
                 <select value={formData.age_group} onChange={(e) => setFormData({...formData, age_group: e.target.value})} className="w-full bg-black/60 border border-white/10 rounded-2xl p-4 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]">
-                  <option value="U10">U10 (Junior)</option>
-                  <option value="U12">U12 (Youth)</option>
-                  <option value="U15">U15 (Cadet)</option>
-                  <option value="U17">U17 (Junior Elite)</option>
+                  <option value="U8">U8</option>
+                  <option value="U9">U9</option>
+                  <option value="U10">U10</option>
+                  <option value="U11">U11</option>
+                  <option value="U12">U12</option>
+                  <option value="U13">U13</option>
+                  <option value="U14">U14</option>
+                  <option value="U15">U15</option>
                   <option value="All">Semua Usia</option>
                 </select>
               </div>
