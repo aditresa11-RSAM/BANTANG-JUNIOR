@@ -116,10 +116,10 @@ export default function PlayerProfile() {
   };
 
   const StatBox = ({ label, value, icon: Icon, isEdit, name, type="text" }: any) => (
-    <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col gap-1">
-      <div className="flex items-center gap-2 text-white/50 mb-1">
-        <Icon className="w-4 h-4" />
-        <span className="text-xs uppercase font-bold tracking-widest">{label}</span>
+    <div className="bg-gradient-to-br from-[#0c1322] to-[#0a0f1c] border border-white/5 rounded-2xl p-5 flex flex-col gap-2 hover:border-blue-500/30 transition-all group shadow-[0_0_20px_rgba(37,99,235,0.05)]">
+      <div className="flex items-center gap-3 text-white/50 mb-1">
+        <Icon className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform" />
+        <span className="text-[10px] uppercase font-black tracking-[0.2em]">{label}</span>
       </div>
       {isEdit ? (
         <input 
@@ -127,10 +127,10 @@ export default function PlayerProfile() {
           name={name}
           value={value}
           onChange={(e) => setFormData({...formData, [name]: e.target.value})}
-          className="bg-black/40 border border-[var(--color-primary)]/50 rounded-lg px-2 py-1 text-white font-black text-xl w-full focus:outline-none"
+          className="bg-black/60 border border-white/10 focus:border-blue-500 rounded-xl px-4 py-2 text-white font-black text-2xl w-full focus:outline-none transition-all"
         />
       ) : (
-        <span className="text-2xl font-black text-white">{value}</span>
+        <span className="text-3xl font-display font-black text-white">{value}</span>
       )}
     </div>
   );
@@ -158,15 +158,15 @@ export default function PlayerProfile() {
           <div className="flex items-center gap-3">
             {isEditing ? (
               <>
-                <button onClick={handleDelete} className="flex items-center gap-2 px-4 py-2 bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white font-bold text-sm rounded-xl transition-all border border-red-500/30">
+                <button onClick={handleDelete} className="flex items-center gap-2 px-6 py-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all border border-red-500/30">
                   <Trash2 className="w-4 h-4" /> Hapus
                 </button>
-                <button onClick={handleSave} className="flex items-center gap-2 px-6 py-2 bg-[var(--color-primary)] text-black font-bold text-sm rounded-xl hover:bg-yellow-500 transition-all shadow-[0_0_15px_var(--color-primary-glow)]">
+                <button onClick={handleSave} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-[0_0_30px_rgba(37,99,235,0.4)] px-6 py-3 rounded-2xl flex items-center gap-2 transition-all font-black text-xs uppercase tracking-[0.1em]">
                   <CheckCircle2 className="w-4 h-4" /> Simpan Profil
                 </button>
               </>
             ) : (
-              <button onClick={() => setIsEditing(true)} className="flex items-center gap-2 px-6 py-2 bg-white/10 text-white font-bold text-sm rounded-xl hover:bg-white/20 transition-all border border-white/10">
+              <button onClick={() => setIsEditing(true)} className="flex items-center gap-2 px-6 py-3 bg-white/5 text-white font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-white/10 transition-all border border-white/10">
                 <Edit2 className="w-4 h-4" /> Edit Profil
               </button>
             )}
@@ -233,57 +233,106 @@ export default function PlayerProfile() {
            </div>
         </div>
 
-        {/* Detailed Stats / Radar */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+           {/* Detailed Stats / Radar */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
            
            {/* Radar Chart area */}
-           <div className="lg:col-span-2 bg-[#111827] border border-white/10 rounded-3xl p-6 relative overflow-hidden flex flex-col">
-              <div className="flex items-center justify-between mb-6 relative z-10">
-                <h3 className="text-xl font-display font-black text-white uppercase tracking-tight">Performance Radar</h3>
+           <div className="xl:col-span-2 bg-gradient-to-br from-[#0c1322] to-[#0a0f1c] border border-white/5 shadow-2xl rounded-[2.5rem] p-8 relative overflow-hidden flex flex-col">
+              <div className="flex items-center justify-between mb-8 relative z-10">
+                <h3 className="text-2xl font-display font-black text-white uppercase tracking-tight flex items-center gap-3">
+                  <Activity className="w-6 h-6 text-blue-500" /> Performance Radar
+                </h3>
               </div>
-              <div className="flex-1 w-full min-h-[400px] relative z-10">
+              <div className="flex-1 w-full min-h-[450px] relative z-10">
                 <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                  <RadarChart cx="50%" cy="50%" outerRadius="75%" data={radarData}>
-                    <PolarGrid stroke="rgba(255,255,255,0.1)" />
-                    <PolarAngleAxis dataKey="subject" tick={{ fill: 'rgba(255,255,255,0.8)', fontSize: 12, fontWeight: 'bold' }} />
+                  <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
+                    <PolarGrid stroke="rgba(255,255,255,0.05)" />
+                    <PolarAngleAxis dataKey="subject" tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 11, fontWeight: '900', textTransform: 'uppercase' }} />
                     <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                    <Radar name={formData.name} dataKey="A" stroke="var(--color-primary)" strokeWidth={3} fill="var(--color-primary)" fillOpacity={0.4} />
+                    <Radar name={formData.name} dataKey="A" stroke="#3b82f6" strokeWidth={4} fill="url(#colorUv)" fillOpacity={0.6} />
+                    <defs>
+                      <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.8}/>
+                      </linearGradient>
+                    </defs>
                   </RadarChart>
                 </ResponsiveContainer>
               </div>
            </div>
 
            {/* Manual Inputs for Skills if Edit Mode, or List if View Mode */}
-           <div className="bg-[#111827] border border-white/10 rounded-3xl p-6 flex flex-col">
-              <h3 className="text-xl font-display font-black text-white uppercase tracking-tight mb-6">Skill Ratings</h3>
-              <div className="space-y-4 flex-1">
+           <div className="bg-gradient-to-br from-[#0c1322] to-[#0a0f1c] border border-white/5 shadow-2xl rounded-[2.5rem] p-8 flex flex-col">
+              <h3 className="text-2xl font-display font-black text-white uppercase tracking-tight mb-8">Skill Ratings</h3>
+              <div className="space-y-6 flex-1">
                 {radarData.map((item) => (
-                  <div key={item.subject} className="flex items-center gap-4">
-                    <span className="w-24 text-xs font-bold text-white/60 uppercase tracking-widest">{item.subject}</span>
+                  <div key={item.subject} className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                       <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">{item.subject}</span>
+                       <span className={cn("text-lg font-black", item.A >= 85 ? "text-blue-400" : item.A >= 70 ? "text-green-400" : "text-white")}>{item.A}</span>
+                    </div>
                     {isEditing ? (
                       <input 
                         type="range" 
                         min="0" max="100" 
                         value={item.A}
                         onChange={(e) => setFormData({...formData, [item.subject.toLowerCase()]: parseInt(e.target.value)})}
-                        className="flex-1 accent-[var(--color-primary)]"
+                        className="w-full accent-blue-500 h-2 bg-white/10 rounded-lg appearance-none cursor-pointer"
                       />
                     ) : (
-                      <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                      <div className="w-full h-1.5 bg-black rounded-full overflow-hidden border border-white/5">
                         <motion.div 
                           initial={{ width: 0 }}
                           animate={{ width: `${item.A}%` }}
-                          transition={{ duration: 1, delay: 0.2 }}
-                          className={cn("h-full rounded-full", item.A >= 85 ? "bg-[var(--color-primary)]" : item.A >= 70 ? "bg-blue-500" : "bg-white/40")}
+                          transition={{ duration: 1.5, delay: 0.2, ease: "easeOut" }}
+                          className={cn("h-full rounded-full", item.A >= 85 ? "bg-gradient-to-r from-blue-500 to-indigo-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]" : item.A >= 70 ? "bg-gradient-to-r from-emerald-500 to-teal-500" : "bg-white/40")}
                         />
                       </div>
                     )}
-                    <span className="w-8 text-right font-black text-white">{item.A}</span>
                   </div>
                 ))}
               </div>
            </div>
+        </div>
 
+        {/* History & Coach Notes */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
+           {/* physical condition */}
+           <div className="bg-gradient-to-br from-[#0c1322] to-[#0a0f1c] border border-white/5 shadow-2xl rounded-[2.5rem] p-8">
+              <h3 className="text-2xl font-display font-black text-white uppercase tracking-tight mb-6">Kondisi Fisik</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                 <div className="bg-black/40 rounded-2xl p-4 border border-white/5 text-center">
+                    <p className="text-[10px] font-black uppercase text-white/50 tracking-[0.2em] mb-2">Stamina</p>
+                    <p className="text-2xl font-display font-black text-green-400">92%</p>
+                 </div>
+                 <div className="bg-black/40 rounded-2xl p-4 border border-white/5 text-center">
+                    <p className="text-[10px] font-black uppercase text-white/50 tracking-[0.2em] mb-2">Kehadiran Latihan</p>
+                    <p className="text-2xl font-display font-black text-blue-400">{formData.attendance}%</p>
+                 </div>
+                 <div className="bg-black/40 rounded-2xl p-4 border border-white/5 text-center">
+                    <p className="text-[10px] font-black uppercase text-white/50 tracking-[0.2em] mb-2">Status Cedera</p>
+                    <p className="text-lg mt-2 font-display font-black text-emerald-400 leading-none">FIT TO PLAY</p>
+                 </div>
+              </div>
+           </div>
+
+           {/* Coach Notes */}
+           <div className="bg-gradient-to-br from-blue-900/40 to-indigo-900/20 border border-blue-500/20 shadow-[0_0_30px_rgba(37,99,235,0.1)] rounded-[2.5rem] p-8">
+              <h3 className="text-2xl font-display font-black text-white uppercase tracking-tight mb-6 flex items-center gap-3">
+                 <Edit2 className="w-6 h-6 text-blue-400" /> Catatan Pelatih
+              </h3>
+              {isEditing ? (
+                 <textarea 
+                   className="w-full h-32 bg-black/60 border border-blue-500/50 rounded-2xl p-4 text-white font-medium resize-none focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                   value={formData.notes || "Pemain memiliki visi bermain yang sangat baik, perlu peningkatan di sektor power shooting dan defense tracking."}
+                   onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                 />
+              ) : (
+                 <p className="text-white/70 leading-relaxed font-medium bg-black/40 p-6 rounded-2xl border border-white/5 italic">
+                   "{formData.notes || "Pemain memiliki visi bermain yang sangat baik, perlu peningkatan di sektor power shooting dan defense tracking. Berpotensi menembus skuad inti bulan depan jika konsisten."}"
+                 </p>
+              )}
+           </div>
         </div>
 
       </div>

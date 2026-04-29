@@ -5,7 +5,7 @@ import {
   BookOpen, Plus, Search, Filter, Edit2, Trash2, Clock, 
   Dumbbell, Brain, HeartPulse, Shield, Star, PlayCircle, 
   FileText, ChevronRight, Loader2, Image as ImageIcon,
-  MoreVertical, Calendar, User
+  MoreVertical, Calendar, User, Download, Share2, X, Target, StickyNote, Activity, Target as Goal
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useCMSData } from '../lib/store';
@@ -24,8 +24,10 @@ export default function Materials() {
   const [filterTab, setFilterTab] = useState('All');
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [editing, setEditing] = useState<any>(null);
+  const [selectedMaterial, setSelectedMaterial] = useState<any>(null);
   const { data: materials, addItems: addMaterial, updateItem: updateMaterial, deleteItem: deleteMaterial } = useCMSData('training_materials', []);
   
   const [formData, setFormData] = useState({
@@ -192,7 +194,7 @@ export default function Materials() {
                           </div>
                           <span className="text-[9px] font-black text-white/60 uppercase tracking-widest leading-[24px]">{m.level}</span>
                        </div>
-                       <button className="flex items-center gap-1.5 text-[9px] font-black text-[var(--color-primary)] uppercase tracking-widest hover:gap-3 transition-all">
+                       <button onClick={() => { setSelectedMaterial(m); setIsViewModalOpen(true); }} className="flex items-center gap-1.5 text-[9px] font-black text-[var(--color-primary)] uppercase tracking-widest hover:gap-3 transition-all">
                           Lihat Detail <ChevronRight className="w-3 h-3" />
                        </button>
                     </div>
@@ -299,6 +301,158 @@ export default function Materials() {
             </div>
           </form>
         </Modal>
+        {/* VIEW DETAIL MODAL */}
+        <AnimatePresence>
+          {isViewModalOpen && selectedMaterial && (
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 md:p-12"
+            >
+              <div className="absolute inset-0 bg-[#060c18]/90 backdrop-blur-2xl" onClick={() => setIsViewModalOpen(false)} />
+              
+              <motion.div 
+                initial={{ opacity: 0, y: 100, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95, y: 50 }}
+                transition={{ type: "spring", bounce: 0, duration: 0.5 }}
+                className="relative w-full max-w-6xl max-h-full overflow-y-auto hide-scrollbar bg-gradient-to-br from-[#0c1a35] via-[#09152b] to-[#040914] rounded-[2.5rem] md:rounded-[3rem] border border-white/10 shadow-[0_50px_100px_rgba(0,0,0,0.8)]"
+              >
+                {/* Close Button */}
+                <button 
+                  onClick={() => setIsViewModalOpen(false)}
+                  className="absolute top-6 right-6 z-20 w-12 h-12 flex items-center justify-center rounded-full bg-black/40 border border-white/10 text-white/50 hover:text-white hover:bg-red-500/20 hover:border-red-500/50 backdrop-blur-md transition-all"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+
+                {/* Cover Image/Video Area */}
+                <div className="relative h-64 md:h-96 w-full bg-black">
+                   <img 
+                      src={selectedMaterial.media_url || "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=1200"} 
+                      className="w-full h-full object-cover opacity-60" 
+                      alt={selectedMaterial.title} 
+                   />
+                   <div className="absolute inset-0 bg-gradient-to-t from-[#09152b] via-[#09152b]/50 to-transparent" />
+                   
+                   {/* Play Button Mockup for Video */}
+                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                     <div className="w-20 h-20 rounded-full bg-white/10 border-2 border-white/20 backdrop-blur-xl flex items-center justify-center text-white/80 shadow-[0_0_50px_rgba(255,255,255,0.1)]">
+                       <PlayCircle className="w-8 h-8 ml-1" />
+                     </div>
+                   </div>
+
+                   <div className="absolute bottom-6 md:bottom-10 left-6 md:left-12 right-6 md:right-12 text-white">
+                      <div className="flex gap-2 mb-4">
+                        <span className="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest backdrop-blur-xl border border-[var(--color-primary)]/30 bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+                          {TRAINING_CATEGORIES.find(c => c.id === selectedMaterial.category)?.name}
+                        </span>
+                        <span className="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest backdrop-blur-xl border border-white/10 bg-white/5 text-white/60">
+                          {selectedMaterial.level}
+                        </span>
+                      </div>
+                      <h2 className="text-3xl md:text-5xl font-display font-black uppercase tracking-tight leading-none text-transparent bg-clip-text bg-gradient-to-r from-white to-white/60 shadow-sm drop-shadow-lg mb-2">
+                         {selectedMaterial.title}
+                      </h2>
+                   </div>
+                </div>
+
+                {/* Content Area */}
+                <div className="p-6 md:p-12 grid grid-cols-1 lg:grid-cols-12 gap-10">
+                  
+                  {/* Left Column - Details */}
+                  <div className="lg:col-span-8 space-y-10">
+                    
+                    <section>
+                      <h3 className="text-sm font-black text-white/40 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                         <FileText className="w-4 h-4 text-[var(--color-primary)]" /> Deskripsi Materi
+                      </h3>
+                      <p className="text-white/80 text-base md:text-lg leading-relaxed font-medium">
+                        {selectedMaterial.description}
+                      </p>
+                    </section>
+
+                    <section className="p-6 md:p-8 bg-blue-500/5 rounded-3xl border border-blue-500/10">
+                       <h3 className="text-sm font-black text-blue-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                         <Goal className="w-4 h-4" /> Tujuan & Langkah-Langkah (Mock)
+                       </h3>
+                       <div className="space-y-4">
+                         {[
+                           "Meningkatkan akurasi umpan pendek dan panjang.",
+                           "Meningkatkan kesadaran posisi pemain di lapangan.",
+                           "Transisi cepat dari bertahan ke menyerang."
+                         ].map((step, i) => (
+                           <div key={i} className="flex gap-4">
+                             <div className="w-8 h-8 shrink-0 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400 font-bold text-sm border border-blue-500/20">{i + 1}</div>
+                             <p className="text-white/70 text-sm mt-1.5">{step}</p>
+                           </div>
+                         ))}
+                       </div>
+                    </section>
+
+                  </div>
+
+                  {/* Right Column - Sidebar */}
+                  <div className="lg:col-span-4 space-y-6">
+                    <div className="glass-card p-6 md:p-8 rounded-[2rem] border border-white/5 space-y-6">
+                       
+                       <div className="grid grid-cols-2 gap-4">
+                          {[
+                            { label: "Target Usia", val: selectedMaterial.age_group, icon: User },
+                            { label: "Durasi", val: selectedMaterial.duration, icon: Clock },
+                            { label: "Intensitas", val: "High", icon: Activity },
+                            { label: "Fokus", val: "Taktik", icon: Target },
+                          ].map((item, i) => (
+                            <div key={i} className="bg-black/30 p-4 rounded-2xl border border-white/5">
+                               <item.icon className="w-4 h-4 text-white/30 mb-2" />
+                               <span className="block text-[10px] font-black text-white/30 uppercase tracking-widest">{item.label}</span>
+                               <span className="block text-sm font-bold text-white mt-1">{item.val}</span>
+                            </div>
+                          ))}
+                       </div>
+
+                       <div className="p-5 bg-yellow-500/5 rounded-2xl border border-yellow-500/10">
+                          <h4 className="text-[10px] font-black text-yellow-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                            <StickyNote className="w-3 h-3" /> Catatan Pelatih
+                          </h4>
+                          <p className="text-sm text-yellow-500/70 italic">
+                            "Pastikan pemain selalu melihat ke sekitar sebelum menerima bola (scanning)."
+                          </p>
+                       </div>
+
+                    </div>
+
+                    {/* Admin Actions */}
+                    <div className="glass-card p-6 rounded-[2rem] border border-white/5 space-y-3">
+                       <h4 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-4">Admin Actions</h4>
+                       
+                       <button onClick={() => { setIsViewModalOpen(false); openEdit(selectedMaterial); }} className="w-full py-3.5 bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white rounded-xl text-xs font-black uppercase tracking-widest border border-blue-500/20 transition-all flex items-center justify-center gap-2">
+                         <Edit2 className="w-4 h-4" /> Edit Materi
+                       </button>
+                       
+                       <button onClick={() => { deleteMaterial(selectedMaterial.id); setIsViewModalOpen(false); }} className="w-full py-3.5 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded-xl text-xs font-black uppercase tracking-widest border border-red-500/20 transition-all flex items-center justify-center gap-2">
+                         <Trash2 className="w-4 h-4" /> Hapus Materi
+                       </button>
+
+                       <div className="flex gap-3 pt-3">
+                         <button className="flex-1 py-3 bg-white/5 text-white/60 hover:text-white hover:bg-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/5 transition-all flex flex-col items-center justify-center gap-1">
+                           <Download className="w-4 h-4" /> PDF
+                         </button>
+                         <button className="flex-1 py-3 bg-white/5 text-white/60 hover:text-white hover:bg-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/5 transition-all flex flex-col items-center justify-center gap-1">
+                           <Share2 className="w-4 h-4" /> Share
+                         </button>
+                       </div>
+                    </div>
+
+                  </div>
+                </div>
+
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
       </div>
     </Layout>
   );
