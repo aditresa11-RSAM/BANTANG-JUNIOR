@@ -240,7 +240,7 @@ export default function Tactics() {
                 </svg>
 
                 {/* Player Drag Layer */}
-                <div className="absolute inset-0 p-[4%] z-20">
+                <div className="absolute inset-0 p-[4%] z-20 pointer-events-none">
                   <AnimatePresence mode="popLayout">
                     {positions.map((pos, i) => (
                       <PlayerIcon 
@@ -444,52 +444,74 @@ interface PlayerProps {
   disabled: boolean; boardRef: React.RefObject<HTMLDivElement>;
 }
 
-function PlayerIcon({ idx, x, y, isGK, active, onSelect, onUpdate, disabled, boardRef }: PlayerProps) {
-  // Use springs for smooth animations
-  const springConfig = { damping: 25, stiffness: 300, mass: 0.8 };
-  const animatedX = useSpring(useMotionValue(x), springConfig);
-  const animatedY = useSpring(useMotionValue(y), springConfig);
+const PlayerIcon: React.FC<PlayerProps> = ({ idx, x, y, isGK, active, onSelect, onUpdate, disabled, boardRef }) => {
+  const [localPos, setLocalPos] = useState({ x, y });
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
-    animatedX.set(x);
-    animatedY.set(y);
-  }, [x, y, animatedX, animatedY]);
+    if (!isDragging) {
+      setLocalPos({ x, y });
+    }
+  }, [x, y, isDragging]);
 
-  const handleDrag = (_: any, info: any) => {
-    const rect = boardRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    
-    // Calculate relative percentage delta
-    const dx = (info.delta.x / rect.width) * 100;
-    const dy = (info.delta.y / rect.height) * 100;
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (disabled) return;
+    e.stopPropagation();
+    onSelect();
+    setIsDragging(true);
 
-    onUpdate(
-      Math.max(2, Math.min(98, x + dx)),
-      Math.max(2, Math.min(98, y + dy))
-    );
+    const board = boardRef.current;
+    if (!board) return;
+
+    const handlePointerMove = (me: PointerEvent) => {
+      me.preventDefault(); // prevent scrolling on mobile touch
+      const rect = board.getBoundingClientRect();
+      const nx = ((me.clientX - rect.left) / rect.width) * 100;
+      const ny = ((me.clientY - rect.top) / rect.height) * 100;
+      setLocalPos({
+        x: Math.max(2, Math.min(98, nx)),
+        y: Math.max(2, Math.min(98, ny)),
+      });
+    };
+
+    const handlePointerUp = (ue: PointerEvent) => {
+      setIsDragging(false);
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+      
+      const rect = board.getBoundingClientRect();
+      const nx = ((ue.clientX - rect.left) / rect.width) * 100;
+      const ny = ((ue.clientY - rect.top) / rect.height) * 100;
+      onUpdate(
+        Math.max(2, Math.min(98, nx)),
+        Math.max(2, Math.min(98, ny))
+      );
+    };
+
+    window.addEventListener('pointermove', handlePointerMove, { passive: false });
+    window.addEventListener('pointerup', handlePointerUp);
   };
 
   return (
-    <motion.div
-      style={{ left: `${x}%`, top: `${y}%`, x: '-50%', y: '-50%' }}
-      className="absolute"
+    <div
+      style={{ 
+        left: `${localPos.x}%`, 
+        top: `${localPos.y}%`, 
+        transform: 'translate(-50%, -50%)',
+        touchAction: 'none'
+      }}
+      className={cn("absolute pointer-events-auto transition-none", isDragging && "z-50")}
     >
       <motion.div
-        drag={!disabled}
-        dragConstraints={boardRef}
-        dragElastic={0}
-        dragMomentum={false}
-        onDrag={handleDrag}
-        onPointerDown={onSelect}
+        onPointerDown={handlePointerDown}
         whileHover={!disabled ? { scale: 1.1 } : {}}
-        whileDrag={{ 
-          scale: 1.3, 
-          zIndex: 100, 
-          filter: "drop-shadow(0 20px 30px rgba(0,0,0,0.4))" 
+        animate={{ 
+          scale: isDragging ? 1.3 : 1,
+          filter: isDragging ? "drop-shadow(0 20px 30px rgba(0,0,0,0.4))" : "drop-shadow(0 10px 20px rgba(0,0,0,0.3))"
         }}
         className={cn(
-          "w-12 h-12 md:w-14 md:h-14 rounded-full border-[3px] shadow-[0_10px_20px_rgba(0,0,0,0.3)] flex flex-col items-center justify-center font-display font-black text-sm transition-all duration-300",
-          !disabled ? "cursor-grab active:cursor-grabbing" : "cursor-default",
+          "w-12 h-12 md:w-14 md:h-14 rounded-full border-[3px] flex flex-col items-center justify-center font-display font-black text-sm",
+          !disabled ? (isDragging ? "cursor-grabbing" : "cursor-grab") : "cursor-default",
           isGK 
             ? "bg-amber-400 text-black border-amber-500/50" 
             : "bg-[var(--color-primary)] text-black border-white/20",
@@ -509,15 +531,15 @@ function PlayerIcon({ idx, x, y, isGK, active, onSelect, onUpdate, disabled, boa
              exit={{ opacity: 0, scale: 0 }}
              className="absolute top-[-25px] left-1/2 -translate-x-1/2 bg-black text-white text-[8px] font-black px-2 py-0.5 rounded-full whitespace-nowrap"
            >
-             {Math.round(x)}%, {Math.round(y)}%
+             {Math.round(localPos.x)}%, {Math.round(localPos.y)}%
            </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
 }
 
-function BoardPath({ path }: { path: any }) {
+const BoardPath: React.FC<{ path: any }> = ({ path }) => {
   if (!path || !path.points || path.points.length < 2) return null;
   
   const d = path.points.map((p: any, i: number) => 

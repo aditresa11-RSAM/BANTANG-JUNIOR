@@ -15,7 +15,7 @@ const initialCoaches = [
   { 
     id: '1', 
     name: 'Andre Wijaya', 
-    license: 'AFC Pro License', 
+    license: 'Lisensi B', 
     specialty: 'Head Coach', 
     experience: '12', 
     photo: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&q=80&w=600',
@@ -25,7 +25,7 @@ const initialCoaches = [
   { 
     id: '2', 
     name: 'Sarah Kurniawan', 
-    license: 'AFC A License', 
+    license: 'Lisensi C', 
     specialty: 'Assistant Coach', 
     experience: '8', 
     photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=600',
@@ -35,7 +35,7 @@ const initialCoaches = [
   { 
     id: '3', 
     name: 'Mike Tyson', 
-    license: 'Sports Science Specialist', 
+    license: 'Lisensi D', 
     specialty: 'Fitness Coach', 
     experience: '15', 
     photo: 'https://images.unsplash.com/photo-1533227268408-a7746955c711?auto=format&fit=crop&q=80&w=600',
@@ -45,7 +45,7 @@ const initialCoaches = [
   { 
     id: '4', 
     name: 'Budi Hartono', 
-    license: 'GK Level 3', 
+    license: 'Coaching Clinic', 
     specialty: 'Goalkeeper Coach', 
     experience: '10', 
     photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=600',
@@ -264,14 +264,11 @@ export default function Coaches() {
             <div className="col-span-2 md:col-span-1">
               <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-1.5 block">Lisensi Kepelatihan</label>
               <select required value={formData.license} onChange={(e) => setFormData({...formData, license: e.target.value})} className="w-full bg-[#0a0f1c] border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:border-blue-500">
-                <option value="">Pilih Lisensi</option>
-                <option value="AFC Pro License">AFC Pro License</option>
-                <option value="AFC A License">AFC A License</option>
-                <option value="AFC B License">AFC B License</option>
-                <option value="UEFA Pro">UEFA Pro</option>
-                <option value="UEFA A">UEFA A</option>
-                <option value="Sports Science Specialist">Sports Science</option>
-                <option value="GK Level 3">GK Level 3</option>
+                <option value="">Pilih Lisensi Pelatih</option>
+                <option value="Lisensi B">Lisensi B</option>
+                <option value="Lisensi C">Lisensi C</option>
+                <option value="Lisensi D">Lisensi D</option>
+                <option value="Coaching Clinic">Coaching Clinic</option>
               </select>
             </div>
 

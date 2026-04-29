@@ -36,8 +36,7 @@ export default function LandingPage() {
               <Trophy className="text-[var(--color-primary)] w-10 h-10" />
             )}
             <div className="flex flex-col">
-              <span className="font-display font-bold text-lg tracking-tighter text-[var(--color-primary)] truncate leading-tight">{appName}</span>
-              <span className="text-[10px] font-bold text-white/50 tracking-[0.2em] uppercase leading-tight">Football Club</span>
+              <span className="font-display font-black text-xl tracking-tighter text-[var(--color-primary)] drop-shadow-[0_0_10px_rgba(250,204,21,0.3)] truncate leading-tight">{appName}</span>
             </div>
           </div>
           
