@@ -324,7 +324,7 @@ export default function Tactics() {
               </motion.div>
 
               {/* FLOATING GLASS TOOLBAR */}
-              <div className={cn("absolute left-1/2 -translate-x-1/2 bg-surface/40 backdrop-blur-3xl border border-white/10 p-2.5 rounded-[1.5rem] sm:rounded-[2.5rem] shadow-[0_25px_50px_rgba(0,0,0,0.5)] z-50 flex items-center gap-1 sm:gap-2 ring-1 ring-white/5 w-[95vw] md:w-auto overflow-x-auto hide-scrollbar sm:overflow-visible justify-start sm:justify-center max-w-max", isFullscreen ? "bottom-4 md:bottom-8 lg:bottom-12" : "-bottom-16 sm:-bottom-8")}>
+              <div className={cn("absolute left-1/2 -translate-x-1/2 w-max max-w-[95vw] md:max-w-none bg-surface/40 backdrop-blur-3xl border border-white/10 p-2 sm:p-2.5 rounded-[1.5rem] sm:rounded-[2.5rem] shadow-[0_25px_50px_rgba(0,0,0,0.5)] z-50 flex flex-wrap sm:flex-nowrap items-center justify-center gap-1 sm:gap-2 ring-1 ring-white/5", isFullscreen ? "bottom-4 md:bottom-8 lg:bottom-12" : "-bottom-20 sm:-bottom-8")}>
                  <ToolBtn icon={MousePointer} active={activeTool === 'cursor'} onClick={() => setActiveTool('cursor')} label="MOVE" />
                  <div className="w-px h-8 bg-white/10 mx-1" />
                  <ToolBtn icon={PenTool} active={activeTool === 'pen'} onClick={() => setActiveTool('pen')} label="DRAW" />
@@ -489,7 +489,7 @@ function ToolBtn({ icon: Icon, active, onClick, label, className }: any) {
     <button 
       onClick={onClick}
       className={cn(
-        "p-2.5 sm:p-4 rounded-[1rem] sm:rounded-[1.75rem] flex flex-col items-center justify-center gap-1 sm:gap-2 transition-all duration-300 min-w-[44px] sm:min-w-[70px] shrink-0",
+        "p-2 sm:p-4 rounded-[1rem] sm:rounded-[1.75rem] flex flex-col items-center justify-center gap-0.5 sm:gap-2 transition-all duration-300 min-w-[38px] sm:min-w-[70px] shrink-0",
         active 
           ? "bg-white text-black shadow-2xl scale-110" 
           : "hover:bg-white/10 text-white/40 hover:text-white",
@@ -497,7 +497,7 @@ function ToolBtn({ icon: Icon, active, onClick, label, className }: any) {
       )}
     >
       <Icon className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
-      {label && <span className="text-[8px] font-black uppercase tracking-[0.2em]">{label}</span>}
+      {label && <span className="text-[7px] sm:text-[8px] font-black uppercase tracking-[0.1em] sm:tracking-[0.2em]">{label}</span>}
     </button>
   );
 }
