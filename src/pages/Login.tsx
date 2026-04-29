@@ -53,8 +53,7 @@ export default function Login() {
               <Trophy className="text-black w-14 h-14" />
             )}
           </motion.div>
-          <h1 className="text-3xl font-display font-bold tracking-tighter mb-2 text-[var(--color-primary)] truncate max-w-[300px] mx-auto">{appName}</h1>
-          <p className="text-white/60 text-sm uppercase tracking-[0.2em]">SSB Management System</p>
+          <h1 className="text-3xl font-display font-bold tracking-tighter text-[var(--color-primary)] truncate max-w-[300px] mx-auto">{appName}</h1>
         </div>
 
         <div className="glass-card p-8 border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
@@ -123,10 +122,15 @@ export default function Login() {
             <button
               type="submit"
               disabled={isLoading}
-              className="glow-button w-full py-4 flex items-center justify-center gap-2 group disabled:opacity-50"
+              className="glow-button w-full py-4 flex items-center justify-center gap-3 group disabled:opacity-50"
             >
-              {isLoading ? 'SIGNING IN...' : 'LOGIN TO ACADEMY'}
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              {isLoading ? 'MASUK...' : 'MASUK'}
+              <motion.div
+                animate={{ x: [0, 5, 0], opacity: [1, 0.5, 1] }}
+                transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+              >
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </motion.div>
             </button>
           </form>
 
@@ -137,19 +141,6 @@ export default function Login() {
           </div>
         </div>
 
-        <div className="mt-8 flex justify-center gap-8">
-          <div className="text-center">
-            <p className="text-[10px] text-white/20 uppercase tracking-widest mb-1">Status</p>
-            <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 bg-green-500 rounded-full shadow-[0_0_5px_rgba(34,197,94,0.5)]" />
-              <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest">System Online</span>
-            </div>
-          </div>
-          <div className="text-center">
-            <p className="text-[10px] text-white/20 uppercase tracking-widest mb-1">Region</p>
-            <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Global - AS1</span>
-          </div>
-        </div>
       </motion.div>
     </div>
   );

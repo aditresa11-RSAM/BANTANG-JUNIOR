@@ -308,7 +308,7 @@ export default function Dashboard() {
                   <XAxis dataKey="name" stroke="rgba(255,255,255,0.2)" fontSize={10} tickLine={false} axisLine={false} tick={{ fontWeight: 700 }} />
                   <YAxis stroke="rgba(255,255,255,0.2)" fontSize={10} tickLine={false} axisLine={false} tick={{ fontWeight: 700 }} />
                   <Tooltip 
-                    contentStyle={{ backgroundColor: 'rgba(11, 18, 32, 0.9)', borderColor: 'rgba(59, 130, 246, 0.2)', borderRadius: '16px', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)' }} 
+                    contentStyle={{ backgroundColor: 'var(--color-navy-dark)', borderColor: 'rgba(59, 130, 246, 0.2)', borderRadius: '16px', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)' }} 
                     itemStyle={{ color: '#fff', fontSize: '12px', fontWeight: 700 }}
                   />
                   <Area type="monotone" dataKey="value" stroke="#3B82F6" strokeWidth={4} fillOpacity={1} fill="url(#colorValue)" animationDuration={2000} />
@@ -331,7 +331,7 @@ export default function Dashboard() {
                   <PolarRadiusAxis angle={30} domain={[0, 150]} tick={false} axisLine={false} />
                   <Radar name="U-14 Pro" dataKey="A" stroke="#3B82F6" fill="#3B82F6" fillOpacity={0.4} animationDuration={2500} />
                   <Radar name="U-16 Elite" dataKey="B" stroke="#818CF8" fill="#818CF8" fillOpacity={0.2} animationDuration={2500} />
-                  <Tooltip contentStyle={{ backgroundColor: 'rgba(11, 18, 32, 0.9)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '16px' }} />
+                  <Tooltip contentStyle={{ backgroundColor: 'var(--color-navy-dark)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '16px' }} />
                 </RadarChart>
               </ResponsiveContainer>
             </div>
@@ -410,7 +410,7 @@ export default function Dashboard() {
                       <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={0.8} />
                     ))}
                   </Pie>
-                  <Tooltip contentStyle={{ backgroundColor: 'rgba(11, 18, 32, 0.9)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '16px' }} />
+                  <Tooltip contentStyle={{ backgroundColor: 'var(--color-navy-dark)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '16px' }} />
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
@@ -444,7 +444,7 @@ export default function Dashboard() {
                 {sliderForm.img ? (
                   <img src={sliderForm.img} alt="Preview" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full bg-[#111827] flex flex-col items-center justify-center text-white/30">
+                  <div className="w-full h-full bg-[var(--color-navy-dark)] flex flex-col items-center justify-center text-white/30">
                     <ImageIcon className="w-6 h-6 mb-2" />
                     <span className="text-[10px] uppercase tracking-widest font-bold">Upload Gambar</span>
                   </div>
@@ -460,15 +460,15 @@ export default function Dashboard() {
           </div>
           <div>
             <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-1.5 block">Judul Kiri</label>
-            <input type="text" required value={sliderForm.title} onChange={(e) => setSliderForm({...sliderForm, title: e.target.value})} className="w-full bg-[#111827] border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]" placeholder="Cth: BANTANG JUNIOR" />
+            <input type="text" required value={sliderForm.title} onChange={(e) => setSliderForm({...sliderForm, title: e.target.value})} className="w-full bg-[var(--color-navy-dark)] border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]" placeholder="Cth: BANTANG JUNIOR" />
           </div>
           <div>
             <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-1.5 block">Judul Kanan (Highlight Kuning)</label>
-            <input type="text" required value={sliderForm.subtitle} onChange={(e) => setSliderForm({...sliderForm, subtitle: e.target.value})} className="w-full bg-[#111827] border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]" placeholder="Cth: FOOTBALL ACADEMY" />
+            <input type="text" required value={sliderForm.subtitle} onChange={(e) => setSliderForm({...sliderForm, subtitle: e.target.value})} className="w-full bg-[var(--color-navy-dark)] border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]" placeholder="Cth: FOOTBALL ACADEMY" />
           </div>
           <div>
             <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-1.5 block">Deskripsi Singkat</label>
-            <textarea required value={sliderForm.description} onChange={(e) => setSliderForm({...sliderForm, description: e.target.value})} className="w-full bg-[#111827] border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] h-20 resize-none" placeholder="Isi deskripsi banner..." />
+            <textarea required value={sliderForm.description} onChange={(e) => setSliderForm({...sliderForm, description: e.target.value})} className="w-full bg-[var(--color-navy-dark)] border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] h-20 resize-none" placeholder="Isi deskripsi banner..." />
           </div>
           <div className="pt-4 flex gap-3">
             <button type="button" onClick={() => setIsSliderModalOpen(false)} className="flex-1 py-3 rounded-xl border border-white/10 text-white font-bold text-sm hover:bg-white/5 transition-colors">Batal</button>

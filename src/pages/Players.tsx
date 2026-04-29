@@ -251,15 +251,15 @@ export default function Players() {
 
                       {/* Player Info Area */}
                       <div className="p-4 relative z-20 bg-[#131b2f]">
-                        <div className="flex items-end gap-2 mb-1">
-                          <span className="text-3xl font-display font-black text-white/10 leading-none">{player.jersey}</span>
+                        <div className="flex items-end gap-2 mb-1 text-left">
+                          <span className="text-3xl font-display font-black text-amber-500/40 leading-none">{player.jersey}</span>
                           <h3 className="font-bold text-white text-base truncate flex-1 uppercase tracking-tight">{player.name}</h3>
                         </div>
                         
                         <div className="flex items-center gap-2 mb-4">
                            <span className="text-xs text-blue-400 font-bold uppercase">{player.position}</span>
                            <span className="w-1 h-1 rounded-full bg-white/20" />
-                           <span className="text-xs text-white/50">{player.age || calculateAge(player.dob)} YO</span>
+                           <span className="text-xs text-white/50">{player.age || calculateAge(player.dob)} TAHUN</span>
                         </div>
 
                         <div className="grid grid-cols-2 gap-2 text-[10px] font-mono text-white/40 uppercase">
@@ -326,7 +326,7 @@ export default function Players() {
                           <img src={player.photo} alt={player.name} className="w-12 h-12 rounded-xl object-cover ring-2 ring-transparent group-hover:ring-blue-500/50 transition-all" />
                           <div>
                             <p className="font-bold text-sm tracking-tight text-white uppercase">{player.name}</p>
-                            <p className="text-[11px] text-blue-400 font-bold uppercase">{player.position} <span className="text-white/30 font-normal">| #{player.jersey}</span></p>
+                            <p className="text-[11px] text-blue-400 font-bold uppercase">{player.position} <span className="text-amber-500/50 font-normal">| #{player.jersey}</span></p>
                           </div>
                         </div>
                       </td>
@@ -338,7 +338,7 @@ export default function Players() {
                       <td className="px-6 py-4">
                         <div className="text-[10px] text-white/50 flex flex-col gap-0.5 font-mono uppercase">
                           <span>{player.height}cm / {player.weight}kg</span>
-                          <span>{player.age || calculateAge(player.dob)} Y.O • {player.dominantFoot?.substring(0, 1)} Foot</span>
+                          <span>{player.age || calculateAge(player.dob)} TAHUN • {player.dominantFoot?.substring(0, 1)} Foot</span>
                         </div>
                       </td>
                       <td className="px-6 py-4">

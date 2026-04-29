@@ -15,6 +15,7 @@ import Players from './pages/Players';
 import PlayerProfile from './pages/PlayerProfile';
 import TrainingSchedule from './pages/TrainingSchedule';
 import PerformanceCenter from './pages/PerformanceCenter';
+import MatchAnalysis from './pages/MatchAnalysis';
 import Financials from './pages/Financials';
 import Coaches from './pages/Coaches';
 import CoachProfile from './pages/CoachProfile';
@@ -167,7 +168,7 @@ export default function App() {
 
   if (isLoading) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center bg-[var(--color-surface)]">
+      <div className="h-screen w-screen flex items-center justify-center bg-[var(--color-navy-dark)]">
         <motion.div
           animate={{ scale: [1, 1.2, 1], rotate: [0, 180, 360] }}
           transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
@@ -196,6 +197,7 @@ export default function App() {
               <Route path="/schedule" element={user ? <TrainingSchedule /> : <Navigate to="/" />} />
               <Route path="/performance" element={user ? <PerformanceCenter /> : <Navigate to="/" />} />
               <Route path="/tactics" element={user ? <Tactics /> : <Navigate to="/" />} />
+              <Route path="/match-analysis" element={user ? <MatchAnalysis /> : <Navigate to="/" />} />
               <Route path="/attendance" element={user ? <Attendance /> : <Navigate to="/" />} />
               <Route path="/materials" element={user ? <Materials /> : <Navigate to="/" />} />
               <Route path="/match-center" element={user ? <MatchCenter /> : <Navigate to="/" />} />

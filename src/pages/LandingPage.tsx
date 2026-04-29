@@ -34,7 +34,7 @@ export default function LandingPage() {
   }, [navigate, user]);
   
   return (
-    <div className="bg-[var(--color-surface)]">
+    <div className="bg-[var(--color-navy-dark)]">
       {/* Navbar */}
       <nav className="fixed top-0 w-full z-50 border-b border-white/5 bg-black/20 backdrop-blur-lg">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">

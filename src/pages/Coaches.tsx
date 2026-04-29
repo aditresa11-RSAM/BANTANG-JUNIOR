@@ -127,8 +127,8 @@ export default function Coaches() {
         <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#081225] via-[#0c162d] to-[#050a14] border border-blue-500/10 p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl">
            <div className="absolute top-0 right-0 w-1/2 h-full bg-[radial-gradient(ellipse_at_top_right,rgba(37,99,235,0.1),transparent_50%)] pointer-events-none" />
            <div className="relative z-10">
-             <h1 className="text-3xl md:text-4xl font-display font-black text-white uppercase tracking-tighter drop-shadow-lg">STAFF PANEL</h1>
-             <p className="text-blue-400/80 font-medium tracking-widest text-xs mt-1 uppercase">Elite Coaching Academy Management</p>
+             <h1 className="text-3xl md:text-4xl font-display font-black text-white uppercase tracking-tighter drop-shadow-lg">STAFF PELATIH</h1>
+             <p className="text-blue-400/80 font-medium tracking-widest text-xs mt-1 uppercase">SSB BANTANG JUNIOR</p>
            </div>
            <button onClick={handleOpenAdd} className="relative z-10 w-full md:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] px-6 py-3 rounded-xl justify-center flex items-center gap-2 transition-all font-bold uppercase tracking-wider text-xs border border-blue-400/30">
              <Plus className="w-4 h-4" /> Recuit Coach

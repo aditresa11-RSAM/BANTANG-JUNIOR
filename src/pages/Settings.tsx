@@ -984,7 +984,7 @@ WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboar
              </h3>
 
              <div className="glass-card p-8 flex flex-col items-center justify-center min-h-[300px] relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#0B1120] to-[#172554]/20" />
+                <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-navy-dark)] to-[var(--color-navy)]/10" />
                 
                 <div className="relative z-10 flex flex-col items-center gap-6 text-center">
                    <div className={`w-32 h-32 rounded-3xl flex items-center justify-center overflow-hidden ${localLogoUrl ? '' : 'bg-[var(--color-primary)] shadow-[0_0_30px_var(--color-primary-glow)]'}`}>
