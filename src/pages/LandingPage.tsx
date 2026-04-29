@@ -24,6 +24,15 @@ export default function LandingPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (user) return;
+    const hasVisited = localStorage.getItem('ssb_has_visited');
+    if (!hasVisited) {
+      localStorage.setItem('ssb_has_visited', 'true');
+      navigate('/login');
+    }
+  }, [navigate, user]);
+  
   return (
     <div className="bg-[var(--color-surface)]">
       {/* Navbar */}
@@ -36,7 +45,7 @@ export default function LandingPage() {
               <Trophy className="text-[var(--color-primary)] w-10 h-10" />
             )}
             <div className="flex flex-col">
-              <span className="font-display font-black text-xl tracking-tighter text-[var(--color-primary)] drop-shadow-[0_0_10px_rgba(250,204,21,0.3)] truncate leading-tight">{appName}</span>
+              <span className="font-display font-bold text-lg tracking-tighter text-[var(--color-primary)] truncate leading-tight">{appName}</span>
             </div>
           </div>
           
@@ -81,9 +90,9 @@ export default function LandingPage() {
                 <span className="text-[var(--color-primary)] text-glow">MASA DEPAN</span>
               </h1>
               <p className="text-sm text-white mb-10 leading-relaxed font-light max-w-2xl">
-                Program pembinaan sepak bola modern berbasis data, disiplin, dan performa tingkat nasional. 
+                Program pembinaan sepak bola modern berbasis data, disiplin, dan performa tingkat nasional 
                 <br className="hidden md:block" />
-                Kami melatih teknik, fisik, dan mental calon atlet profesional.
+                Kami melatih teknik, fisik, dan mental calon atlet profesional
               </p>
               
               <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -110,15 +119,15 @@ export default function LandingPage() {
             <div className="flex gap-10">
               <div>
                 <p className="text-sm text-white mb-1">Pemain Aktif</p>
-                <p className="text-3xl font-display font-bold text-center text-[#facc15]">450+</p>
+                <p className="text-3xl font-display font-bold text-center text-[#facc15]">20+</p>
               </div>
               <div>
                 <p className="text-sm text-white mb-1">Pelatih Pro</p>
-                <p className="text-3xl font-display font-bold text-center text-[#facc15]">12</p>
+                <p className="text-3xl font-display font-bold text-center text-[#facc15]">3</p>
               </div>
               <div>
                 <p className="text-sm text-white mb-1">Turnamen</p>
-                <p className="text-3xl font-display font-bold text-center text-[#facc15]">25</p>
+                <p className="text-3xl font-display font-bold text-center text-[#facc15]">15</p>
               </div>
             </div>
           </div>
@@ -131,16 +140,16 @@ export default function LandingPage() {
       <section id="program" className="py-32 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">PROGRAM UNGGULAN</h2>
+            <h2 className="font-bold mb-4" style={{ fontSize: '71px' }}>PROGRAM UNGGULAN</h2>
             <div className="w-24 h-1 bg-[var(--color-primary)] mx-auto rounded-full shadow-[0_0_10px_var(--color-primary)]" />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { age: 'U8-U10', name: 'SSB BANTANG JUNIOR', description: 'Fokus pada kesenangan & teknik dasar bola.', img: 'https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&q=80&w=1000' },
-              { age: 'U11-U13', name: 'Bantang Development', description: 'Pemantapan visi bermain & taktik tim.', img: 'https://images.unsplash.com/photo-1543351611-58f69d7c1781?auto=format&fit=crop&q=80&w=1000' },
-              { age: 'U14-U15', name: 'Bantang Performance', description: 'Persiapan fisik & mental level kompetisi.', img: 'https://images.unsplash.com/photo-1517466787929-bc94061c5c50?auto=format&fit=crop&q=80&w=1000' },
-              { age: 'Pro', name: 'Scouting Path', description: 'Jalur karir menuju klub profesional.', img: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=1000' }
+              { age: 'U8-U10', name: 'SSB BANTANG JUNIOR', desc: 'Fokus pada kesenangan & teknik dasar bola.', img: 'https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&q=80&w=1000' },
+              { age: 'U12-U14', name: 'Bantang Development', desc: 'Pemantapan visi bermain & taktik tim.', img: 'https://images.unsplash.com/photo-1543351611-58f69d7c1781?auto=format&fit=crop&q=80&w=1000' },
+              { age: 'U15-U17', name: 'Bantang Performance', desc: 'Persiapan fisik & mental level kompetisi.', img: 'https://images.unsplash.com/photo-1517466787929-bc94061c5c50?auto=format&fit=crop&q=80&w=1000' },
+              { age: 'Pro', name: 'Scouting Path', desc: 'Jalur karir menuju klub profesional.', img: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=1000' }
             ].map((program, idx) => (
               <motion.div
                 key={idx}
@@ -156,7 +165,7 @@ export default function LandingPage() {
                 </div>
                 <div className="p-6">
                   <h3 className="text-xl font-bold mb-2">{program.name}</h3>
-                  <p className="text-sm text-white/50 mb-6 leading-relaxed">{program.description || (program as any).desc}</p>
+                  <p className="text-sm text-white/50 mb-6 leading-relaxed">{program.desc}</p>
                   <button className="text-xs font-bold flex items-center gap-2 text-[var(--color-primary)] hover:gap-3 transition-all">
                     PELAJARI LEBIH LANJUT <ArrowRight className="w-3 h-3" />
                   </button>

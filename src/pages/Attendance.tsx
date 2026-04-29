@@ -3,7 +3,7 @@ import Layout from '../components/ui/Layout';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Users, Calendar, Search, Filter, CheckCircle2, XCircle, Clock, 
-  AlertCircle, FileDown, ChevronRight, User, TrendingUp, FilterX
+  AlertCircle, FileDown, ChevronRight, User, TrendingUp, FilterX, Save
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useCMSData } from '../lib/store';
@@ -12,8 +12,10 @@ export default function Attendance() {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [filterCat, setFilterCat] = useState('All');
   const [search, setSearch] = useState('');
-  const { data: players } = useCMSData('players', []);
-  const { data: attendance, addItems: addAttendance } = useCMSData('attendance', []);
+  const [pendingChanges, setPendingChanges] = useState<Record<string, string>>({});
+
+  const { data: players, updateItem: updatePlayer } = useCMSData('players', []);
+  const { data: attendance, addItems: addAttendance, updateItem: updateAttendance } = useCMSData('attendance', []);
 
   const categories = ['All', 'U8', 'U9', 'U10', 'U11', 'U12', 'U13', 'U14', 'U15'];
 
@@ -24,16 +26,37 @@ export default function Attendance() {
   });
 
   const getStatus = (playerId: string) => {
+    if (pendingChanges[playerId]) return pendingChanges[playerId];
     return attendance.find(a => a.player_id === playerId && a.date === date)?.status || 'none';
   };
 
   const handleStatusChange = (playerId: string, status: string) => {
-    const record = attendance.find(a => a.player_id === playerId && a.date === date);
-    if (record) {
-       addAttendance({ player_id: playerId, date, status, id: record.id });
-    } else {
-       addAttendance({ player_id: playerId, date, status });
-    }
+    setPendingChanges(prev => ({ ...prev, [playerId]: status }));
+  };
+
+  const handleSave = () => {
+    Object.entries(pendingChanges).forEach(([playerId, status]) => {
+      // 1. Update Attendance Collection
+      const record = attendance.find(a => a.player_id === playerId && a.date === date);
+      if (record) {
+         updateAttendance(record.id, { status });
+      } else {
+         addAttendance({ player_id: playerId, date, status });
+      }
+
+      // 2. Update Player's Attendance Percentage in players collection
+      const player = players.find((p:any) => p.id === playerId);
+      if (player) {
+         const playerHistory = attendance.filter(a => a.player_id === playerId && a.date !== date).map(a => a.status);
+         playerHistory.push(status);
+         const total = playerHistory.length;
+         // Consider present and late as "Attended"
+         const attended = playerHistory.filter(s => s === 'present' || s === 'late').length;
+         const percentage = total > 0 ? Math.round((attended / total) * 100) : 0;
+         updatePlayer(player.id, { attendance: percentage });
+      }
+    });
+    setPendingChanges({});
   };
 
   const stats = {
@@ -61,6 +84,14 @@ export default function Attendance() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+            {Object.keys(pendingChanges).length > 0 && (
+               <button 
+                 onClick={handleSave}
+                 className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white font-black text-xs uppercase tracking-[0.1em] rounded-xl hover:bg-blue-500 shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all animate-in zoom-in"
+               >
+                 <Save className="w-4 h-4" /> Simpan Perubahan
+               </button>
+            )}
             <button className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-xs font-black uppercase tracking-widest text-white/60 hover:text-white hover:bg-white/10 transition-all">
               <FileDown className="w-4 h-4" /> Export Laporan
             </button>

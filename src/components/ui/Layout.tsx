@@ -41,23 +41,29 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen flex text-white overflow-hidden">
       {/* Sidebar Desktop */}
-      <aside className="hidden lg:flex flex-col w-72 bg-surface border-r border-white/5 h-screen sticky top-0">
-        <div className="p-8 shrink-0 flex-none">
-          <div className="flex items-center gap-3">
+      <aside className="hidden lg:flex flex-col w-72 bg-[var(--color-navy-dark)] border-r border-white/5 h-screen sticky top-0">
+        <div className="pt-10 pb-6 px-8 shrink-0 flex flex-col items-center">
+          <Link 
+            to="/dashboard"
+            className="group/logo flex flex-col items-center gap-4 transition-transform hover:scale-105 duration-300"
+          >
             <div className={cn(
-              "w-10 h-10 shrink-0 flex items-center justify-center",
-              !logoUrl && "rounded-xl bg-[var(--color-primary)] shadow-[0_0_15px_var(--color-primary-glow)]"
+              "w-20 h-20 shrink-0 flex items-center justify-center transition-all",
+              !logoUrl ? "rounded-2xl bg-[var(--color-primary)] shadow-[0_0_20px_rgba(250,204,21,0.4)]" : "drop-shadow-[0_0_15px_rgba(255,200,0,0.3)]"
             )}>
               {logoUrl ? (
-                <img src={logoUrl} alt="Logo" className="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(250,204,21,0.2)]" />
+                <img src={logoUrl} alt="Logo" className="w-full h-full object-contain" />
               ) : (
-                <Trophy className="text-black w-6 h-6" />
+                <Trophy className="text-black w-10 h-10" />
               )}
             </div>
-            <div className="min-w-0 flex-1">
-              <h1 className="font-display font-black text-lg leading-tight text-[var(--color-primary)] truncate" title={appName}>{appName}</h1>
+            <div className="text-center">
+              <h1 className="font-display font-black text-sm tracking-[0.15em] text-white uppercase leading-tight drop-shadow-sm">
+                SSB <span className="text-[var(--color-primary)]">BANTANG JUNIOR</span>
+              </h1>
+              <div className="h-px w-12 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent mx-auto mt-3 opacity-50" />
             </div>
-          </div>
+          </Link>
         </div>
 
         <nav className="flex-1 px-4 space-y-2 py-4 overflow-y-auto">
@@ -110,15 +116,24 @@ export default function Layout({ children }: LayoutProps) {
       {/* Main Content */}
       <main className="flex-1 flex flex-col h-screen overflow-y-auto">
         {/* Header Mobile / Search Bar */}
-        <header className="px-6 lg:px-10 py-6 flex items-center justify-between sticky top-0 z-40 bg-surface/80 backdrop-blur-md border-b border-white/5">
+        <header className="px-6 lg:px-10 py-6 flex items-center justify-between sticky top-0 z-40 bg-[var(--color-navy-dark)]/80 backdrop-blur-md border-b border-white/5">
           <div className="flex items-center lg:hidden gap-4 min-w-0">
-            <button onClick={() => setIsSidebarOpen(true)} className="shrink-0">
-              <Menu className="w-6 h-6" />
+            <button onClick={() => setIsSidebarOpen(true)} className="shrink-0 p-2 hover:bg-white/5 rounded-xl transition-colors">
+              <Menu className="w-6 h-6 text-white/60" />
             </button>
-            <div className="flex items-center gap-2 min-w-0">
-               {logoUrl && <img src={logoUrl} className="w-6 h-6 object-contain shrink-0 drop-shadow-[0_0_5px_rgba(250,204,21,0.2)]" />}
-               <span className="font-display font-bold text-[var(--color-primary)] truncate text-lg pb-0.5">{appName}</span>
-            </div>
+            <Link to="/dashboard" className="flex items-center gap-2.5 min-w-0 p-1 group">
+               {logoUrl ? (
+                 <img src={logoUrl} className="w-10 h-10 object-contain shrink-0 drop-shadow-[0_0_10px_rgba(255,200,0,0.2)] group-hover:scale-110 transition-transform" />
+               ) : (
+                 <div className="w-10 h-10 rounded-xl bg-[var(--color-primary)] flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                   <Trophy className="text-black w-6 h-6" />
+                 </div>
+               )}
+               <div className="flex flex-col">
+                 <span className="font-display font-black text-white text-xs tracking-widest leading-none">BANTANG</span>
+                 <span className="font-display font-bold text-[var(--color-primary)] text-[10px] tracking-[0.2em] leading-tight">JUNIOR</span>
+               </div>
+            </Link>
           </div>
 
           <div className="hidden md:flex flex-col items-end justify-center bg-white/5 px-4 py-1.5 rounded-xl border border-white/10 w-fit">
@@ -129,9 +144,9 @@ export default function Layout({ children }: LayoutProps) {
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="relative p-2 rounded-xl border border-white/10 hover:bg-white/5 transition-colors">
-              <Bell className="w-5 h-5 text-white/60" />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-surface" />
+            <button className="relative p-2.5 rounded-2xl border border-white/10 hover:bg-white/10 transition-all group">
+              <Bell className="w-5 h-5 text-white/50 group-hover:text-white transition-colors" />
+              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-blue-500 rounded-full border-2 border-[var(--color-navy-dark)] shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
             </button>
             <div className="lg:hidden w-10 h-10 rounded-full bg-white/10 flex items-center justify-center border border-white/20">
               <span className="font-bold text-xs">{user?.name?.charAt(0)}</span>
@@ -187,25 +202,32 @@ export default function Layout({ children }: LayoutProps) {
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed left-0 top-0 w-72 h-[100dvh] bg-surface-raised z-[70] lg:hidden flex flex-col pt-0"
+              className="fixed left-0 top-0 w-72 h-[100dvh] bg-[var(--color-navy-dark)] z-[70] lg:hidden flex flex-col pt-0 shadow-2xl"
             >
-              <div className="flex items-center justify-between p-6 shrink-0 border-b border-white/5">
-                <div className="flex items-center gap-3 min-w-0">
+              <div className="flex flex-col items-center p-8 shrink-0 border-b border-white/5 relative">
+                <button onClick={() => setIsSidebarOpen(false)} className="absolute top-4 right-4 p-2 hover:bg-white/10 rounded-full transition-colors">
+                  <X className="w-6 h-6 text-white/40" />
+                </button>
+                
+                <Link 
+                  to="/dashboard"
+                  onClick={() => setIsSidebarOpen(false)}
+                  className="flex flex-col items-center gap-3 mt-4"
+                >
                   <div className={cn(
-                    "w-8 h-8 shrink-0 flex items-center justify-center",
-                    !logoUrl && "rounded-lg bg-[var(--color-primary)]"
+                    "w-16 h-16 shrink-0 flex items-center justify-center",
+                    !logoUrl ? "rounded-xl bg-[var(--color-primary)]" : "drop-shadow-[0_0_10px_rgba(255,200,0,0.3)]"
                   )}>
                     {logoUrl ? (
-                      <img src={logoUrl} alt="Logo" className="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(250,204,21,0.2)]" />
+                      <img src={logoUrl} alt="Logo" className="w-full h-full object-contain" />
                     ) : (
-                      <Trophy className="text-black w-5 h-5" />
+                      <Trophy className="text-black w-8 h-8" />
                     )}
                   </div>
-                  <span className="font-display font-bold text-[var(--color-primary)] truncate text-base">{appName}</span>
-                </div>
-                <button onClick={() => setIsSidebarOpen(false)} className="shrink-0 ml-2">
-                  <X className="w-6 h-6" />
-                </button>
+                  <h1 className="font-display font-black text-xs tracking-[0.2em] text-white uppercase text-center">
+                    SSB <span className="text-[var(--color-primary)]">BANTANG JUNIOR</span>
+                  </h1>
+                </Link>
               </div>
 
               <div className="flex-1 overflow-y-auto px-4 py-6 space-y-2">

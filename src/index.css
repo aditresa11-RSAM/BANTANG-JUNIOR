@@ -6,18 +6,16 @@
   --font-display: "Space Grotesk", sans-serif;
 
   --color-primary: #FACC15;
-  --color-primary-glow: rgba(250, 204, 21, 0.5);
+  --color-primary-glow: rgba(250, 204, 21, 0.4);
   --color-secondary: #3B82F6;
-  --color-accent: #EAB308;
-  
+  --color-navy: #0B1D3A;
+  --color-navy-dark: #0B1220;
   --color-surface: #09152b;
-  --color-surface-raised: #112240;
-  --color-surface-glass: rgba(17, 34, 64, 0.7);
 }
 
 @layer base {
   body {
-    @apply bg-[var(--color-surface)] text-white font-sans antialiased selection:bg-[var(--color-primary)] selection:text-black;
+    @apply bg-[var(--color-navy-dark)] text-white font-sans antialiased selection:bg-blue-500/30;
     @apply cursor-default overflow-x-hidden;
   }
 
@@ -28,31 +26,38 @@
 
 @layer components {
   .glass-card {
-    @apply bg-[var(--color-surface-glass)] backdrop-blur-xl border border-white/10 rounded-2xl;
+    @apply bg-white/[0.03] backdrop-blur-2xl border border-white/5 rounded-2xl;
     @apply shadow-[0_8px_32px_rgba(0,0,0,0.5)];
   }
 
   .glow-button {
     @apply relative px-6 py-3 rounded-full font-bold transition-all duration-300;
-    @apply bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] text-black;
+    @apply bg-gradient-to-r from-[var(--color-primary)] to-amber-500 text-black;
     @apply hover:shadow-[0_0_20px_var(--color-primary-glow)] hover:scale-105 active:scale-95;
+    @apply flex items-center justify-center gap-2 outline-none;
+  }
+
+  .glass-premium {
+    @apply bg-black/40 backdrop-blur-3xl border border-white/10 shadow-2xl;
   }
 
   .text-glow {
-    @apply drop-shadow-[0_0_8px_var(--color-primary-glow)];
+    text-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
   }
 
-  .stadium-bg {
-    @apply fixed inset-0 z-[-1];
-    background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.2), transparent 70%),
-                linear-gradient(to bottom, #07101f, #09152b);
+  .neon-line {
+    @apply h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-30;
   }
+}
 
-  .football-mesh {
-    @apply fixed inset-0 z-[-1] opacity-5;
-    background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0);
-    background-size: 40px 40px;
-  }
+/* Swiper custom pagination */
+.hero-swiper .swiper-pagination-bullet {
+  @apply w-2 h-2 bg-white/30 transition-all duration-300;
+  opacity: 1 !important;
+}
+.hero-swiper .swiper-pagination-bullet-active {
+  @apply w-8 bg-blue-500 rounded-full;
+  opacity: 1 !important;
 }
 
 /* Custom scrollbar */

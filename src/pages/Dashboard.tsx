@@ -11,6 +11,11 @@ import {
   PieChart, Pie
 } from 'recharts';
 import { motion, AnimatePresence } from 'motion/react';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Autoplay, Navigation, Pagination } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 import Layout from '../components/ui/Layout';
 import { useSettings } from '../App';
 import { cn } from '../lib/utils';
@@ -68,31 +73,39 @@ const topPlayers = [
 
 const StatCard = ({ title, value, icon: Icon, subtitle, trend, trendUp, isAlert }: any) => (
   <div className={cn(
-    "bg-[#111827] border rounded-2xl p-5 flex flex-col relative overflow-hidden transition-all hover:border-[var(--color-primary)]/50 group",
-    isAlert ? "border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.05)]" : "border-white/10"
+    "glass-card p-6 flex flex-col relative overflow-hidden transition-all hover:scale-[1.02] duration-300 group cursor-default",
+    isAlert ? "border-red-500/20 shadow-[0_0_25px_rgba(239,68,68,0.1)]" : "hover:border-blue-500/30"
   )}>
-    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/5 to-transparent rounded-full -translate-y-16 translate-x-16 group-hover:scale-110 transition-transform duration-500" />
-    <div className="flex justify-between items-start mb-4 relative z-10">
-      <p className="text-white/60 text-sm font-medium">{title}</p>
-      <div className={cn("p-2 rounded-lg bg-white/5", isAlert ? "text-red-400" : "text-[var(--color-primary)]")}>
+    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-transparent rounded-full -translate-y-16 translate-x-16 group-hover:scale-125 transition-transform duration-700 opacity-50" />
+    <div className="flex justify-between items-start mb-6 relative z-10">
+      <div className="p-3 rounded-2xl bg-white/5 text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300 shadow-xl border border-white/5">
         <Icon className="w-5 h-5" />
       </div>
-    </div>
-    <h3 className="text-3xl font-display font-black text-white mb-2 relative z-10">{value}</h3>
-    <div className="flex items-center gap-2 text-xs relative z-10 mt-auto">
-      <span className={cn("flex items-center gap-1 font-bold", isAlert ? "text-red-400" : (trendUp ? "text-emerald-400" : "text-amber-400"))}>
-        {isAlert ? <AlertTriangle className="w-3 h-3" /> : (trendUp ? <TrendingUp className="w-3 h-3" /> : <Activity className="w-3 h-3" />)}
+      <div className={cn("px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border backdrop-blur-md", 
+        isAlert ? "bg-red-500/10 text-red-400 border-red-500/20" : 
+        (trendUp ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-amber-500/10 text-amber-400 border-amber-500/20")
+      )}>
         {trend}
-      </span>
-      <span className="text-white/40 font-medium truncate">{subtitle}</span>
+      </div>
     </div>
+    <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.2em] mb-1 relative z-10">{title}</p>
+    <h3 className="text-3xl font-display font-black text-white relative z-10 tracking-tight group-hover:text-blue-200 transition-colors uppercase">{value}</h3>
+    <div className="mt-4 flex items-center gap-2 relative z-10">
+      <div className="flex -space-x-2">
+        <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+      </div>
+      <span className="text-[10px] text-white/30 font-bold uppercase tracking-widest truncate">{subtitle}</span>
+    </div>
+    <div className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-blue-500/0 to-transparent group-hover:via-blue-500/50 transition-all duration-500" />
   </div>
 );
 
 const QuickAction = ({ icon: Icon, label, onClick }: any) => (
-  <button onClick={onClick} className="flex items-center gap-3 bg-[#111827] hover:bg-white/10 border border-white/10 p-4 rounded-2xl transition-all w-full text-left group">
-    <div className="p-2.5 rounded-xl bg-white/5 text-[var(--color-primary)] group-hover:bg-[var(--color-primary)] group-hover:text-black transition-colors"><Icon className="w-5 h-5" /></div>
-    <span className="text-sm font-bold tracking-wide text-white/90 group-hover:text-white">{label}</span>
+  <button onClick={onClick} className="flex flex-col items-center justify-center gap-3 glass-card p-6 transition-all hover:bg-white/10 group h-full">
+    <div className="p-4 rounded-2xl bg-white/5 text-white/60 group-hover:bg-blue-600 group-hover:text-white group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-xl border border-white/5">
+      <Icon className="w-6 h-6" />
+    </div>
+    <span className="text-[11px] font-black uppercase tracking-[0.2em] text-white/50 group-hover:text-white transition-colors">{label}</span>
   </button>
 );
 
@@ -101,21 +114,11 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { data: sliders, addItems, updateItem, deleteItem } = useCMSData('dashboard_sliders', initialSliders);
   
-  const [currentSlide, setCurrentSlide] = useState(0);
   const [isSliderModalOpen, setIsSliderModalOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [editingSlider, setEditingSlider] = useState<any>(null);
   const [sliderForm, setSliderForm] = useState({ title: '', subtitle: '', description: '', img: '' });
   const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, id: '' });
-
-  useEffect(() => {
-    if (sliders.length === 0) return;
-    const timer = setInterval(() => setCurrentSlide((prev) => (prev + 1) % sliders.length), 8000);
-    return () => clearInterval(timer);
-  }, [sliders]);
-
-  const nextSlide = () => setCurrentSlide((p) => (p + 1) % sliders.length);
-  const prevSlide = () => setCurrentSlide((p) => (p - 1 + sliders.length) % sliders.length);
 
   const handleOpenSliderAdd = () => { setEditingSlider(null); setSliderForm({ title: '', subtitle: '', description: '', img: '' }); setIsSliderModalOpen(true); };
   const handleOpenSliderEdit = (slider: any) => { setEditingSlider(slider); setSliderForm(slider); setIsSliderModalOpen(true); };
@@ -144,235 +147,245 @@ export default function Dashboard() {
     }
   };
 
-  const d = new Date();
-  const dateString = d.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
   return (
     <Layout>
-      <div className="flex flex-col gap-6 pb-12 w-full max-w-[1600px] mx-auto animate-in fade-in duration-700 font-sans">
+      <div className="flex flex-col gap-8 pb-12 w-full max-w-[1600px] mx-auto animate-in fade-in zoom-in duration-1000">
         
         {/* HEADER */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 px-2">
           <div>
-            <h1 className="text-2xl font-display font-black text-white tracking-tight uppercase">Dashboard <span className="text-[var(--color-primary)]">BANTANG JUNIOR</span></h1>
-            <p className="text-sm text-white/50 mt-1 flex items-center gap-2 font-medium">
-              Selamat Datang di Aplikasi Sekolah Sepak Bola Bantang Junior
+            <div className="flex items-center gap-2 mb-1">
+              <span className="w-8 h-[2px] bg-blue-500 rounded-full" />
+              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-blue-500 animate-pulse">Official Dashboard</span>
+            </div>
+            <h1 className="text-3xl lg:text-4xl font-display font-black text-white tracking-tighter uppercase leading-none">
+              Bantang <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">Junior</span>
+            </h1>
+            <p className="text-xs text-white/30 mt-2 font-bold uppercase tracking-widest flex items-center gap-2">
+              <Clock className="w-3 h-3" /> Updated: {new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB
             </p>
           </div>
-          <div className="w-full md:w-auto flex items-center gap-3">
-             <button className="flex items-center gap-2 px-4 py-2 bg-[#131b2f] text-white font-bold text-sm rounded-lg hover:bg-white/5 transition-colors border border-white/10 shadow-sm">
-               <Calendar className="w-4 h-4 text-white/50" /> Pilih Tanggal
+          <div className="flex items-center gap-3">
+             <button className="flex items-center gap-2 px-6 py-3 bg-white/5 text-white/60 font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-white/10 transition-all border border-white/10 backdrop-blur-md">
+               <Calendar className="w-3 h-3" /> Season 2024
+             </button>
+             <button onClick={handleOpenSliderAdd} className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-2xl flex items-center gap-2 transition-all font-black text-[10px] uppercase tracking-widest shadow-[0_0_30px_rgba(37,99,235,0.4)]">
+               <Plus className="w-4 h-4" /> New Slide
              </button>
           </div>
         </div>
 
-        {/* HERO SLIDER (Moved to top) */}
-        <div className="relative w-full h-[300px] md:h-[400px] rounded-2xl overflow-hidden border border-white/10 group shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-          <AnimatePresence mode="wait">
-            {sliders.length > 0 && sliders[currentSlide] && (
-              <motion.div key={sliders[currentSlide].id} initial={{ opacity: 0, scale: 1.05 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 8 }} className="absolute inset-0">
-                <img src={sliders[currentSlide].img} alt="Carousel" className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0B1220] via-[#0B1220]/40 to-transparent" />
-                <div className="absolute inset-x-0 bottom-0 p-8 z-10 text-white">
-                  <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5, duration: 0.8 }}>
-                    <div className="flex items-center gap-3 mb-2">
-                      <h1 className="text-2xl md:text-4xl font-display font-black tracking-tighter text-white drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] uppercase">
-                        {sliders[currentSlide].title} <span className="text-[var(--color-primary)]">{sliders[currentSlide].subtitle}</span>
-                      </h1>
+        {/* HERO SLIDER (Elite Professional Layout) */}
+        <div className="relative w-full aspect-video md:aspect-[21/8] lg:aspect-[24/8] max-h-[550px] rounded-[2.5rem] overflow-hidden border border-white/5 glass-premium group">
+          {sliders.length > 0 ? (
+            <Swiper
+              modules={[Autoplay, Navigation, Pagination]}
+              spaceBetween={0}
+              slidesPerView={1}
+              loop={true}
+              speed={1000}
+              autoplay={{
+                delay: 5000,
+                disableOnInteraction: false,
+                pauseOnMouseEnter: true,
+              }}
+              navigation={{
+                nextEl: '.swiper-btn-next',
+                prevEl: '.swiper-btn-prev',
+              }}
+              pagination={{ clickable: true }}
+              className="w-full h-full hero-swiper"
+            >
+              {sliders.map((slider: any) => (
+                <SwiperSlide key={slider.id} className="relative w-full h-full">
+                  {({ isActive }) => (
+                    <div className="w-full h-full relative overflow-hidden">
+                      <div className={cn("absolute inset-0 transition-transform duration-[8000ms] ease-linear", isActive ? "scale-110" : "scale-100")}>
+                        <img src={slider.img} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-navy-dark)] via-[var(--color-navy-dark)]/60 to-transparent" />
+                        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[var(--color-navy-dark)] to-transparent" />
+                      </div>
+
+                      <div className="absolute inset-0 p-8 md:p-16 lg:p-20 z-10 flex flex-col justify-center">
+                        <motion.div 
+                          initial={{ opacity: 0, x: -30 }} 
+                          animate={isActive ? { opacity: 1, x: 0 } : {}} 
+                          transition={{ duration: 0.8, delay: 0.2 }}
+                          className="max-w-4xl"
+                        >
+                          <div className="flex items-center gap-3 mb-4">
+                            <span className="px-3 py-1 bg-blue-600 text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-md shadow-lg">New Featured</span>
+                            <div className="h-px w-12 bg-white/20" />
+                          </div>
+                          
+                          <h2 className="text-4xl md:text-6xl lg:text-7xl font-display font-black tracking-[calc(-0.04em)] text-white uppercase leading-[0.9] mb-6 drop-shadow-2xl">
+                            {slider.title} <br/>
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 text-glow">
+                              {slider.subtitle}
+                            </span>
+                          </h2>
+                          
+                          <p className="text-sm md:text-base text-white/60 font-medium max-w-xl leading-relaxed tracking-wide mb-8">
+                            {slider.description || slider.desc}
+                          </p>
+
+                          <div className="flex items-center gap-4">
+                            <button className="px-8 py-4 bg-white text-black font-black text-xs uppercase tracking-[0.2em] rounded-2xl hover:bg-blue-500 hover:text-white transition-all shadow-2xl flex items-center gap-2 group/btn">
+                              Explore Now <ArrowUpRight className="w-4 h-4 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
+                            </button>
+                            <div className="flex bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 p-1.5 overflow-hidden">
+                              <button onClick={() => handleOpenSliderEdit(slider)} className="p-3 rounded-xl hover:bg-white/10 text-white/50 hover:text-white transition-all"><Edit2 className="w-4 h-4" /></button>
+                              <div className="w-px h-4 bg-white/10 self-center" />
+                              <button onClick={() => setDeleteConfirm({ isOpen: true, id: slider.id })} className="p-3 rounded-xl hover:bg-red-500/20 text-red-400/50 hover:text-red-400 transition-all"><Trash2 className="w-4 h-4" /></button>
+                            </div>
+                          </div>
+                        </motion.div>
+                      </div>
                     </div>
-                    <p className="text-sm md:text-base text-white/80 max-w-2xl font-medium tracking-wide drop-shadow-md">{sliders[currentSlide]?.description || sliders[currentSlide]?.desc}</p>
-                  </motion.div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Action Buttons (Bottom Right) */}
-          <div className="absolute bottom-6 right-6 z-30 flex items-center gap-2">
-            {sliders.length > 0 && sliders[currentSlide] && (
-              <>
-                <button onClick={() => handleOpenSliderEdit(sliders[currentSlide])} className="p-2 rounded-lg bg-black/60 hover:bg-[var(--color-primary)] hover:text-black text-white transition-all backdrop-blur"><Edit2 className="w-4 h-4" /></button>
-                <button onClick={() => setDeleteConfirm({ isOpen: true, id: sliders[currentSlide].id })} className="p-2 rounded-lg bg-black/60 hover:bg-red-500 text-white transition-all backdrop-blur"><Trash2 className="w-4 h-4" /></button>
-              </>
-            )}
-            <button onClick={handleOpenSliderAdd} className="p-2 rounded-lg bg-[var(--color-primary)] text-black hover:bg-yellow-500 transition-all shadow-[0_0_15px_var(--color-primary-glow)]">
-              <Plus className="w-4 h-4" />
-            </button>
-          </div>
-
-          {sliders.length > 1 && (
-            <>
-              <button onClick={prevSlide} className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-all z-20"><ChevronLeft className="w-5 h-5" /></button>
-              <button onClick={nextSlide} className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-all z-20"><ChevronRight className="w-5 h-5" /></button>
-              <div className="absolute top-4 right-4 flex items-center gap-2 z-30 bg-black/40 backdrop-blur px-3 py-1.5 rounded-full border border-white/10 text-[10px] font-bold text-white tracking-widest uppercase">
-                 {currentSlide + 1} / {sliders.length}
+                  )}
+                </SwiperSlide>
+              ))}
+              
+              {/* Custom Navigation */}
+              <div className="absolute bottom-8 right-8 z-20 flex gap-3 pointer-events-none group-hover:pointer-events-auto">
+                <button className="swiper-btn-prev w-14 h-14 rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all opacity-0 group-hover:opacity-100"><ChevronLeft className="w-8 h-8" /></button>
+                <button className="swiper-btn-next w-14 h-14 rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all opacity-0 group-hover:opacity-100"><ChevronRight className="w-8 h-8" /></button>
               </div>
-            </>
-          )}
-          
-          {sliders.length === 0 && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-white/40">
-              <ImageIcon className="w-12 h-12 mb-4 opacity-50" />
-              <p className="text-sm font-medium">Belum ada banner</p>
-              <button onClick={handleOpenSliderAdd} className="mt-4 px-4 py-2 bg-[var(--color-primary)] text-black text-xs font-bold rounded-lg hover:bg-yellow-500">Upload Banner Pertama</button>
+            </Swiper>
+          ) : (
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-white/10">
+              <ImageIcon className="w-20 h-20 mb-4" />
+              <p className="text-xl font-display font-black uppercase tracking-widest">No Active Campaigns</p>
             </div>
           )}
         </div>
 
-        {/* SUMMARY CARDS (8 Cards) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard title="Total Pemain" value="452" icon={Users} trend="+12" trendUp={true} subtitle="Bulan ini" />
-          <StatCard title="Total Pelatih" value="12" icon={UserSquare2} trend="Optimal" trendUp={true} subtitle="Rasio 1:37" />
-          <StatCard title="Kehadiran" value="94%" icon={Activity} trend="-1.2%" trendUp={false} subtitle="Rata-rata minggu ini" />
-          <StatCard title="Income" value="Rp 45.2M" icon={DollarSign} trend="+15%" trendUp={true} subtitle="SPP & Pendaftaran" />
-          
-          <StatCard title="Jadwal Minggu Ini" value="18" icon={Calendar} trend="Padat" trendUp={true} subtitle="4 Laga Uji Coba" />
-          <StatCard title="Pemain Terbaik" value="Bima. S" icon={Trophy} trend="98 PTS" trendUp={true} subtitle="U-14 Pro" />
-          <StatCard title="Cedera Aktif" value="3" icon={HeartPulse} trend="+1" trendUp={false} subtitle="Dalam masa pemulihan" isAlert={true} />
-          <StatCard title="Match Mendatang" value="SSB Garuda" icon={Swords} trend="2 Hari" trendUp={true} subtitle="Final Liga TopSkor" />
+        {/* SUMMARY CARDS */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatCard title="Total Players" value="1,245" icon={Users} trend="+8.2%" trendUp={true} subtitle="Registered active members" />
+          <StatCard title="Performance Index" value="88.4" icon={Activity} trend="+2.4" trendUp={true} subtitle="Squad average ratings" />
+          <StatCard title="Attendance Rate" value="96.8%" icon={Clock} trend="+0.5%" trendUp={true} subtitle="Weekly training sessions" />
+          <StatCard title="Club Revenue" value="Rp 84.5M" icon={DollarSign} trend="+12%" trendUp={true} subtitle="Subscription income YTD" />
         </div>
 
         {/* QUICK ACTIONS */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <QuickAction icon={Plus} label="Tambah Pemain" onClick={() => navigate('/players')} />
-          <QuickAction icon={Target} label="Input Nilai" onClick={() => navigate('/performance')} />
-          <QuickAction icon={Calendar} label="Buat Jadwal" onClick={() => navigate('/schedule')} />
-          <QuickAction icon={Download} label="Export PDF" onClick={() => {}} />
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+          <QuickAction icon={Plus} label="New Player" onClick={() => navigate('/players')} />
+          <QuickAction icon={Target} label="Performance" onClick={() => navigate('/performance')} />
+          <QuickAction icon={Calendar} label="Training" onClick={() => navigate('/schedule')} />
+          <QuickAction icon={Trophy} label="Competitions" onClick={() => {}} />
+          <QuickAction icon={Users} label="Squad List" onClick={() => navigate('/players')} />
+          <QuickAction icon={Activity} label="Health Hub" onClick={() => {}} />
+          <QuickAction icon={DollarSign} label="Financials" onClick={() => {}} />
+          <QuickAction icon={Download} label="Reports" onClick={() => {}} />
         </div>
 
         {/* CHARTS GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           
           {/* Skill Growth (Area Chart) */}
-          <div className="bg-[#111827] border border-white/10 rounded-2xl p-6 xl:col-span-2">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-base font-bold text-white uppercase tracking-wider">Skill Growth</h3>
-              <select className="bg-white/5 border border-white/10 text-white text-xs px-3 py-1.5 rounded-lg focus:outline-none">
-                <option>6 Bulan Terakhir</option>
+          <div className="glass-card p-6 xl:col-span-2 hover:border-blue-500/20 transition-colors group">
+            <div className="flex justify-between items-center mb-8">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500 block mb-1">Elite Analytics</span>
+                <h3 className="text-xl font-display font-bold text-white uppercase tracking-tight">Growth Projection</h3>
+              </div>
+              <select className="bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl focus:outline-none focus:border-blue-500/50 transition-colors backdrop-blur-md">
+                <option>Last 6 Months</option>
+                <option>Last Year</option>
               </select>
             </div>
-            <div className="w-full h-[300px]">
-              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300}>
+            <div className="w-full h-[350px]">
+              <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={attendanceData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.4} />
-                      <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="name" stroke="rgba(255,255,255,0.4)" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="rgba(255,255,255,0.4)" fontSize={12} tickLine={false} axisLine={false} />
-                  <Tooltip contentStyle={{ backgroundColor: '#111827', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }} />
-                  <Area type="monotone" dataKey="value" stroke="var(--color-primary)" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
+                  <XAxis dataKey="name" stroke="rgba(255,255,255,0.2)" fontSize={10} tickLine={false} axisLine={false} tick={{ fontWeight: 700 }} />
+                  <YAxis stroke="rgba(255,255,255,0.2)" fontSize={10} tickLine={false} axisLine={false} tick={{ fontWeight: 700 }} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: 'rgba(11, 18, 32, 0.9)', borderColor: 'rgba(59, 130, 246, 0.2)', borderRadius: '16px', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)' }} 
+                    itemStyle={{ color: '#fff', fontSize: '12px', fontWeight: 700 }}
+                  />
+                  <Area type="monotone" dataKey="value" stroke="#3B82F6" strokeWidth={4} fillOpacity={1} fill="url(#colorValue)" animationDuration={2000} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           </div>
 
           {/* Performance Radar */}
-          <div className="bg-[#111827] border border-white/10 rounded-2xl p-6 flex flex-col">
-             <div className="flex justify-between items-center mb-2">
-              <h3 className="text-base font-bold text-white uppercase tracking-wider">Performance Radar</h3>
+          <div className="glass-card p-6 flex flex-col hover:border-blue-500/20 transition-colors">
+            <div className="mb-6">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400 block mb-1">Squad Comparison</span>
+              <h3 className="text-xl font-display font-bold text-white uppercase tracking-tight">Performance Radar</h3>
             </div>
-            <div className="w-full flex-1 min-h-[300px]">
-              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300}>
-                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={skillsRadarData}>
-                  <PolarGrid stroke="rgba(255,255,255,0.1)" />
-                  <PolarAngleAxis dataKey="subject" tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 10 }} />
+            <div className="w-full flex-1 min-h-[350px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart cx="50%" cy="50%" outerRadius="75%" data={skillsRadarData}>
+                  <PolarGrid stroke="rgba(255,255,255,0.05)" />
+                  <PolarAngleAxis dataKey="subject" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }} />
                   <PolarRadiusAxis angle={30} domain={[0, 150]} tick={false} axisLine={false} />
-                  <Radar name="U-14 Pro" dataKey="A" stroke="var(--color-primary)" fill="var(--color-primary)" fillOpacity={0.5} />
-                  <Radar name="U-16 Elite" dataKey="B" stroke="#3B82F6" fill="#3B82F6" fillOpacity={0.3} />
-                  <Tooltip contentStyle={{ backgroundColor: '#111827', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }} />
+                  <Radar name="U-14 Pro" dataKey="A" stroke="#3B82F6" fill="#3B82F6" fillOpacity={0.4} animationDuration={2500} />
+                  <Radar name="U-16 Elite" dataKey="B" stroke="#818CF8" fill="#818CF8" fillOpacity={0.2} animationDuration={2500} />
+                  <Tooltip contentStyle={{ backgroundColor: 'rgba(11, 18, 32, 0.9)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '16px' }} />
                 </RadarChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          {/* Attendance Bar */}
-          <div className="bg-[#111827] border border-white/10 rounded-2xl p-6 xl:col-span-2">
-             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-base font-bold text-white uppercase tracking-wider">Attendance Rate</h3>
-            </div>
-            <div className="w-full h-[250px]">
-              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={250}>
-                <BarChart data={attendanceData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="name" stroke="rgba(255,255,255,0.4)" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="rgba(255,255,255,0.4)" fontSize={12} tickLine={false} axisLine={false} />
-                  <Tooltip contentStyle={{ backgroundColor: '#111827', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }} cursor={{ fill: 'rgba(255,255,255,0.02)' }} />
-                  <Bar dataKey="value" name="Attendance (%)" fill="#3B82F6" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Revenue */}
-          <div className="bg-[#111827] border border-white/10 rounded-2xl p-6">
-             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-base font-bold text-white uppercase tracking-wider">Revenue</h3>
-            </div>
-            <div className="w-full h-[250px]">
-              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={250}>
-                <BarChart data={revenueData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="name" stroke="rgba(255,255,255,0.4)" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="rgba(255,255,255,0.4)" fontSize={12} tickLine={false} axisLine={false} />
-                  <Tooltip contentStyle={{ backgroundColor: '#111827', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }} cursor={{ fill: 'rgba(255,255,255,0.02)' }} />
-                  <Bar dataKey="income" name="Income (Juta)" fill="#10B981" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Age Category Stats (Pie) */}
-          <div className="bg-[#111827] border border-white/10 rounded-2xl p-6">
-             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-base font-bold text-white uppercase tracking-wider">Age Category</h3>
-            </div>
-            <div className="w-full h-[250px] flex items-center justify-center relative">
-              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={250}>
-                <PieChart>
-                  <Pie data={ageCategoryStats} innerRadius={70} outerRadius={100} paddingAngle={5} dataKey="value">
-                    {ageCategoryStats.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={{ backgroundColor: '#111827', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
-                <span className="text-3xl font-black text-white">452</span>
-                <span className="text-xs text-white/50 uppercase tracking-widest">Pemain</span>
-              </div>
-            </div>
-          </div>
-
           {/* Top Players Table */}
-          <div className="bg-[#111827] border border-white/10 rounded-2xl p-6 overflow-hidden xl:col-span-2 border-t-4 border-t-[var(--color-primary)]">
-              <div className="flex justify-between items-center mb-5">
-              <h3 className="text-base font-bold text-white uppercase tracking-wider">Top 5 Pemain</h3>
-              <button className="text-xs font-semibold text-[var(--color-primary)] hover:underline">Lihat Semua</button>
+          <div className="glass-card xl:col-span-2 overflow-hidden hover:border-blue-500/20 transition-colors flex flex-col">
+            <div className="p-8 border-b border-white/5 flex justify-between items-center bg-white/[0.01]">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400 block mb-1">Rankings</span>
+                <h3 className="text-xl font-display font-bold text-white uppercase tracking-tight">Top Performance Elite</h3>
+              </div>
+              <button className="flex items-center gap-2 px-5 py-2.5 bg-white/5 hover:bg-white/10 text-white font-black text-[10px] uppercase tracking-widest rounded-xl transition-all border border-white/10">
+                View All <ChevronRight className="w-3 h-3" />
+              </button>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-white/10 pb-2 text-[10px] uppercase tracking-widest text-white/40">
-                    <th className="pb-3 font-semibold w-full">Nama Pemain</th>
-                    <th className="pb-3 text-center font-semibold px-4">Skor</th>
-                    <th className="pb-3 text-right font-semibold">Hadir</th>
+                  <tr className="bg-white/[0.02] text-[10px] uppercase tracking-[0.2em] text-white/30">
+                    <th className="py-4 px-8 font-black">Member Profile</th>
+                    <th className="py-4 px-4 text-center font-black">Status</th>
+                    <th className="py-4 px-4 text-center font-black">Score</th>
+                    <th className="py-4 px-8 text-right font-black">Attendance</th>
                   </tr>
                 </thead>
-                <tbody className="text-sm">
+                <tbody className="divide-y divide-white/[0.03]">
                   {topPlayers.map((player) => (
-                    <tr key={player.id} className="border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
-                      <td className="py-4">
-                        <p className="font-semibold text-white truncate">{player.name}</p>
-                        <p className="text-xs text-[var(--color-primary)] font-bold truncate">{player.team}</p>
+                    <tr key={player.id} className="group hover:bg-white/[0.02] transition-colors">
+                      <td className="py-5 px-8">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center font-bold text-white text-xs shadow-lg">
+                            {player.name.charAt(0)}
+                          </div>
+                          <div>
+                            <p className="font-bold text-white text-sm group-hover:text-blue-400 transition-colors uppercase tracking-tight">{player.name}</p>
+                            <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">{player.team}</p>
+                          </div>
+                        </div>
                       </td>
-                      <td className="py-4 text-center text-white/90 font-black px-4">{player.score}</td>
-                      <td className="py-4 text-right">
-                        <span className={cn("px-3 py-1 rounded-md text-[10px] font-bold", player.attendance > 90 ? "bg-emerald-500/20 text-emerald-400" : "bg-amber-500/20 text-amber-400")}>
+                      <td className="py-5 px-4 text-center">
+                         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
+                            <div className="w-1 h-1 rounded-full bg-blue-400 animate-pulse" />
+                            <span className="text-[9px] font-black uppercase tracking-widest text-blue-400">Active</span>
+                         </div>
+                      </td>
+                      <td className="py-5 px-4 text-center">
+                        <span className="text-lg font-display font-black text-white/90 tracking-tighter">{player.score}</span>
+                      </td>
+                      <td className="py-5 px-8 text-right">
+                        <div className="relative w-24 h-1.5 bg-white/5 rounded-full inline-block overflow-hidden align-middle mr-3">
+                           <div className={cn("absolute inset-0 rounded-full", player.attendance > 95 ? "bg-emerald-500" : "bg-blue-500")} style={{ width: `${player.attendance}%` }} />
+                        </div>
+                        <span className={cn("text-xs font-black tracking-tight", player.attendance > 90 ? "text-emerald-400" : "text-blue-400")}>
                           {player.attendance}%
                         </span>
                       </td>
@@ -380,6 +393,38 @@ export default function Dashboard() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          </div>
+
+          {/* Category Dist (Pie) */}
+          <div className="glass-card p-6 flex flex-col hover:border-blue-500/20 transition-colors">
+            <div className="mb-6">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-purple-400 block mb-1">Demographics</span>
+              <h3 className="text-xl font-display font-bold text-white uppercase tracking-tight">Academy Spread</h3>
+            </div>
+            <div className="w-full h-[300px] flex items-center justify-center relative">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={ageCategoryStats} innerRadius={80} outerRadius={110} paddingAngle={8} dataKey="value" stroke="none" animationDuration={2000}>
+                    {ageCategoryStats.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={0.8} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ backgroundColor: 'rgba(11, 18, 32, 0.9)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '16px' }} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
+                <span className="text-4xl font-display font-black text-white tracking-tighter">452</span>
+                <span className="text-[10px] text-white/30 font-black uppercase tracking-[0.3em] mt-1">Athletes</span>
+              </div>
+            </div>
+            <div className="mt-6 flex flex-wrap justify-center gap-4">
+               {ageCategoryStats.map((cat, i) => (
+                 <div key={i} className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: cat.color }} />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-white/40">{cat.name}</span>
+                 </div>
+               ))}
             </div>
           </div>
 
