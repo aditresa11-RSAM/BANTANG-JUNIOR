@@ -229,15 +229,10 @@ export default function Dashboard() {
                             {slider.description || slider.desc}
                           </p>
 
-                          <div className="flex items-center gap-4">
-                            <button className="px-8 py-4 bg-white text-black font-black text-xs uppercase tracking-[0.2em] rounded-2xl hover:bg-blue-500 hover:text-white transition-all shadow-2xl flex items-center gap-2 group/btn">
-                              Explore Now <ArrowUpRight className="w-4 h-4 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
-                            </button>
-                            <div className="flex bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 p-1.5 overflow-hidden">
-                              <button onClick={() => handleOpenSliderEdit(slider)} className="p-3 rounded-xl hover:bg-white/10 text-white/50 hover:text-white transition-all"><Edit2 className="w-4 h-4" /></button>
-                              <div className="w-px h-4 bg-white/10 self-center" />
-                              <button onClick={() => setDeleteConfirm({ isOpen: true, id: slider.id })} className="p-3 rounded-xl hover:bg-red-500/20 text-red-400/50 hover:text-red-400 transition-all"><Trash2 className="w-4 h-4" /></button>
-                            </div>
+                          <div className="absolute bottom-28 right-8 flex bg-black/40 backdrop-blur-md rounded-xl border border-white/10 p-1 overflow-hidden z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => handleOpenSliderEdit(slider)} className="p-2 rounded-lg hover:bg-white/10 text-white/50 hover:text-white transition-all"><Edit2 className="w-3.5 h-3.5" /></button>
+                            <div className="w-px h-3 bg-white/10 self-center" />
+                            <button onClick={() => setDeleteConfirm({ isOpen: true, id: slider.id })} className="p-2 rounded-lg hover:bg-red-500/20 text-red-400/50 hover:text-red-400 transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
                           </div>
                         </motion.div>
                       </div>
