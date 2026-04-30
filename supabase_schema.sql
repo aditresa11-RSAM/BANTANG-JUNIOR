@@ -301,3 +301,82 @@ CREATE POLICY "Allow public read access" ON public.tactics FOR SELECT USING (tru
 CREATE POLICY "Allow public insert access" ON public.tactics FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow public update access" ON public.tactics FOR UPDATE USING (true);
 CREATE POLICY "Allow public delete access" ON public.tactics FOR DELETE USING (true);
+
+-- Table: match_stats
+CREATE TABLE IF NOT EXISTS public.match_stats (
+  id TEXT PRIMARY KEY,
+  match_id TEXT NOT NULL,
+  possession NUMERIC,
+  shots NUMERIC,
+  shots_on_target NUMERIC,
+  pass_accuracy NUMERIC,
+  score TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Table: player_match_stats
+CREATE TABLE IF NOT EXISTS public.player_match_stats (
+  id TEXT PRIMARY KEY,
+  match_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  rating NUMERIC,
+  goals NUMERIC,
+  passing NUMERIC,
+  photo TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Table: coach_notes
+CREATE TABLE IF NOT EXISTS public.coach_notes (
+  id TEXT PRIMARY KEY,
+  match_id TEXT NOT NULL,
+  note TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Table: match_highlights
+CREATE TABLE IF NOT EXISTS public.match_highlights (
+  id TEXT PRIMARY KEY,
+  match_id TEXT NOT NULL,
+  title TEXT,
+  url TEXT,
+  category TEXT,
+  minute TEXT,
+  description TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Ensure storage bucket exists
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('match-videos', 'match-videos', true)
+ON CONFLICT (id) DO NOTHING;
+
+CREATE POLICY "Allow public read access on match-videos" ON storage.objects FOR SELECT USING (bucket_id = 'match-videos');
+CREATE POLICY "Allow public insert access on match-videos" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'match-videos');
+CREATE POLICY "Allow public update access on match-videos" ON storage.objects FOR UPDATE USING (bucket_id = 'match-videos');
+CREATE POLICY "Allow public delete access on match-videos" ON storage.objects FOR DELETE USING (bucket_id = 'match-videos');
+
+ALTER TABLE public.match_stats ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.player_match_stats ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.coach_notes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.match_highlights ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow public read access" ON public.match_stats FOR SELECT USING (true);
+CREATE POLICY "Allow public insert access" ON public.match_stats FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update access" ON public.match_stats FOR UPDATE USING (true);
+CREATE POLICY "Allow public delete access" ON public.match_stats FOR DELETE USING (true);
+
+CREATE POLICY "Allow public read access" ON public.player_match_stats FOR SELECT USING (true);
+CREATE POLICY "Allow public insert access" ON public.player_match_stats FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update access" ON public.player_match_stats FOR UPDATE USING (true);
+CREATE POLICY "Allow public delete access" ON public.player_match_stats FOR DELETE USING (true);
+
+CREATE POLICY "Allow public read access" ON public.coach_notes FOR SELECT USING (true);
+CREATE POLICY "Allow public insert access" ON public.coach_notes FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update access" ON public.coach_notes FOR UPDATE USING (true);
+CREATE POLICY "Allow public delete access" ON public.coach_notes FOR DELETE USING (true);
+
+CREATE POLICY "Allow public read access" ON public.match_highlights FOR SELECT USING (true);
+CREATE POLICY "Allow public insert access" ON public.match_highlights FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update access" ON public.match_highlights FOR UPDATE USING (true);
+CREATE POLICY "Allow public delete access" ON public.match_highlights FOR DELETE USING (true);
