@@ -30,6 +30,23 @@
     @apply shadow-[0_8px_32px_rgba(0,0,0,0.5)];
   }
 
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+
   .glow-button {
     @apply relative px-6 py-3 rounded-full font-bold transition-all duration-300;
     @apply bg-gradient-to-r from-[var(--color-primary)] to-amber-500 text-black;

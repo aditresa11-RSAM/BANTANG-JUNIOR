@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { 
   Users, Search, Filter, Plus, ChevronRight, UserPlus, FileDown, Trash2, Edit2, Activity,
   CheckCircle2, Clock, MapPin, TrendingUp, SlidersHorizontal, LayoutGrid, List, AlertCircle,
-  Image as ImageIcon
+  Image as ImageIcon, Shield
 } from 'lucide-react';
 import Layout from '../components/ui/Layout';
 import { cn } from '../lib/utils';
@@ -159,6 +159,9 @@ export default function Players() {
               </div>
            </div>
            <div className="relative z-10 flex items-center gap-3 w-full md:w-auto">
+             <Link to="/compare-gk" className="w-full md:w-auto bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 hover:border-emerald-500/50 text-emerald-400 px-6 py-3 rounded-xl justify-center flex items-center gap-2 transition-all font-bold uppercase tracking-wider text-xs">
+                <Shield className="w-4 h-4 font-bold" /> Compare GK
+             </Link>
              <button onClick={handleOpenAdd} className="w-full md:w-auto bg-[var(--color-primary)] hover:bg-yellow-500 text-[#0a0f1c] px-6 py-3 rounded-xl justify-center flex items-center gap-2 transition-all font-bold uppercase tracking-wider text-xs shadow-[0_0_20px_rgba(250,204,21,0.3)]">
                 <Plus className="w-4 h-4 font-bold" /> Tambah Pemain
              </button>

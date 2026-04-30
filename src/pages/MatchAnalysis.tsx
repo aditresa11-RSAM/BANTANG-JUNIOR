@@ -75,7 +75,11 @@ export default function MatchAnalysis() {
   const currentHighlights = dbHighlights?.filter((v: any) => v.match_id === currentMatchId) || [];
 
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
-  const [statsForm, setStatsForm] = useState({ possession: 58, shots: 16, shots_on_target: 8, pass_accuracy: 85, score: '3 - 1' });
+  const [statsForm, setStatsForm] = useState({ 
+    possession: 58, shots: 16, shots_on_target: 8, pass_accuracy: 85, score: '3 - 1',
+    gk_saves: 0, gk_conceded: 0, gk_clean_sheet: false, gk_save_pct: 0,
+    gk_high_claim: 0, gk_punches: 0, gk_sweeper: 0, gk_errors: 0, gk_dist_pct: 0
+  });
 
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
   const [noteForm, setNoteForm] = useState({ note: '' });
@@ -127,7 +131,16 @@ export default function MatchAnalysis() {
       shots: statVal(currentStats?.shots) || 16,
       shots_on_target: statVal(currentStats?.shots_on_target) || 8,
       pass_accuracy: statVal(currentStats?.pass_accuracy) || 85,
-      score: currentStats?.score || selectedMatch?.score || "0 - 0"
+      score: currentStats?.score || selectedMatch?.score || "0 - 0",
+      gk_saves: statVal(currentStats?.gk_saves) || 0,
+      gk_conceded: statVal(currentStats?.gk_conceded) || 0,
+      gk_clean_sheet: currentStats?.gk_clean_sheet || false,
+      gk_save_pct: statVal(currentStats?.gk_save_pct) || 0,
+      gk_high_claim: statVal(currentStats?.gk_high_claim) || 0,
+      gk_punches: statVal(currentStats?.gk_punches) || 0,
+      gk_sweeper: statVal(currentStats?.gk_sweeper) || 0,
+      gk_errors: statVal(currentStats?.gk_errors) || 0,
+      gk_dist_pct: statVal(currentStats?.gk_dist_pct) || 0
     });
     setIsStatsModalOpen(true);
   };
@@ -140,7 +153,16 @@ export default function MatchAnalysis() {
       shots: Number(statsForm.shots), 
       shots_on_target: Number(statsForm.shots_on_target), 
       pass_accuracy: Number(statsForm.pass_accuracy),
-      score: statsForm.score
+      score: statsForm.score,
+      gk_saves: Number(statsForm.gk_saves),
+      gk_conceded: Number(statsForm.gk_conceded),
+      gk_clean_sheet: Boolean(statsForm.gk_clean_sheet),
+      gk_save_pct: Number(statsForm.gk_save_pct),
+      gk_high_claim: Number(statsForm.gk_high_claim),
+      gk_punches: Number(statsForm.gk_punches),
+      gk_sweeper: Number(statsForm.gk_sweeper),
+      gk_errors: Number(statsForm.gk_errors),
+      gk_dist_pct: Number(statsForm.gk_dist_pct)
     };
     if (currentStats?.id) {
       updateStats(currentStats.id, payload);
@@ -486,10 +508,67 @@ export default function MatchAnalysis() {
                 )}
 
                 {activeTab === 'statistik' && (
-                  <motion.div key="statistik" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-center py-20">
-                     <BarChart3 className="w-20 h-20 text-[var(--color-primary)]/20 mx-auto mb-6" />
-                     <h3 className="text-xl font-black text-white uppercase tracking-widest">Detail Statistik</h3>
-                     <p className="text-white/40 text-sm mt-2">Dapat diakses melalui ringkasan kartu di atas. Fitur analitik pro segera hadir.</p>
+                  <motion.div key="statistik" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-8">
+                     <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
+                           <Shield className="w-4 h-4 text-[var(--color-primary)]" /> Statistik Goalkeeper (GK)
+                        </h3>
+                        <button onClick={handleEditStats} className="px-4 py-2 bg-[var(--color-primary)]/10 hover:bg-[var(--color-primary)]/20 text-[var(--color-primary)] rounded-lg text-[10px] font-bold uppercase tracking-widest transition flex items-center gap-2 border border-[var(--color-primary)]/20">
+                           <Edit className="w-3.5 h-3.5" /> Edit GK Stats
+                        </button>
+                     </div>
+                     
+                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="glass-card p-4 rounded-xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-transparent text-center relative overflow-hidden group">
+                           <div className="absolute inset-0 bg-emerald-500/10 blur-[20px] opacity-0 group-hover:opacity-100 transition-opacity" />
+                           <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest mb-1 relative z-10">Saves</p>
+                           <h4 className="text-3xl font-display font-black text-white relative z-10">{statVal(currentStats.gk_saves)}</h4>
+                        </div>
+                        <div className="glass-card p-4 rounded-xl border border-rose-500/20 bg-gradient-to-br from-rose-500/5 to-transparent text-center relative overflow-hidden group">
+                           <div className="absolute inset-0 bg-rose-500/10 blur-[20px] opacity-0 group-hover:opacity-100 transition-opacity" />
+                           <p className="text-[10px] text-rose-400 font-bold uppercase tracking-widest mb-1 relative z-10">Goals Conceded</p>
+                           <h4 className="text-3xl font-display font-black text-white relative z-10">{statVal(currentStats.gk_conceded)}</h4>
+                        </div>
+                        <div className="glass-card p-4 rounded-xl border border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-transparent text-center relative overflow-hidden group">
+                           <div className="absolute inset-0 bg-blue-500/10 blur-[20px] opacity-0 group-hover:opacity-100 transition-opacity" />
+                           <p className="text-[10px] text-blue-400 font-bold uppercase tracking-widest mb-1 relative z-10">Clean Sheet</p>
+                           <h4 className="text-xl mt-1 font-display font-black text-white relative z-10">{currentStats.gk_clean_sheet ? "YES" : "NO"}</h4>
+                        </div>
+                        <div className="glass-card p-4 rounded-xl border border-[var(--color-primary)]/20 bg-gradient-to-br from-[var(--color-primary)]/5 to-transparent text-center relative overflow-hidden group">
+                           <div className="absolute inset-0 bg-[var(--color-primary)]/10 blur-[20px] opacity-0 group-hover:opacity-100 transition-opacity" />
+                           <p className="text-[10px] text-[var(--color-primary)] font-bold uppercase tracking-widest mb-1 relative z-10">Save %</p>
+                           <h4 className="text-3xl font-display font-black text-white relative z-10">{statVal(currentStats.gk_save_pct)}%</h4>
+                        </div>
+                     </div>
+                     
+                     <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                        <div className="glass-card p-5 rounded-2xl border border-white/5 text-center flex flex-col justify-center gap-1">
+                           <span className="text-[9px] text-white/40 uppercase tracking-widest font-black">High Claim</span>
+                           <span className="text-xl font-display font-black text-white">{statVal(currentStats.gk_high_claim)}</span>
+                        </div>
+                        <div className="glass-card p-5 rounded-2xl border border-white/5 text-center flex flex-col justify-center gap-1">
+                           <span className="text-[9px] text-white/40 uppercase tracking-widest font-black">Punches</span>
+                           <span className="text-xl font-display font-black text-white">{statVal(currentStats.gk_punches)}</span>
+                        </div>
+                        <div className="glass-card p-5 rounded-2xl border border-white/5 text-center flex flex-col justify-center gap-1">
+                           <span className="text-[9px] text-white/40 uppercase tracking-widest font-black">Sweeper Actions</span>
+                           <span className="text-xl font-display font-black text-white">{statVal(currentStats.gk_sweeper)}</span>
+                        </div>
+                        <div className="glass-card p-5 rounded-2xl border border-rose-500/10 text-center flex flex-col justify-center gap-1">
+                           <span className="text-[9px] text-rose-500 uppercase tracking-widest font-black">Error (Goal)</span>
+                           <span className="text-xl font-display font-black text-rose-500">{statVal(currentStats.gk_errors)}</span>
+                        </div>
+                        <div className="glass-card p-5 rounded-2xl border border-white/5 text-center flex flex-col justify-center gap-1">
+                           <span className="text-[9px] text-white/40 uppercase tracking-widest font-black">Dist. Success</span>
+                           <span className="text-xl font-display font-black text-blue-400">{statVal(currentStats.gk_dist_pct)}%</span>
+                        </div>
+                     </div>
+                     
+                     <div className="text-center py-10 mt-8 border-t border-white/5">
+                        <BarChart3 className="w-12 h-12 text-white/10 mx-auto mb-4" />
+                        <h3 className="text-sm font-black text-white/50 uppercase tracking-widest">Detail Statistik Outfield</h3>
+                        <p className="text-white/30 text-xs mt-2">Dapat diakses melalui ringkasan kartu di tab utama. Fitur analitik pro tim segera hadir.</p>
+                     </div>
                   </motion.div>
                 )}
 
@@ -734,7 +813,7 @@ export default function MatchAnalysis() {
         <div className="space-y-4">
           <div>
             <label className="text-xs font-black uppercase tracking-widest text-white/40 mb-1.5 block">Skor Akhir</label>
-            <input type="text" value={statsForm.score} onChange={e => setStatsForm({...statsForm, score: e.target.value})} className="w-full bg-[#0B1D3A] border border-white/10 rounded-xl p-3 text-white text-sm focus:border-[var(--color-primary)] outline-none" />
+            <input type="text" value={statsForm.score ?? ''} onChange={e => setStatsForm({...statsForm, score: e.target.value})} className="w-full bg-[#0B1D3A] border border-white/10 rounded-xl p-3 text-white text-sm focus:border-[var(--color-primary)] outline-none" />
           </div>
           <div>
             <label className="text-xs font-black uppercase tracking-widest text-white/40 mb-1.5 block">Possession (%)</label>
@@ -754,6 +833,59 @@ export default function MatchAnalysis() {
             <label className="text-xs font-black uppercase tracking-widest text-white/40 mb-1.5 block">Pass Accuracy (%)</label>
             <input type="number" value={statsForm.pass_accuracy} onChange={e => setStatsForm({...statsForm, pass_accuracy: Number(e.target.value)})} className="w-full bg-[#0B1D3A] border border-white/10 rounded-xl p-3 text-white text-sm focus:border-[var(--color-primary)] outline-none" />
           </div>
+
+          <div className="pt-4 mt-6 border-t border-white/10">
+            <h4 className="text-sm font-black text-[var(--color-primary)] uppercase tracking-widest mb-4">Statistik Kiper (GK)</h4>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="text-xs font-black uppercase tracking-widest text-white/40 mb-1.5 block">Saves</label>
+                <input type="number" value={statsForm.gk_saves} onChange={e => setStatsForm({...statsForm, gk_saves: Number(e.target.value)})} className="w-full bg-[#0B1D3A] border border-white/10 rounded-xl p-3 text-white text-sm focus:border-[var(--color-primary)] outline-none" />
+              </div>
+              <div>
+                <label className="text-xs font-black uppercase tracking-widest text-white/40 mb-1.5 block">Goals Conceded</label>
+                <input type="number" value={statsForm.gk_conceded} onChange={e => setStatsForm({...statsForm, gk_conceded: Number(e.target.value)})} className="w-full bg-[#0B1D3A] border border-white/10 rounded-xl p-3 text-white text-sm focus:border-[var(--color-primary)] outline-none" />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="text-xs font-black uppercase tracking-widest text-white/40 mb-1.5 block">Save %</label>
+                <input type="number" value={statsForm.gk_save_pct} onChange={e => setStatsForm({...statsForm, gk_save_pct: Number(e.target.value)})} className="w-full bg-[#0B1D3A] border border-white/10 rounded-xl p-3 text-white text-sm focus:border-[var(--color-primary)] outline-none" />
+              </div>
+              <div>
+                <label className="text-xs font-black uppercase tracking-widest text-white/40 mb-1.5 block">Dist. Success %</label>
+                <input type="number" value={statsForm.gk_dist_pct} onChange={e => setStatsForm({...statsForm, gk_dist_pct: Number(e.target.value)})} className="w-full bg-[#0B1D3A] border border-white/10 rounded-xl p-3 text-white text-sm focus:border-[var(--color-primary)] outline-none" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="text-xs font-black uppercase tracking-widest text-white/40 mb-1.5 block">High Claims</label>
+                <input type="number" value={statsForm.gk_high_claim} onChange={e => setStatsForm({...statsForm, gk_high_claim: Number(e.target.value)})} className="w-full bg-[#0B1D3A] border border-white/10 rounded-xl p-3 text-white text-sm focus:border-[var(--color-primary)] outline-none" />
+              </div>
+              <div>
+                <label className="text-xs font-black uppercase tracking-widest text-white/40 mb-1.5 block">Punches</label>
+                <input type="number" value={statsForm.gk_punches} onChange={e => setStatsForm({...statsForm, gk_punches: Number(e.target.value)})} className="w-full bg-[#0B1D3A] border border-white/10 rounded-xl p-3 text-white text-sm focus:border-[var(--color-primary)] outline-none" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="text-xs font-black uppercase tracking-widest text-white/40 mb-1.5 block">Sweeper Actions</label>
+                <input type="number" value={statsForm.gk_sweeper} onChange={e => setStatsForm({...statsForm, gk_sweeper: Number(e.target.value)})} className="w-full bg-[#0B1D3A] border border-white/10 rounded-xl p-3 text-white text-sm focus:border-[var(--color-primary)] outline-none" />
+              </div>
+              <div>
+                <label className="text-xs font-black uppercase tracking-widest text-white/40 mb-1.5 block">Errors to Goal</label>
+                <input type="number" value={statsForm.gk_errors} onChange={e => setStatsForm({...statsForm, gk_errors: Number(e.target.value)})} className="w-full bg-[#0B1D3A] border border-white/10 rounded-xl p-3 text-white text-sm focus:border-[var(--color-primary)] outline-none" />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <input type="checkbox" id="clean_sheet" checked={statsForm.gk_clean_sheet} onChange={e => setStatsForm({...statsForm, gk_clean_sheet: e.target.checked})} className="w-4 h-4 accent-[var(--color-primary)]" />
+              <label htmlFor="clean_sheet" className="text-sm font-black text-white hover:text-[var(--color-primary)] cursor-pointer uppercase tracking-widest">Clean Sheet</label>
+            </div>
+          </div>
+
           <button onClick={saveStats} className="w-full mt-4 py-3.5 bg-[var(--color-primary)] text-black font-black uppercase tracking-widest text-[10px] rounded-xl hover:scale-105 transition-transform shadow-[0_10px_20px_rgba(250,204,21,0.2)]">Simpan Statistik</button>
         </div>
       </Modal>
@@ -778,31 +910,38 @@ export default function MatchAnalysis() {
           </div>
           <div>
             <label className="text-xs font-black uppercase tracking-widest text-white/40 mb-1.5 block">Link Video (YouTube/Drive)</label>
-            <input type="text" value={videoForm.url} onChange={e => setVideoForm({...videoForm, url: e.target.value})} placeholder="https://..." disabled={!!videoForm.file} className="w-full bg-[#0B1D3A] border border-white/10 rounded-xl p-3 text-white text-sm focus:border-[var(--color-primary)] outline-none disabled:opacity-50" />
+            <input type="text" value={videoForm.url ?? ''} onChange={e => setVideoForm({...videoForm, url: e.target.value})} placeholder="https://..." disabled={!!videoForm.file} className="w-full bg-[#0B1D3A] border border-white/10 rounded-xl p-3 text-white text-sm focus:border-[var(--color-primary)] outline-none disabled:opacity-50" />
           </div>
           <div>
             <label className="text-xs font-black uppercase tracking-widest text-white/40 mb-1.5 block">Judul *</label>
-            <input type="text" value={videoForm.title} onChange={e => setVideoForm({...videoForm, title: e.target.value})} placeholder="Contoh: Gol Jarak Jauh" className="w-full bg-[#0B1D3A] border border-white/10 rounded-xl p-3 text-white text-sm focus:border-[var(--color-primary)] outline-none" />
+            <input type="text" value={videoForm.title ?? ''} onChange={e => setVideoForm({...videoForm, title: e.target.value})} placeholder="Contoh: Gol Jarak Jauh" className="w-full bg-[#0B1D3A] border border-white/10 rounded-xl p-3 text-white text-sm focus:border-[var(--color-primary)] outline-none" />
           </div>
           <div className="grid grid-cols-2 gap-4">
              <div>
                <label className="text-xs font-black uppercase tracking-widest text-white/40 mb-1.5 block">Kategori</label>
                <select value={videoForm.category} onChange={e => setVideoForm({...videoForm, category: e.target.value})} className="w-full bg-[#0B1D3A] border border-white/10 rounded-xl p-3.5 text-white text-sm focus:border-[var(--color-primary)] outline-none">
-                  <option value="Goal">Goal</option>
-                  <option value="Assist">Assist</option>
-                  <option value="Save">Save</option>
-                  <option value="Error">Error</option>
-                  <option value="Skill">Skill</option>
+                  <optgroup label="Umum">
+                    <option value="Goal">Goal</option>
+                    <option value="Assist">Assist</option>
+                    <option value="Skill">Skill</option>
+                  </optgroup>
+                  <optgroup label="Khusus GK">
+                    <option value="Save">Save</option>
+                    <option value="Penalty Save">Penalty Save</option>
+                    <option value="1v1 Save">1v1 Save</option>
+                    <option value="Build up play">Build up play</option>
+                    <option value="Error">Error</option>
+                  </optgroup>
                </select>
              </div>
              <div>
                <label className="text-xs font-black uppercase tracking-widest text-white/40 mb-1.5 block">Menit (Opsional)</label>
-               <input type="text" value={videoForm.minute} onChange={e => setVideoForm({...videoForm, minute: e.target.value})} placeholder="45+2" className="w-full bg-[#0B1D3A] border border-white/10 rounded-xl p-3 text-white text-sm focus:border-[var(--color-primary)] outline-none" />
+               <input type="text" value={videoForm.minute ?? ''} onChange={e => setVideoForm({...videoForm, minute: e.target.value})} placeholder="45+2" className="w-full bg-[#0B1D3A] border border-white/10 rounded-xl p-3 text-white text-sm focus:border-[var(--color-primary)] outline-none" />
              </div>
           </div>
           <div>
             <label className="text-xs font-black uppercase tracking-widest text-white/40 mb-1.5 block">Deskripsi Singkat</label>
-            <textarea value={videoForm.desc} onChange={e => setVideoForm({...videoForm, desc: e.target.value})} rows={3} className="w-full bg-[#0B1D3A] border border-white/10 rounded-xl p-3 text-white text-sm focus:border-[var(--color-primary)] outline-none resize-none" />
+            <textarea value={videoForm.desc ?? ''} onChange={e => setVideoForm({...videoForm, desc: e.target.value})} rows={3} className="w-full bg-[#0B1D3A] border border-white/10 rounded-xl p-3 text-white text-sm focus:border-[var(--color-primary)] outline-none resize-none" />
           </div>
           <button onClick={saveVideo} disabled={isUploading} className="w-full mt-2 py-3.5 bg-[var(--color-primary)] text-black font-black uppercase tracking-widest text-[10px] rounded-xl hover:scale-105 transition-transform disabled:opacity-50 shadow-[0_10px_20px_rgba(250,204,21,0.2)]">
             {isUploading ? 'Sedang Mengupload...' : 'Simpan Video'}
@@ -814,7 +953,7 @@ export default function MatchAnalysis() {
         <div className="space-y-4">
           <div>
             <label className="text-xs font-black uppercase tracking-widest text-white/40 mb-1.5 block">Evaluasi Pertandingan</label>
-            <textarea value={noteForm?.note} onChange={e => setNoteForm({...noteForm, note: e.target.value})} rows={8} className="w-full bg-[#0B1D3A] border border-white/10 rounded-xl p-3 text-white text-sm focus:border-[var(--color-primary)] outline-none" />
+            <textarea value={noteForm?.note ?? ''} onChange={e => setNoteForm({...noteForm, note: e.target.value})} rows={8} className="w-full bg-[#0B1D3A] border border-white/10 rounded-xl p-3 text-white text-sm focus:border-[var(--color-primary)] outline-none" />
           </div>
           <button onClick={saveNote} className="w-full mt-2 py-3.5 bg-[var(--color-primary)] text-black font-black uppercase tracking-widest text-[10px] rounded-xl hover:scale-105 transition-transform shadow-[0_10px_20px_rgba(250,204,21,0.2)]">Simpan Catatan</button>
         </div>
@@ -824,12 +963,12 @@ export default function MatchAnalysis() {
         <div className="space-y-4">
           <div>
             <label className="text-xs font-black uppercase tracking-widest text-white/40 mb-1.5 block">Nama Pemain</label>
-            <input type="text" value={playerForm.name} onChange={e => setPlayerForm({...playerForm, name: e.target.value})} className="w-full bg-[#0B1D3A] border border-white/10 rounded-xl p-3 text-white text-sm focus:border-[var(--color-primary)] outline-none" />
+            <input type="text" value={playerForm.name ?? ''} onChange={e => setPlayerForm({...playerForm, name: e.target.value})} className="w-full bg-[#0B1D3A] border border-white/10 rounded-xl p-3 text-white text-sm focus:border-[var(--color-primary)] outline-none" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-black uppercase tracking-widest text-white/40 mb-1.5 block">Posisi (CTH: FW, CM)</label>
-              <input type="text" value={playerForm.position} onChange={e => setPlayerForm({...playerForm, position: e.target.value.toUpperCase()})} className="w-full bg-[#0B1D3A] border border-white/10 rounded-xl p-3 text-white text-sm focus:border-[var(--color-primary)] outline-none" />
+              <input type="text" value={playerForm.position ?? ''} onChange={e => setPlayerForm({...playerForm, position: e.target.value.toUpperCase()})} className="w-full bg-[#0B1D3A] border border-white/10 rounded-xl p-3 text-white text-sm focus:border-[var(--color-primary)] outline-none" />
             </div>
             <div>
               <label className="text-xs font-black uppercase tracking-widest text-white/40 mb-1.5 block">Rating (0-10)</label>

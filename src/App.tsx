@@ -30,6 +30,7 @@ import Medical from './pages/Medical';
 import ParentPortal from './pages/ParentPortal';
 import Announcements from './pages/Announcements';
 import AICoach from './pages/AICoach';
+import GKCompare from './pages/GKCompare';
 
 // Auth context
 interface AuthContextType {
@@ -197,6 +198,7 @@ export default function App() {
               <Route path="/schedule" element={user ? <TrainingSchedule /> : <Navigate to="/" />} />
               <Route path="/performance" element={user ? <PerformanceCenter /> : <Navigate to="/" />} />
               <Route path="/tactics" element={user ? <Tactics /> : <Navigate to="/" />} />
+              <Route path="/compare-gk" element={user ? <GKCompare /> : <Navigate to="/" />} />
               <Route path="/match-analysis" element={user ? <MatchAnalysis /> : <Navigate to="/" />} />
               <Route path="/attendance" element={user ? <Attendance /> : <Navigate to="/" />} />
               <Route path="/materials" element={user ? <Materials /> : <Navigate to="/" />} />

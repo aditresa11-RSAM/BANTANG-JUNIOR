@@ -311,6 +311,15 @@ CREATE TABLE IF NOT EXISTS public.match_stats (
   shots_on_target NUMERIC,
   pass_accuracy NUMERIC,
   score TEXT,
+  gk_saves NUMERIC,
+  gk_conceded NUMERIC,
+  gk_clean_sheet BOOLEAN,
+  gk_save_pct NUMERIC,
+  gk_high_claim NUMERIC,
+  gk_punches NUMERIC,
+  gk_sweeper NUMERIC,
+  gk_errors NUMERIC,
+  gk_dist_pct NUMERIC,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -380,3 +389,36 @@ CREATE POLICY "Allow public read access" ON public.match_highlights FOR SELECT U
 CREATE POLICY "Allow public insert access" ON public.match_highlights FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow public update access" ON public.match_highlights FOR UPDATE USING (true);
 CREATE POLICY "Allow public delete access" ON public.match_highlights FOR DELETE USING (true);
+
+-- Table: goalkeeper_stats
+CREATE TABLE IF NOT EXISTS public.goalkeeper_stats (
+  id TEXT PRIMARY KEY,
+  player_id TEXT NOT NULL,
+  reflex NUMERIC,
+  diving NUMERIC,
+  handling NUMERIC,
+  positioning NUMERIC,
+  instinct NUMERIC,
+  distribution NUMERIC,
+  kicking NUMERIC,
+  throwing NUMERIC,
+  reaction_speed NUMERIC,
+  agility NUMERIC,
+  shot_stopping NUMERIC,
+  one_on_one NUMERIC,
+  decision_making NUMERIC,
+  composure NUMERIC,
+  concentration NUMERIC,
+  anticipation NUMERIC,
+  passing_accuracy NUMERIC,
+  jumping_reach NUMERIC,
+  strength NUMERIC,
+  balance NUMERIC,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.goalkeeper_stats ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read access" ON public.goalkeeper_stats FOR SELECT USING (true);
+CREATE POLICY "Allow public insert access" ON public.goalkeeper_stats FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update access" ON public.goalkeeper_stats FOR UPDATE USING (true);
+CREATE POLICY "Allow public delete access" ON public.goalkeeper_stats FOR DELETE USING (true);
