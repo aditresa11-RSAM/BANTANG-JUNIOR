@@ -199,8 +199,8 @@ export default function Dashboard() {
           </h1>
         </div>
 
-        {/* TOP SUMMARY (4 Cards) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 xl:gap-6">
+        {/* TOP SUMMARY (4 Cards - 2x2 Layout) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 xl:gap-8">
            {/* Card 1: Total Pemain */}
            <div className="bg-[#0c162d]/80 backdrop-blur-xl border border-white/5 hover:border-blue-500/20 p-5 xl:p-6 rounded-[2rem] shadow-xl flex flex-col justify-between relative overflow-hidden group transition-all duration-300 min-h-[140px]">
               <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full filter blur-3xl -translate-y-10 translate-x-10 group-hover:bg-blue-500/20 transition-all pointer-events-none" />
@@ -273,112 +273,131 @@ export default function Dashboard() {
            </div>
         </div>
 
-        {/* MIDDLE SECTION (Slider & Top Players) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-           
-           {/* SLIDER (Dipertahankan tapi Clean) */}
-           <div className="lg:col-span-8 bg-[#0c162d]/60 border border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col h-[400px] md:h-[480px] relative">
-              <div className="flex-1 w-full h-full relative">
-                {sliders.length > 0 ? (
-                  <Swiper
-                    modules={[Autoplay, Navigation, Pagination, EffectFade]}
-                    effect="fade" spaceBetween={0} slidesPerView={1} loop={true} speed={1000}
-                    onSwiper={setSwiperInstance}
-                    onSlideChange={(swiper) => {
-                      setActiveIndex(swiper.realIndex);
-                      const activeS = sliders[swiper.realIndex];
-                      if (activeS?.media_type === 'video') swiper.autoplay.stop();
-                      else swiper.autoplay.start();
-                    }}
-                    autoplay={{ delay: 5000, disableOnInteraction: false }}
-                    className="w-full h-full group"
-                  >
-                    {sliders.map((slider: any) => (
-                      <SwiperSlide key={slider.id} className="relative w-full h-full">
-                        <div className="absolute inset-0 z-0 bg-[#080d19]">
-                           {slider.media_type === 'video' ? (
-                             <>
-                               <iframe src={getEmbedUrl(slider.video_url)} className="absolute inset-0 w-full h-full scale-[1.05] pointer-events-none" allow="autoplay; muted" />
-                               {/* Minimal dark overlay to ensure text is readable */}
-                               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
-                             </>
-                           ) : (
-                             <>
-                               <img src={slider.img} alt="" className="absolute inset-0 w-full h-full object-cover scale-[1.02]" />
-                               <div className="absolute inset-0 bg-gradient-to-t from-[#0c162d] via-black/20 to-transparent" />
-                             </>
-                           )}
+        {/* MIDDLE SECTION (Full Width Slider) */}
+        <div className="bg-[#0c162d]/60 border border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col h-[400px] md:h-[520px] relative">
+           <div className="flex-1 w-full h-full relative">
+             {sliders.length > 0 ? (
+               <Swiper
+                 modules={[Autoplay, Navigation, Pagination, EffectFade]}
+                 effect="fade" spaceBetween={0} slidesPerView={1} loop={true} speed={1000}
+                 onSwiper={setSwiperInstance}
+                 onSlideChange={(swiper) => {
+                   setActiveIndex(swiper.realIndex);
+                   const activeS = sliders[swiper.realIndex];
+                   if (activeS?.media_type === 'video') swiper.autoplay.stop();
+                   else swiper.autoplay.start();
+                 }}
+                 autoplay={{ delay: 5000, disableOnInteraction: false }}
+                 className="w-full h-full group"
+               >
+                 {sliders.map((slider: any) => (
+                   <SwiperSlide key={slider.id} className="relative w-full h-full">
+                     <div className="absolute inset-0 z-0 bg-[#080d19]">
+                        {slider.media_type === 'video' ? (
+                          <>
+                            <iframe src={getEmbedUrl(slider.video_url)} className="absolute inset-0 w-full h-full scale-[1.05] pointer-events-none" allow="autoplay; muted" />
+                            {/* Minimal dark overlay to ensure text is readable */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
+                          </>
+                        ) : (
+                          <>
+                            <img src={slider.img} alt="" className="absolute inset-0 w-full h-full object-cover scale-[1.02]" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#0c162d] via-black/20 to-transparent" />
+                          </>
+                        )}
+                     </div>
+
+                     {/* Minimal Text Overlay at bottom */}
+                     <div className="absolute bottom-0 left-0 right-0 p-8 pt-24 z-10 flex justify-between items-end">
+                        <div className="max-w-2xl">
+                           <h3 className="text-2xl md:text-4xl font-display font-black text-white uppercase tracking-tight text-shadow-sm mb-2">{slider.title}</h3>
+                           <p className="text-sm md:text-base font-medium text-white/70 line-clamp-2 md:line-clamp-none">{slider.subtitle} • {slider.description}</p>
                         </div>
-
-                        {/* Minimal Text Overlay at bottom */}
-                        <div className="absolute bottom-0 left-0 right-0 p-8 pt-24 z-10 flex justify-between items-end">
-                           <div className="max-w-xl">
-                              <h3 className="text-2xl md:text-3xl font-display font-black text-white uppercase tracking-tight text-shadow-sm mb-1">{slider.title}</h3>
-                              <p className="text-sm font-medium text-white/70 line-clamp-1">{slider.subtitle} • {slider.description}</p>
-                           </div>
-                           
-                           {/* Admin Controls */}
-                           <div className="flex gap-2">
-                             <button onClick={(e) => { e.stopPropagation(); handleOpenSliderEdit(slider); }} className="w-10 h-10 rounded-xl bg-black/50 backdrop-blur-md border border-white/10 text-white/50 hover:text-white flex items-center justify-center transition-all"><Edit2 className="w-4 h-4" /></button>
-                             <button onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ isOpen: true, id: slider.id }); }} className="w-10 h-10 rounded-xl bg-red-500/20 backdrop-blur-md border border-white/10 text-red-400 hover:text-red-500 hover:bg-red-500/30 flex items-center justify-center transition-all"><Trash2 className="w-4 h-4" /></button>
-                           </div>
+                        
+                        {/* Admin Controls */}
+                        <div className="flex gap-2">
+                          <button onClick={(e) => { e.stopPropagation(); handleOpenSliderEdit(slider); }} className="w-10 h-10 rounded-xl bg-black/50 backdrop-blur-md border border-white/10 text-white/50 hover:text-white flex items-center justify-center transition-all"><Edit2 className="w-4 h-4" /></button>
+                          <button onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ isOpen: true, id: slider.id }); }} className="w-10 h-10 rounded-xl bg-red-500/20 backdrop-blur-md border border-white/10 text-red-400 hover:text-red-500 hover:bg-red-500/30 flex items-center justify-center transition-all"><Trash2 className="w-4 h-4" /></button>
                         </div>
-                      </SwiperSlide>
-                    ))}
-                  </Swiper>
-                ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center text-white/20 bg-[#080d19]">
-                    <ImageIcon className="w-12 h-12 mb-4" />
-                    <p className="text-sm font-bold uppercase tracking-widest">No Banner</p>
-                  </div>
-                )}
-              </div>
-           </div>
-
-           {/* TOP RANKING PEMAIN (Horizontal List tapi di layout vertikal di side) */}
-           <div className="lg:col-span-4 bg-[#0c162d]/80 backdrop-blur-xl border border-white/5 rounded-[2.5rem] p-6 shadow-xl flex flex-col gap-5">
-              <div className="flex items-center justify-between mb-2">
-                 <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.8)]" />
-                    <h3 className="text-sm font-black uppercase tracking-widest text-white">Top Players</h3>
-                 </div>
-                 <button onClick={() => navigate('/players')} className="text-[10px] uppercase font-bold text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">Details <ChevronRight className="w-3 h-3" /></button>
-              </div>
-
-              <div className="flex flex-col gap-4 flex-1">
-                 {stats.topPlayers.length > 0 ? stats.topPlayers.map((player: any, idx: number) => (
-                   <div key={player.id} className="relative group cursor-pointer" onClick={() => navigate(`/players/${player.id}`)}>
-                      {idx === 0 && <div className="absolute inset-0 bg-yellow-500/10 blur-xl rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />}
-                      <div className={cn(
-                        "relative flex items-center gap-4 p-4 rounded-2xl border transition-all duration-300",
-                        idx === 0 ? "bg-gradient-to-r from-yellow-500/10 to-transparent border-yellow-500/30" : "bg-white/[0.02] border-white/5 hover:bg-white/[0.05]"
-                      )}>
-                         <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 border-2 border-white/10 relative">
-                            <img src={player.photo || 'https://via.placeholder.com/150'} alt={player.name} className="w-full h-full object-cover" />
-                         </div>
-                         <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                               <h4 className={cn("text-base font-bold truncate tracking-tight", idx === 0 ? "text-yellow-400" : "text-white")}>{player.name}</h4>
-                            </div>
-                            <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold mt-0.5">{player.category} • {player.position}</p>
-                         </div>
-                         <div className="shrink-0 text-right">
-                            <span className={cn("text-xl font-display font-black", idx === 0 ? "text-yellow-500" : "text-white/80")}>{player.overall || 0}</span>
-                            <span className="block text-[8px] text-white/30 uppercase font-black tracking-widest mt-0.5">Rating</span>
-                         </div>
-                      </div>
-                   </div>
-                 )) : (
-                   <div className="text-center py-10">
-                     <p className="text-xs text-white/30 font-medium">Beri rating pemain di menu Pemain untuk melihat ranking.</p>
-                   </div>
-                 )}
-              </div>
+                     </div>
+                   </SwiperSlide>
+                 ))}
+               </Swiper>
+             ) : (
+               <div className="w-full h-full flex flex-col items-center justify-center text-white/20 bg-[#080d19]">
+                 <ImageIcon className="w-12 h-12 mb-4" />
+                 <p className="text-sm font-bold uppercase tracking-widest">No Banner</p>
+               </div>
+             )}
            </div>
         </div>
 
-        {/* BOTTOM SECTION (Charts) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* TOP RANKING PEMAIN (Horizontal layout below slider) */}
+        <div className="bg-[#0c162d]/80 backdrop-blur-xl border border-white/5 rounded-[2.5rem] p-6 sm:p-8 shadow-xl flex flex-col gap-6">
+           <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                 <div className="w-2.5 h-2.5 rounded-full bg-[#fdc700] shadow-[0_0_15px_rgba(253,199,0,0.8)]" />
+                 <h3 className="text-base font-black uppercase tracking-widest text-white">Top Performance Players</h3>
+              </div>
+              <button 
+                onClick={() => navigate('/players')} 
+                className="group flex items-center gap-2 bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl border border-white/5 transition-all text-blue-400 text-xs font-bold uppercase tracking-widest"
+              >
+                View Full Roster <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </button>
+           </div>
+
+           <div className="grid grid-cols-1 gap-4 xl:gap-6">
+              {stats.topPlayers.length > 0 ? stats.topPlayers.map((player: any, idx: number) => (
+                <div 
+                  key={player.id} 
+                  className={cn(
+                    "relative group cursor-pointer p-1 rounded-[2rem] transition-all duration-500",
+                    idx === 0 ? "bg-gradient-to-br from-[#fdc700]/20 via-[#fdc700]/5 to-transparent" : "bg-white/[0.02]"
+                  )} 
+                  onClick={() => navigate(`/players/${player.id}`)}
+                >
+                   <div className={cn(
+                     "relative flex items-center gap-4 p-5 rounded-[1.9rem] border transition-all duration-500 bg-[#0c162d]/90",
+                     idx === 0 ? "border-[#fdc700]/30 shadow-[0_0_30px_rgba(253,199,0,0.1)]" : "border-white/5 hover:border-white/10"
+                   )}>
+                      {/* Rank badge */}
+                      <div className={cn(
+                        "absolute -top-2 -left-2 w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black z-20 shadow-lg",
+                        idx === 0 ? "bg-[#fdc700] text-black" : idx === 1 ? "bg-slate-300 text-slate-800" : "bg-orange-400 text-orange-950"
+                      )}>
+                        #{idx + 1}
+                      </div>
+
+                      <div className="w-16 h-16 rounded-2xl overflow-hidden shrink-0 border border-white/10 group-hover:scale-105 transition-transform duration-500">
+                         <img src={player.photo || 'https://via.placeholder.com/150'} alt={player.name} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                         <h4 className={cn("text-lg font-display font-black truncate tracking-tight uppercase", idx === 0 ? "text-[#fdc700]" : "text-white")}>
+                           {player.name}
+                         </h4>
+                         <p className="text-[10px] text-white/40 uppercase tracking-widest font-black mt-1 flex items-center gap-2">
+                           {player.category} <span className="w-1 h-1 rounded-full bg-white/20" /> {player.position}
+                         </p>
+                      </div>
+                      <div className="shrink-0 text-right bg-white/5 px-3 py-2 rounded-xl border border-white/5">
+                         <span className={cn("text-2xl font-display font-black leading-none", idx === 0 ? "text-[#fdc700]" : "text-white/80")}>
+                           {player.overall || 0}
+                         </span>
+                         <span className="block text-[8px] text-white/30 uppercase font-black tracking-widest mt-1">OVR</span>
+                      </div>
+                   </div>
+                </div>
+              )) : (
+                <div className="text-center py-12 bg-white/5 rounded-[2rem] border border-dashed border-white/10">
+                  <p className="text-sm text-white/30 font-bold uppercase tracking-widest">No rating data available</p>
+                </div>
+              )}
+           </div>
+        </div>
+
+        {/* BOTTOM SECTION (Stacked Charts) */}
+        <div className="grid grid-cols-1 gap-8">
            
            {/* DIAGRAM DISTRIBUSI UMUR */}
            <div className="bg-[#0c162d]/80 backdrop-blur-xl border border-white/5 rounded-[2.5rem] p-7 shadow-xl hover:border-blue-500/20 transition-all flex flex-col">
