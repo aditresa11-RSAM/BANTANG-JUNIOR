@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Users, Target, Calendar, Activity, TrendingUp, Trophy, ChevronRight,
   Plus, Clock, ArrowUpRight, UserSquare2, Image as ImageIcon,
-  ChevronLeft, Download, Star, Edit2, Trash2, Save, Loader2,
+  ChevronLeft, Download, Star, Edit2, Trash2, Save, Loader2, Video, Youtube, PlayCircle,
   AlertTriangle, Filter, MoreHorizontal, DollarSign, HeartPulse, Swords
 } from 'lucide-react';
 import { 
@@ -12,10 +12,11 @@ import {
 } from 'recharts';
 import { motion, AnimatePresence } from 'motion/react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, Navigation, Pagination } from 'swiper/modules';
+import { Autoplay, Navigation, Pagination, EffectFade } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+import 'swiper/css/effect-fade';
 import Layout from '../components/ui/Layout';
 import { useSettings } from '../App';
 import { cn } from '../lib/utils';
@@ -26,9 +27,35 @@ import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { useNavigate } from 'react-router-dom';
 
 const initialSliders = [
-  { id: '1', title: 'SSB BANTANG', subtitle: 'JUNIOR ACADEMY', description: 'Membentuk Generasi Juara Dengan Sistem Latihan Modern, Fasilitas Elite, dan Pendekatan Taktikal Terbaik.', img: "https://images.unsplash.com/photo-1543351611-58f69d7c1781?q=80&w=1200&auto=format&fit=crop" },
-  { id: '2', title: 'FASILITAS', subtitle: 'LATIHAN MODERN', description: 'Dilengkapi dengan peralatan latihan standar FIFA untuk mendukung perkembangan pemain', img: "https://images.unsplash.com/photo-1518605368461-1ee7e54728f1?q=80&w=1200&auto=format&fit=crop" },
+  { id: '1', title: 'SSB BANTANG', subtitle: 'JUNIOR ACADEMY', description: 'Membentuk Generasi Juara Dengan Sistem Latihan Modern, Fasilitas Elite, dan Pendekatan Taktikal Terbaik.', img: "https://images.unsplash.com/photo-1543351611-58f69d7c1781?q=80&w=1200&auto=format&fit=crop", media_type: 'image' },
+  { id: '2', title: 'FASILITAS', subtitle: 'LATIHAN MODERN', description: 'Dilengkapi dengan peralatan latihan standar FIFA untuk mendukung perkembangan pemain', img: "https://images.unsplash.com/photo-1518605368461-1ee7e54728f1?q=80&w=1200&auto=format&fit=crop", media_type: 'image' },
 ];
+
+const getEmbedUrl = (url: string) => {
+  if (!url) return '';
+  
+  if (url.includes('youtube.com') || url.includes('youtu.be')) {
+    let videoId = '';
+    if (url.includes('v=')) videoId = url.split('v=')[1]?.split('&')[0];
+    else if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1]?.split('?')[0];
+    else if (url.includes('embed/')) videoId = url.split('embed/')[1]?.split('?')[0];
+    
+    if (videoId) return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&rel=0&modestbranding=1&iv_load_policy=3&showinfo=0&enablejsapi=1&origin=${window.location.origin}`;
+  }
+  
+  if (url.includes('drive.google.com')) {
+    let fileId = '';
+    const match = url.match(/\/d\/(.+?)(\/|$)/);
+    if (match?.[1]) fileId = match[1];
+    else {
+      const idParam = url.split('id=')[1];
+      if (idParam) fileId = idParam.split('&')[0];
+    }
+    if (fileId) return `https://drive.google.com/file/d/${fileId}/preview`;
+  }
+  
+  return url;
+};
 
 const attendanceData = [
   { name: 'Sen', value: 85 }, { name: 'Sel', value: 92 }, { name: 'Rab', value: 88 },
@@ -117,10 +144,52 @@ export default function Dashboard() {
   const [isSliderModalOpen, setIsSliderModalOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [editingSlider, setEditingSlider] = useState<any>(null);
-  const [sliderForm, setSliderForm] = useState({ title: '', subtitle: '', description: '', img: '' });
+  const [sliderForm, setSliderForm] = useState({ 
+    title: '', 
+    subtitle: '', 
+    description: '', 
+    img: '', 
+    media_type: 'image', 
+    video_url: '',
+    autoplay: true,
+    loop: true
+  });
+  const [swiperInstance, setSwiperInstance] = useState<any>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
   const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, id: '' });
 
-  const handleOpenSliderAdd = () => { setEditingSlider(null); setSliderForm({ title: '', subtitle: '', description: '', img: '' }); setIsSliderModalOpen(true); };
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (!event.origin.includes("youtube.com")) return;
+      try {
+        const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+        if (data.event === "onStateChange" && data.info === 0) { // 0 = Ended
+          if (swiperInstance) {
+            swiperInstance.slideNext();
+          }
+        }
+      } catch (e) {}
+    };
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [swiperInstance]);
+
+  const activeSlider = sliders[activeIndex] || sliders[0];
+
+  const handleOpenSliderAdd = () => { 
+    setEditingSlider(null); 
+    setSliderForm({ 
+      title: '', 
+      subtitle: '', 
+      description: '', 
+      img: '', 
+      media_type: 'image', 
+      video_url: '',
+      autoplay: true,
+      loop: true
+    }); 
+    setIsSliderModalOpen(true); 
+  };
   const handleOpenSliderEdit = (slider: any) => { setEditingSlider(slider); setSliderForm(slider); setIsSliderModalOpen(true); };
   
   const handleSliderSubmit = (e: React.FormEvent) => {
@@ -149,7 +218,7 @@ export default function Dashboard() {
 
   return (
     <Layout>
-      <div className="flex flex-col gap-8 pb-12 w-full max-w-[1600px] mx-auto animate-in fade-in zoom-in duration-1000">
+      <div className="flex flex-col gap-6 pb-12 w-full max-w-[1600px] mx-auto animate-in fade-in zoom-in duration-1000">
         
         {/* HEADER */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 px-2">
@@ -175,84 +244,153 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* HERO SLIDER (Elite Professional Layout) */}
-        <div className="relative w-full aspect-video md:aspect-[21/8] lg:aspect-[24/8] max-h-[550px] rounded-[2.5rem] overflow-hidden border border-white/5 glass-premium group">
-          {sliders.length > 0 ? (
-            <Swiper
-              modules={[Autoplay, Navigation, Pagination]}
-              spaceBetween={0}
-              slidesPerView={1}
-              loop={true}
-              speed={1000}
-              autoplay={{
-                delay: 5000,
-                disableOnInteraction: false,
-                pauseOnMouseEnter: true,
-              }}
-              navigation={{
-                nextEl: '.swiper-btn-next',
-                prevEl: '.swiper-btn-prev',
-              }}
-              pagination={{ clickable: true }}
-              className="w-full h-full hero-swiper"
-            >
-              {sliders.map((slider: any) => (
-                <SwiperSlide key={slider.id} className="relative w-full h-full">
-                  {({ isActive }) => (
-                    <div className="w-full h-full relative overflow-hidden">
-                      <div className={cn("absolute inset-0 transition-transform duration-[8000ms] ease-linear", isActive ? "scale-110" : "scale-100")}>
-                        <img src={slider.img} alt="" className="absolute inset-0 w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-navy-dark)] via-[var(--color-navy-dark)]/60 to-transparent" />
-                        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[var(--color-navy-dark)] to-transparent" />
-                      </div>
+        {/* HERO SLIDER SECTION */}
+        <div className="space-y-4">
+          <div className="relative w-full h-[500px] md:h-[600px] lg:h-[650px] rounded-[2.5rem] overflow-hidden border border-white/10 glass-premium group shadow-[0_30px_70px_-20px_rgba(0,0,0,0.8)]">
+            {sliders.length > 0 ? (
+              <Swiper
+                modules={[Autoplay, Navigation, Pagination, EffectFade]}
+                effect="fade"
+                spaceBetween={0}
+                slidesPerView={1}
+                loop={true}
+                speed={1200}
+                onSwiper={setSwiperInstance}
+                onSlideChange={(swiper) => {
+                  setActiveIndex(swiper.realIndex);
+                  const activeSlide = sliders[swiper.realIndex];
+                  if (activeSlide?.media_type === 'video') {
+                    swiper.autoplay.stop();
+                  } else {
+                    swiper.autoplay.start();
+                  }
+                }}
+                autoplay={{
+                  delay: 6000,
+                  disableOnInteraction: false,
+                }}
+                navigation={{
+                  nextEl: '.swiper-btn-next',
+                  prevEl: '.swiper-btn-prev',
+                }}
+                pagination={{ 
+                  clickable: true,
+                  renderBullet: (index, className) => {
+                    return `<span class="${className} custom-bullet"></span>`;
+                  }
+                }}
+                className="w-full h-full hero-swiper"
+              >
+                {sliders.map((slider: any) => (
+                  <SwiperSlide key={slider.id} className="relative w-full h-full">
+                    {({ isActive }) => (
+                      <div className="w-full h-full relative overflow-hidden bg-transparent">
+                        {/* Media Content */}
+                        <div className={cn(
+                          "absolute inset-0 transition-transform duration-[8000ms] ease-out-quad", 
+                          isActive && slider.media_type === 'image' ? "scale-110 translate-y-[-1%]" : "scale-100 translate-y-0"
+                        )}>
+                          {slider.media_type === 'video' ? (
+                            <div className="absolute inset-0 w-full h-full overflow-hidden bg-transparent">
+                               {isActive && (
+                                <div className="absolute inset-0 w-full h-full">
+                                  <iframe
+                                    src={getEmbedUrl(slider.video_url)}
+                                    className="absolute inset-0 w-full h-full border-none pointer-events-none scale-100"
+                                    allow="autoplay; encrypted-media; picture-in-picture; gyroscope;"
+                                    title={slider.title}
+                                    loading="eager"
+                                  />
+                                </div>
+                              )}
+                              {/* Background fallback */}
+                              <img src={slider.img || "https://images.unsplash.com/photo-1543351611-58f69d7c1781?q=80&w=1200&auto=format&fit=crop"} alt="" className={cn("absolute inset-0 w-full h-full object-cover transition-opacity duration-1000", isActive ? "opacity-0" : "opacity-100")} />
+                            </div>
+                          ) : (
+                            <img src={slider.img} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                          )}
+                        </div>
 
-                      <div className="absolute inset-0 p-8 md:p-16 lg:p-20 z-10 flex flex-col justify-center">
-                        <motion.div 
-                          initial={{ opacity: 0, x: -30 }} 
-                          animate={isActive ? { opacity: 1, x: 0 } : {}} 
-                          transition={{ duration: 0.8, delay: 0.2 }}
-                          className="max-w-4xl"
-                        >
-                          <div className="flex items-center gap-3 mb-4">
-                            <span className="px-3 py-1 bg-blue-600 text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-md shadow-lg">New Featured</span>
-                            <div className="h-px w-12 bg-white/20" />
-                          </div>
-                          
-                          <h2 className="text-4xl md:text-6xl lg:text-7xl font-display font-black tracking-[calc(-0.04em)] text-white uppercase leading-[0.9] mb-6 drop-shadow-2xl">
-                            {slider.title} <br/>
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 text-glow">
-                              {slider.subtitle}
-                            </span>
-                          </h2>
-                          
-                          <p className="text-sm md:text-base text-white/60 font-medium max-w-xl leading-relaxed tracking-wide mb-8">
-                            {slider.description || slider.desc}
-                          </p>
+                        {/* Minimal Info Bar (Moved below image in next div, or can stay as minimal overlay if requested) */}
+                        {/* The prompt says "Ubah judul Dan tulisan di pindahkan di bawah kolom slider di sudut kiri bawah" */}
+                        {/* I already have a div outside Swiper for this (line 343). Removing it from inside Swiper if any. */}
 
-                          <div className="absolute bottom-28 right-8 flex bg-black/40 backdrop-blur-md rounded-xl border border-white/10 p-1 overflow-hidden z-20 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => handleOpenSliderEdit(slider)} className="p-2 rounded-lg hover:bg-white/10 text-white/50 hover:text-white transition-all"><Edit2 className="w-3.5 h-3.5" /></button>
-                            <div className="w-px h-3 bg-white/10 self-center" />
-                            <button onClick={() => setDeleteConfirm({ isOpen: true, id: slider.id })} className="p-2 rounded-lg hover:bg-red-500/20 text-red-400/50 hover:text-red-400 transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
-                          </div>
-                        </motion.div>
+                        {/* Admin Controls (Floating) */}
+                        <div className="absolute top-6 right-6 flex bg-black/30 backdrop-blur-md rounded-xl border border-white/10 p-1 z-20 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                          <button onClick={(e) => { e.stopPropagation(); handleOpenSliderEdit(slider); }} className="p-2.5 rounded-lg hover:bg-white/10 text-white/50 hover:text-white transition-all"><Edit2 className="w-4 h-4" /></button>
+                          <div className="w-px h-4 bg-white/10 self-center" />
+                          <button onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ isOpen: true, id: slider.id }); }} className="p-2.5 rounded-lg hover:bg-red-500/20 text-red-500/40 hover:text-red-500 transition-all"><Trash2 className="w-4 h-4" /></button>
+                        </div>
                       </div>
+                    )}
+                  </SwiperSlide>
+                ))}
+                
+                {/* Custom Navigation */}
+                <div className="absolute bottom-6 right-6 z-20 flex gap-3 pointer-events-none group-hover:pointer-events-auto">
+                  <button className="swiper-btn-prev w-12 h-12 rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white/40 hover:text-blue-400 hover:bg-blue-500/10 hover:border-blue-500/50 transition-all duration-300 opacity-0 group-hover:opacity-100 shadow-xl"><ChevronLeft className="w-6 h-6" /></button>
+                  <button className="swiper-btn-next w-12 h-12 rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white/40 hover:text-blue-400 hover:bg-blue-500/10 hover:border-blue-500/50 transition-all duration-300 opacity-0 group-hover:opacity-100 shadow-xl"><ChevronRight className="w-6 h-6" /></button>
+                </div>
+              </Swiper>
+            ) : (
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-white/10">
+                <ImageIcon className="w-20 h-20 mb-4" />
+                <p className="text-xl font-display font-black uppercase tracking-widest">No Active Campaigns</p>
+              </div>
+            )}
+          </div>
+
+          {/* BELOW SLIDER INFO BAR (Captions) */}
+          <AnimatePresence mode="wait">
+            {activeSlider && (
+              <motion.div 
+                key={activeSlider.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.5, ease: [0.19, 1, 0.22, 1] }}
+                className="flex items-center gap-4 px-2"
+              >
+                <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-5 py-3.5 backdrop-blur-md shadow-lg">
+                  {activeSlider.media_type === 'video' ? (
+                    <div className="flex items-center gap-2 px-2.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[9px] font-black uppercase tracking-[0.2em] rounded-full">
+                      <PlayCircle className="w-3 h-3" /> SPOTLIGHT
+                    </div>
+                  ) : (
+                    <div className="px-2.5 py-0.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[9px] font-black uppercase tracking-[0.2em] rounded-full italic">
+                      FEATURED
                     </div>
                   )}
-                </SwiperSlide>
-              ))}
-              
-              {/* Custom Navigation */}
-              <div className="absolute bottom-8 right-8 z-20 flex gap-3 pointer-events-none group-hover:pointer-events-auto">
-                <button className="swiper-btn-prev w-14 h-14 rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all opacity-0 group-hover:opacity-100"><ChevronLeft className="w-8 h-8" /></button>
-                <button className="swiper-btn-next w-14 h-14 rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all opacity-0 group-hover:opacity-100"><ChevronRight className="w-8 h-8" /></button>
-              </div>
-            </Swiper>
-          ) : (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-white/10">
-              <ImageIcon className="w-20 h-20 mb-4" />
-              <p className="text-xl font-display font-black uppercase tracking-widest">No Active Campaigns</p>
-            </div>
-          )}
+                  
+                  <div className="h-4 w-[1px] bg-white/10" />
+                  
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    <span className="text-sm md:text-base font-black text-white uppercase tracking-tight whitespace-nowrap">
+                      {activeSlider.title}
+                    </span>
+                    <span className="text-blue-500/40 font-black">•</span>
+                    <span className="text-xs md:text-sm font-medium text-white/40 tracking-wide truncate max-w-[250px] md:max-w-xl">
+                      {activeSlider.subtitle}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="hidden lg:flex flex-col gap-1 flex-1">
+                   {/* Slide Progress */}
+                   <div className="w-48 h-1 bg-white/5 rounded-full overflow-hidden">
+                      <motion.div 
+                        key={activeIndex}
+                        initial={{ width: 0 }}
+                        animate={{ width: '100%' }}
+                        transition={{ duration: activeSlider.media_type === 'video' ? 0 : 6, ease: "linear" }}
+                        className="h-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.6)]"
+                      />
+                   </div>
+                   <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em]">Campaign Progress</span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* SUMMARY CARDS */}
@@ -264,10 +402,11 @@ export default function Dashboard() {
         </div>
 
         {/* QUICK ACTIONS */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-9 gap-4">
           <QuickAction icon={Plus} label="New Player" onClick={() => navigate('/players')} />
           <QuickAction icon={Target} label="Performance" onClick={() => navigate('/performance')} />
           <QuickAction icon={Calendar} label="Training" onClick={() => navigate('/schedule')} />
+          <QuickAction icon={ImageIcon} label="Gallery" onClick={() => navigate('/gallery')} />
           <QuickAction icon={Trophy} label="Competitions" onClick={() => {}} />
           <QuickAction icon={Users} label="Squad List" onClick={() => navigate('/players')} />
           <QuickAction icon={Activity} label="Health Hub" onClick={() => {}} />
@@ -426,49 +565,135 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <Modal isOpen={isSliderModalOpen} onClose={() => setIsSliderModalOpen(false)} title={editingSlider ? "Edit Banner" : "Tambah Banner"}>
-        <form onSubmit={handleSliderSubmit} className="space-y-4">
-          <div className="flex justify-center mb-4">
-           <div className="relative group w-full h-40">
-              <div className="w-full h-full rounded-xl overflow-hidden border border-white/10 group-hover:border-[var(--color-primary)] transition-colors relative">
-                {isUploading && (
-                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10">
-                    <Loader2 className="w-6 h-6 text-[var(--color-primary)] animate-spin" />
-                  </div>
-                )}
-                {sliderForm.img ? (
-                  <img src={sliderForm.img} alt="Preview" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-[var(--color-navy-dark)] flex flex-col items-center justify-center text-white/30">
-                    <ImageIcon className="w-6 h-6 mb-2" />
-                    <span className="text-[10px] uppercase tracking-widest font-bold">Upload Gambar</span>
-                  </div>
-                )}
-              </div>
-              <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-xl">
-                <div className="flex items-center gap-2 bg-[var(--color-primary)] text-black px-4 py-2 rounded-lg font-bold text-xs shadow-lg">
-                  <Plus className="w-4 h-4" /> Pilih File
+      <Modal isOpen={isSliderModalOpen} onClose={() => setIsSliderModalOpen(false)} title={editingSlider ? "Edit Banner Content" : "Create New Banner"}>
+        <form onSubmit={handleSliderSubmit} className="space-y-5">
+          <div className="grid grid-cols-2 gap-3 p-1 bg-white/5 rounded-xl border border-white/10 shrink-0">
+             <button 
+               type="button"
+               onClick={() => setSliderForm({...sliderForm, media_type: 'image'})}
+               className={cn("py-2.5 rounded-lg flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all", 
+                 sliderForm.media_type === 'image' ? "bg-white text-black shadow-lg" : "text-white/40 hover:text-white"
+               )}
+             >
+               <ImageIcon className="w-3.5 h-3.5" /> Image
+             </button>
+             <button 
+               type="button"
+               onClick={() => setSliderForm({...sliderForm, media_type: 'video'})}
+               className={cn("py-2.5 rounded-lg flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all", 
+                 sliderForm.media_type === 'video' ? "bg-emerald-500 text-white shadow-lg" : "text-white/40 hover:text-white"
+               )}
+             >
+               <Video className="w-3.5 h-3.5" /> Video
+             </button>
+          </div>
+
+          <div className="flex flex-col gap-4">
+            {sliderForm.media_type === 'image' ? (
+              <div className="relative group w-full h-40">
+                <div className="w-full h-full rounded-2xl overflow-hidden border border-dashed border-white/20 group-hover:border-blue-500/50 transition-colors relative bg-black/40">
+                  {isUploading && (
+                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10">
+                      <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+                    </div>
+                  )}
+                  {sliderForm.img ? (
+                    <img src={sliderForm.img} alt="Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-white/20">
+                      <ImageIcon className="w-8 h-8 mb-2" />
+                      <span className="text-[10px] uppercase tracking-widest font-black">Upload Slide Image</span>
+                    </div>
+                  )}
                 </div>
-                <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-              </label>
+                <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-2xl">
+                  <div className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl">
+                    <Plus className="w-4 h-4" /> Pick File
+                  </div>
+                  <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                </label>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                     <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500">
+                        <Youtube className="w-5 h-5" />
+                     </div>
+                     <div>
+                        <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Video Stream URL</p>
+                        <p className="text-xs text-white/80 font-bold uppercase tracking-tight">YouTube / Google Drive</p>
+                     </div>
+                  </div>
+                  <input 
+                    type="url" 
+                    required 
+                    value={sliderForm.video_url} 
+                    onChange={(e) => setSliderForm({...sliderForm, video_url: e.target.value})} 
+                    className="w-full bg-[var(--color-navy-dark)] border border-white/10 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors" 
+                    placeholder="https://youtube.com/watch?v=..." 
+                  />
+                  <p className="text-[9px] text-white/20 mt-3 font-medium flex items-center gap-2">
+                    <AlertTriangle className="w-3 h-3" /> Pastikan link dapat diakses secara publik (Shared/Public)
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                   <label className="text-[10px] uppercase tracking-widest text-white/40 font-black mb-1 block underline underline-offset-4 decoration-white/10">Video Thumbnail (Fallback Mobile)</label>
+                   <div className="flex gap-4">
+                      <div className="w-24 h-16 rounded-xl border border-white/10 overflow-hidden bg-black/40 shrink-0">
+                         {sliderForm.img ? <img src={sliderForm.img} className="w-full h-full object-cover" /> : null}
+                      </div>
+                      <label className="flex-1 border border-dashed border-white/10 rounded-xl flex items-center justify-center cursor-pointer hover:bg-white/5 transition-colors">
+                        <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">Upload Cover</span>
+                        <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                      </label>
+                   </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 pt-2">
+                   <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10">
+                      <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Autoplay</span>
+                      <input 
+                        type="checkbox" 
+                        checked={sliderForm.autoplay} 
+                        onChange={(e) => setSliderForm({...sliderForm, autoplay: e.target.checked})}
+                        className="w-4 h-4 accent-emerald-500"
+                      />
+                   </div>
+                   <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10">
+                      <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Loop Video</span>
+                      <input 
+                        type="checkbox" 
+                        checked={sliderForm.loop} 
+                        onChange={(e) => setSliderForm({...sliderForm, loop: e.target.checked})}
+                        className="w-4 h-4 accent-emerald-500"
+                      />
+                   </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-2 block">Main Title</label>
+              <input type="text" required value={sliderForm.title} onChange={(e) => setSliderForm({...sliderForm, title: e.target.value})} className="w-full bg-[var(--color-navy-dark)] border border-white/10 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors" placeholder="e.g. SSB BANTANG" />
+            </div>
+            <div>
+              <label className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-2 block">Highlight Subtitle</label>
+              <input type="text" required value={sliderForm.subtitle} onChange={(e) => setSliderForm({...sliderForm, subtitle: e.target.value})} className="w-full bg-[var(--color-navy-dark)] border border-white/10 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors" placeholder="e.g. JUNIOR ACADEMY" />
+            </div>
+            <div>
+              <label className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-2 block">Description</label>
+              <textarea required value={sliderForm.description} onChange={(e) => setSliderForm({...sliderForm, description: e.target.value})} className="w-full bg-[var(--color-navy-dark)] border border-white/10 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-blue-500 h-24 resize-none transition-colors" placeholder="Write banner description here..." />
             </div>
           </div>
-          <div>
-            <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-1.5 block">Judul Kiri</label>
-            <input type="text" required value={sliderForm.title} onChange={(e) => setSliderForm({...sliderForm, title: e.target.value})} className="w-full bg-[var(--color-navy-dark)] border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]" placeholder="Cth: BANTANG JUNIOR" />
-          </div>
-          <div>
-            <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-1.5 block">Judul Kanan (Highlight Kuning)</label>
-            <input type="text" required value={sliderForm.subtitle} onChange={(e) => setSliderForm({...sliderForm, subtitle: e.target.value})} className="w-full bg-[var(--color-navy-dark)] border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]" placeholder="Cth: FOOTBALL ACADEMY" />
-          </div>
-          <div>
-            <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-1.5 block">Deskripsi Singkat</label>
-            <textarea required value={sliderForm.description} onChange={(e) => setSliderForm({...sliderForm, description: e.target.value})} className="w-full bg-[var(--color-navy-dark)] border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] h-20 resize-none" placeholder="Isi deskripsi banner..." />
-          </div>
-          <div className="pt-4 flex gap-3">
-            <button type="button" onClick={() => setIsSliderModalOpen(false)} className="flex-1 py-3 rounded-xl border border-white/10 text-white font-bold text-sm hover:bg-white/5 transition-colors">Batal</button>
-            <button type="submit" className="flex-1 py-3 rounded-xl bg-[var(--color-primary)] text-black font-bold text-sm flex items-center justify-center gap-2 hover:bg-yellow-500 transition-all">
-              <Save className="w-4 h-4" /> {editingSlider ? "Simpan Perubahan" : "Terbitkan"}
+
+          <div className="pt-4 flex gap-3 sticky bottom-0 bg-[#050b1a] py-3 -mx-6 px-6 border-t border-white/5">
+            <button type="button" onClick={() => setIsSliderModalOpen(false)} className="flex-1 py-4 rounded-xl border border-white/10 text-white/60 font-black text-[10px] uppercase tracking-widest hover:bg-white/5 transition-colors">Discard</button>
+            <button type="submit" className="flex-[2] py-4 rounded-xl bg-blue-600 text-white font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-blue-500 transition-all shadow-[0_0_30px_rgba(37,99,235,0.3)]">
+              <Save className="w-4 h-4" /> {editingSlider ? "Update Slide" : "Publish Content"}
             </button>
           </div>
         </form>

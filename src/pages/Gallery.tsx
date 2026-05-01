@@ -22,7 +22,29 @@ import { useCMSData } from '../lib/store';
 import { uploadFile } from '../lib/supabase';
 import { Modal } from '../components/ui/Modal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
-import { Loader2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
+
+const getEmbedUrl = (url: string) => {
+  if (!url) return '';
+  
+  if (url.includes('youtube.com') || url.includes('youtu.be')) {
+    let videoId = '';
+    if (url.includes('v=')) videoId = url.split('v=')[1]?.split('&')[0];
+    else if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1]?.split('?')[0];
+    else if (url.includes('embed/')) videoId = url.split('embed/')[1]?.split('?')[0];
+    
+    if (videoId) return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&rel=0&modestbranding=1`;
+  }
+  
+  if (url.includes('drive.google.com')) {
+    let fileId = '';
+    const match = url.match(/\/d\/(.+?)(\/|$)/);
+    if (match?.[1]) fileId = match[1];
+    if (fileId) return `https://drive.google.com/file/d/${fileId}/preview`;
+  }
+  
+  return url;
+};
 
 const initialMedia = [
   { id: '1', type: 'photo', url: 'https://images.unsplash.com/photo-1543351611-58f69d7c1781?auto=format&fit=crop&q=80&w=1000', title: 'Latihan Bersama Coach', category: 'Training' },
@@ -141,7 +163,8 @@ export default function Gallery() {
                initial={{ opacity: 0, scale: 0.9 }}
                animate={{ opacity: 1, scale: 1 }}
                key={item.id}
-               className="glass-card group overflow-hidden relative"
+               className="glass-card group overflow-hidden relative cursor-pointer"
+               onClick={() => { setSelectedMedia(item); setIsDetailModalOpen(true); }}
              >
                 <div className="aspect-[4/5] overflow-hidden relative">
                    <img src={item.url} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
@@ -218,6 +241,11 @@ export default function Gallery() {
 
           <div className="space-y-4">
             <div>
+              <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-1.5 block">URL Media (YouTube/Drive Link)</label>
+              <input type="text" value={formData.url} onChange={(e) => setFormData({...formData, url: e.target.value})} className="w-full bg-surface-raised border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]" placeholder="https://..." />
+            </div>
+
+            <div>
               <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-1.5 block">Judul Media</label>
               <input type="text" required value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} className="w-full bg-surface-raised border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]" placeholder="Cth: Full Training Day" />
             </div>
@@ -256,6 +284,50 @@ export default function Gallery() {
         onConfirm={() => deleteItem(deleteConfirm.id)}
         message={`Yakin ingin menghapus media "${deleteConfirm.title}"?`}
       />
+
+      {/* DETAIL VIEW MODAL */}
+      <AnimatePresence>
+        {isDetailModalOpen && selectedMedia && (
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }} 
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+          >
+            <div className="absolute inset-0 bg-black/90 backdrop-blur-xl" onClick={() => setIsDetailModalOpen(false)} />
+            
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative w-full max-w-5xl aspect-video bg-black rounded-3xl overflow-hidden border border-white/10 shadow-2xl"
+            >
+               <button 
+                 onClick={() => setIsDetailModalOpen(false)}
+                 className="absolute top-4 right-4 z-20 w-10 h-10 flex items-center justify-center rounded-full bg-black/40 border border-white/10 text-white/50 hover:text-white hover:bg-red-500/20 transition-all"
+               >
+                 <X className="w-5 h-5" />
+               </button>
+
+               {selectedMedia.type === 'video' ? (
+                 <iframe 
+                   src={getEmbedUrl(selectedMedia.url)} 
+                   className="w-full h-full border-none" 
+                   allow="autoplay; encrypted-media; gyroscope; picture-in-picture"
+                   allowFullScreen
+                 />
+               ) : (
+                 <img src={selectedMedia.url} className="w-full h-full object-contain" alt={selectedMedia.title} />
+               )}
+
+               <div className="absolute bottom-0 inset-x-0 p-8 bg-gradient-to-t from-black via-black/50 to-transparent pointer-events-none">
+                  <span className="inline-block px-3 py-1 bg-[var(--color-primary)] text-black text-[10px] font-black uppercase tracking-widest rounded-full mb-3">{selectedMedia.category}</span>
+                  <h2 className="text-2xl font-display font-black text-white uppercase">{selectedMedia.title}</h2>
+               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </Layout>
   );
 }

@@ -72,6 +72,10 @@ CREATE TABLE IF NOT EXISTS public.dashboard_sliders (
   subtitle TEXT,
   description TEXT,
   img TEXT,
+  media_type TEXT DEFAULT 'image',
+  video_url TEXT,
+  autoplay BOOLEAN DEFAULT true,
+  loop BOOLEAN DEFAULT true,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 

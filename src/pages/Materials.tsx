@@ -12,6 +12,34 @@ import { useCMSData } from '../lib/store';
 import { Modal } from '../components/ui/Modal';
 import { uploadFile } from '../lib/supabase';
 
+const getEmbedUrl = (url: string) => {
+  if (!url) return '';
+  
+  if (url.includes('youtube.com') || url.includes('youtu.be')) {
+    let videoId = '';
+    if (url.includes('v=')) videoId = url.split('v=')[1]?.split('&')[0];
+    else if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1]?.split('?')[0];
+    else if (url.includes('embed/')) videoId = url.split('embed/')[1]?.split('?')[0];
+    
+    if (videoId) return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&rel=0&modestbranding=1`;
+  }
+  
+  if (url.includes('drive.google.com')) {
+    let fileId = '';
+    const match = url.match(/\/d\/(.+?)(\/|$)/);
+    if (match?.[1]) fileId = match[1];
+    if (fileId) return `https://drive.google.com/file/d/${fileId}/preview`;
+  }
+  
+  return url;
+};
+
+const isVideoUrl = (url: string) => {
+  if (!url) return false;
+  const videoExts = ['.mp4', '.webm', '.ogg', 'youtube.com', 'youtu.be', 'drive.google.com'];
+  return videoExts.some(ext => url.includes(ext));
+};
+
 const TRAINING_CATEGORIES = [
   { id: 'technique', name: 'Teknik Dasar', icon: Star, color: 'text-blue-400', bg: 'bg-blue-400/10' },
   { id: 'physical', name: 'Fisik', icon: Dumbbell, color: 'text-red-400', bg: 'bg-red-400/10' },
@@ -329,21 +357,25 @@ export default function Materials() {
 
                 {/* Cover Image/Video Area */}
                 <div className="relative h-64 md:h-96 w-full bg-black">
-                   <img 
-                      src={selectedMaterial.media_url || "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=1200"} 
-                      className="w-full h-full object-cover opacity-60" 
-                      alt={selectedMaterial.title} 
-                   />
-                   <div className="absolute inset-0 bg-gradient-to-t from-[#09152b] via-[#09152b]/50 to-transparent" />
+                   {isVideoUrl(selectedMaterial.media_url) ? (
+                     <iframe 
+                       src={getEmbedUrl(selectedMaterial.media_url)} 
+                       className="w-full h-full border-none" 
+                       allow="autoplay; encrypted-media; gyroscope; picture-in-picture"
+                       allowFullScreen
+                     />
+                   ) : (
+                     <>
+                       <img 
+                          src={selectedMaterial.media_url || "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=1200"} 
+                          className="w-full h-full object-cover opacity-60" 
+                          alt={selectedMaterial.title} 
+                       />
+                       <div className="absolute inset-0 bg-gradient-to-t from-[#09152b] via-[#09152b]/50 to-transparent" />
+                     </>
+                   )}
                    
-                   {/* Play Button Mockup for Video */}
-                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                     <div className="w-20 h-20 rounded-full bg-white/10 border-2 border-white/20 backdrop-blur-xl flex items-center justify-center text-white/80 shadow-[0_0_50px_rgba(255,255,255,0.1)]">
-                       <PlayCircle className="w-8 h-8 ml-1" />
-                     </div>
-                   </div>
-
-                   <div className="absolute bottom-6 md:bottom-10 left-6 md:left-12 right-6 md:right-12 text-white">
+                   <div className="absolute bottom-6 md:bottom-10 left-6 md:left-12 right-6 md:right-12 text-white pointer-events-none">
                       <div className="flex gap-2 mb-4">
                         <span className="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest backdrop-blur-xl border border-[var(--color-primary)]/30 bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
                           {TRAINING_CATEGORIES.find(c => c.id === selectedMaterial.category)?.name}

@@ -234,45 +234,62 @@ export default function Players() {
                   className="relative group cursor-pointer"
                 >
                   <Link to={`/players/${player.id}`} className="block h-full">
-                    <div className="h-full rounded-2xl bg-gradient-to-b from-[#131b2f] to-[#0a0f1c] border border-white/10 overflow-hidden hover:border-blue-500/50 hover:shadow-[0_0_30px_rgba(37,99,235,0.2)] transition-all duration-300 transform group-hover:-translate-y-1">
+                    <div className="h-[480px] rounded-[2.5rem] bg-gradient-to-br from-[#131b2f] to-[#0a0f1c] border border-white/10 overflow-hidden hover:border-blue-500/50 hover:shadow-[0_0_40px_rgba(37,99,235,0.2)] transition-all duration-300 transform group-hover:-translate-y-2 shadow-2xl relative">
                       
-                      {/* Player Image & Header Area */}
-                      <div className="relative h-48 bg-[#0a0f1c] overflow-hidden">
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#131b2f] via-transparent to-transparent z-10" />
-                        <img src={player.photo} alt={player.name} className="w-full h-full object-cover object-top opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500" />
-                        
-                        {/* Overall Badge */}
-                        <div className="absolute top-3 right-3 z-20 w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center shadow-lg border-2 border-[#131b2f]">
-                          <span className="font-display font-black text-black text-sm">{player.overall || 0}</span>
+                      {/* Full Frame Player Image Area */}
+                      <div className="absolute inset-0 overflow-hidden">
+                        {/* Background Atmosphere */}
+                        <div className="absolute inset-0 bg-[#0a0f1c]">
+                           <img src={player.photo} alt="" className="w-full h-full object-cover opacity-20 blur-2xl scale-125" />
                         </div>
                         
-                        {/* Category Badge */}
-                        <div className="absolute top-3 left-3 z-20 px-2 py-1 rounded bg-blue-600 text-white text-[9px] font-black uppercase tracking-widest border border-blue-400/30">
+                        {/* Main Interaction Image - Full Frame Display */}
+                        <img 
+                          src={player.photo} 
+                          alt={player.name} 
+                          className="absolute inset-0 w-full h-full object-cover object-top opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700 ease-out" 
+                        />
+                        
+                        {/* Dynamic Overlays */}
+                        <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#0a0f1c] via-[#0a0f1c]/80 to-transparent z-10" />
+                        <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(0,0,0,0.6)] z-10 pointer-events-none" />
+                      </div>
+                      
+                      {/* Top Action Layer */}
+                      <div className="p-5 relative z-20 flex justify-between items-start">
+                        <div className="px-3 py-1 rounded-lg bg-blue-600/20 backdrop-blur-md border border-blue-500/30 text-white text-[10px] font-black uppercase tracking-widest">
                           {player.category}
+                        </div>
+                        
+                        <div className="w-11 h-11 rounded-full bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center shadow-[0_0_20px_rgba(250,204,21,0.4)] border-2 border-[#131b2f] group-hover:scale-110 transition-transform">
+                          <span className="font-display font-black text-black text-sm">{player.overall || 0}</span>
                         </div>
                       </div>
 
-                      {/* Player Info Area */}
-                      <div className="p-4 relative z-20 bg-[#131b2f]">
-                        <div className="flex items-end gap-2 mb-1 text-left">
-                          <span className="text-3xl font-display font-black text-amber-500/40 leading-none">{player.jersey}</span>
-                          <h3 className="font-bold text-white text-base truncate flex-1 uppercase tracking-tight">{player.name}</h3>
+                      {/* Bottom Info Area */}
+                      <div className="absolute inset-x-0 bottom-0 p-6 z-20">
+                        <div className="flex items-end gap-3 mb-2">
+                          <span className="text-4xl font-display font-black text-amber-500/30 leading-none group-hover:text-amber-500/60 transition-colors uppercase italic">{player.jersey}</span>
+                          <h3 className="font-display font-black text-white text-xl md:text-2xl uppercase tracking-tighter leading-tight group-hover:text-blue-400 transition-colors line-clamp-2">
+                             {player.name}
+                          </h3>
                         </div>
                         
-                        <div className="flex items-center gap-2 mb-4">
-                           <span className="text-xs text-blue-400 font-bold uppercase">{player.position}</span>
-                           <span className="w-1 h-1 rounded-full bg-white/20" />
-                           <span className="text-xs text-white/50">{player.age || calculateAge(player.dob)} TAHUN</span>
+                        <div className="flex items-center gap-3 mb-5">
+                           <span className="text-xs text-blue-400 font-black uppercase tracking-widest">{player.position}</span>
+                           <span className="w-1.5 h-1.5 rounded-full bg-white/20" />
+                           <span className="text-[10px] text-white/50 font-bold uppercase tracking-wider">{player.age || calculateAge(player.dob)} TAHUN</span>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2 text-[10px] font-mono text-white/40 uppercase">
-                          <div className="bg-[#0a0f1c] p-2 rounded-lg border border-white/5 text-center">
-                            <span className="block text-white/20 mb-0.5">Height</span>
-                            <span className="font-bold text-white/70">{player.height} CM</span>
+                        {/* Professional Metrics */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="bg-white/5 backdrop-blur-md p-3 rounded-2xl border border-white/5 text-center group-hover:bg-white/10 transition-colors">
+                            <span className="block text-[8px] font-black text-white/30 uppercase tracking-[0.2em] mb-1">Height</span>
+                            <span className="text-xs font-bold text-white/90">{player.height} CM</span>
                           </div>
-                          <div className="bg-[#0a0f1c] p-2 rounded-lg border border-white/5 text-center">
-                            <span className="block text-white/20 mb-0.5">Foot</span>
-                            <span className="font-bold text-white/70">{player.dominantFoot?.substring(0, 3)}</span>
+                          <div className="bg-white/5 backdrop-blur-md p-3 rounded-2xl border border-white/5 text-center group-hover:bg-white/10 transition-colors">
+                            <span className="block text-[8px] font-black text-white/30 uppercase tracking-[0.2em] mb-1">Foot</span>
+                            <span className="text-xs font-bold text-white/90">{player.dominantFoot?.substring(0, 3) || 'RGT'}</span>
                           </div>
                         </div>
                       </div>

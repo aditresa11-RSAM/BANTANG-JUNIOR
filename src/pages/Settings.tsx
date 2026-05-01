@@ -387,6 +387,10 @@ BEGIN
     -- Dashboard Sliders
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='dashboard_sliders' AND column_name='subtitle') THEN ALTER TABLE dashboard_sliders ADD COLUMN subtitle TEXT; END IF;
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='dashboard_sliders' AND column_name='description') THEN ALTER TABLE dashboard_sliders ADD COLUMN description TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='dashboard_sliders' AND column_name='media_type') THEN ALTER TABLE dashboard_sliders ADD COLUMN media_type TEXT DEFAULT 'image'; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='dashboard_sliders' AND column_name='video_url') THEN ALTER TABLE dashboard_sliders ADD COLUMN video_url TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='dashboard_sliders' AND column_name='autoplay') THEN ALTER TABLE dashboard_sliders ADD COLUMN autoplay BOOLEAN DEFAULT true; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='dashboard_sliders' AND column_name='loop') THEN ALTER TABLE dashboard_sliders ADD COLUMN loop BOOLEAN DEFAULT true; END IF;
 
     -- Schedules
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='schedules' AND column_name='activity') THEN ALTER TABLE schedules ADD COLUMN activity TEXT; END IF;
@@ -419,6 +423,10 @@ CREATE TABLE IF NOT EXISTS dashboard_sliders (
     subtitle TEXT, 
     description TEXT, 
     img TEXT, 
+    media_type TEXT DEFAULT 'image',
+    video_url TEXT,
+    autoplay BOOLEAN DEFAULT true,
+    loop BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -616,7 +624,7 @@ WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboar
       
       const allowedColumns: Record<string, string[]> = {
         players: ['id', 'name', 'overall', 'category', 'position', 'photo', 'photourl', 'dribbling', 'passing', 'shooting', 'pace', 'strength', 'tactical', 'vision', 'teamwork', 'goals', 'assists', 'appearances', 'attendance', 'age', 'height', 'weight', 'dominantfoot', 'dob', 'stamina', 'jersey', 'status', 'created_at', 'parent_id', 'skillset'],
-        dashboard_sliders: ['id', 'title', 'subtitle', 'description', 'img', 'created_at'],
+        dashboard_sliders: ['id', 'title', 'subtitle', 'description', 'img', 'media_type', 'video_url', 'autoplay', 'loop', 'created_at'],
         coaches: ['id', 'name', 'role', 'experience', 'license', 'photourl', 'photo', 'specialty', 'rating', 'activeteams', 'phone', 'email', 'created_at'],
         upcoming_matches: ['id', 'tournament', 'rival', 'rivallogo', 'date', 'time', 'venue', 'category', 'result', 'created_at'],
         match_results: ['id', 'tournament', 'rival', 'rivallogo', 'score', 'date', 'category', 'result', 'scorers', 'created_at'],

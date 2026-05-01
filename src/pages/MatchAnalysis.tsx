@@ -27,7 +27,7 @@ const getEmbedInfo = (url: string) => {
   if (ytMatch && ytMatch[1]) {
     return {
       type: 'youtube',
-      embedUrl: `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1`,
+      embedUrl: `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1&mute=0&rel=0&modestbranding=1`,
       thumbnail: `https://img.youtube.com/vi/${ytMatch[1]}/maxresdefault.jpg`
     };
   }
@@ -1001,9 +1001,9 @@ export default function MatchAnalysis() {
                      const embedInfo = getEmbedInfo(activeVideo.url);
                      if (!embedInfo) return null;
                      return embedInfo.type === 'raw' ? (
-                        <video src={embedInfo.embedUrl} controls autoPlay className="w-full h-full" />
+                        <video src={embedInfo.embedUrl} controls autoPlay muted={false} className="w-full h-full" />
                      ) : (
-                        <iframe src={embedInfo.embedUrl} className="w-full h-full" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
+                        <iframe src={embedInfo.embedUrl} className="w-full h-full" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture;" allowFullScreen />
                      );
                   })()}
                </div>

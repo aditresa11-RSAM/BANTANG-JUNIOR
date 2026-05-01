@@ -13,6 +13,17 @@
   --color-surface: #0a101f;
 }
 
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient 8s ease infinite;
+}
+
 @layer base {
   body {
     @apply bg-[var(--color-navy-dark)] text-white font-sans antialiased selection:bg-blue-500/30;
@@ -79,13 +90,27 @@
 }
 
 /* Swiper custom pagination */
-.hero-swiper .swiper-pagination-bullet {
-  @apply w-2 h-2 bg-white/30 transition-all duration-300;
+.custom-bullet {
+  width: 12px !important;
+  height: 4px !important;
+  border-radius: 2px !important;
+  background: rgba(255, 255, 255, 0.2) !important;
   opacity: 1 !important;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  margin: 0 4px !important;
 }
-.hero-swiper .swiper-pagination-bullet-active {
-  @apply w-8 bg-blue-500 rounded-full;
-  opacity: 1 !important;
+
+.custom-bullet.swiper-pagination-bullet-active {
+  width: 48px !important;
+  background: #3b82f6 !important;
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+}
+
+.hero-swiper .swiper-pagination {
+  bottom: 24px !important;
+  left: 32px !important;
+  text-align: left !important;
+  width: auto !important;
 }
 
 /* Custom scrollbar */

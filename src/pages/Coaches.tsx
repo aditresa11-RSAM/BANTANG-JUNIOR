@@ -151,17 +151,15 @@ export default function Coaches() {
                   <div className="h-[480px] rounded-3xl overflow-hidden relative shadow-xl border border-white/5 group-hover:border-blue-500/30 transition-all duration-500 bg-gradient-to-br from-[#0c162d] to-[#0a0f1c]">
                      
                      {/* Background & Photo (Full frame) */}
+                     <img 
+                        src={coach.photo} 
+                        alt={coach.name} 
+                        className="absolute inset-0 w-full h-full object-cover object-top opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700 ease-out z-10" 
+                     />
                      <div className="absolute inset-0 bg-[#081225] overflow-hidden">
                         <img src={coach.photo} alt="" className="w-full h-full object-cover opacity-40 blur-2xl scale-150" />
                      </div>
-                     <div className="absolute inset-0 flex items-center justify-center p-6 pb-20">
-                        <img 
-                          src={coach.photo} 
-                          alt={coach.name} 
-                          className="max-w-full max-h-full object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.9)] group-hover:scale-110 transition-transform duration-700 ease-out" 
-                        />
-                     </div>
-                     <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#0a0f1c] via-[#0a0f1c]/40 to-transparent opacity-90" />
+                     <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#0a0f1c] via-[#0a0f1c]/40 to-transparent z-20" />
                      
                      {/* Top Badges */}
                      <div className="absolute top-4 left-4 right-4 flex justify-end z-20">
