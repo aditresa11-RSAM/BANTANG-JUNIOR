@@ -31,6 +31,8 @@ import ParentPortal from './pages/ParentPortal';
 import Announcements from './pages/Announcements';
 import AICoach from './pages/AICoach';
 import GKCompare from './pages/GKCompare';
+import RegistrationPublic from './pages/RegistrationPublic';
+import RegistrationAdmin from './pages/RegistrationAdmin';
 
 // Auth context
 interface AuthContextType {
@@ -190,9 +192,11 @@ export default function App() {
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" />} />
+              <Route path="/register" element={<RegistrationPublic />} />
               
               {/* Protected Routes */}
               <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/" />} />
+              <Route path="/registrations" element={user ? <RegistrationAdmin /> : <Navigate to="/" />} />
               <Route path="/players" element={user ? <Players /> : <Navigate to="/" />} />
               <Route path="/players/:id" element={user ? <PlayerProfile /> : <Navigate to="/" />} />
               <Route path="/schedule" element={user ? <TrainingSchedule /> : <Navigate to="/" />} />

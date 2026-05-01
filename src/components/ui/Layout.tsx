@@ -1,7 +1,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { BarChart3, Users, Calendar, Activity, CreditCard, UserSquare2, Trophy, ImageIcon, LogOut, Bell, Search, Menu, X, Home, Settings, Goal, ScanSearch, Stethoscope, Users2, Megaphone, Bot, CheckSquare, BookOpen } from 'lucide-react';
+import { BarChart3, Users, Calendar, Activity, CreditCard, UserSquare2, Trophy, ImageIcon, LogOut, Bell, Search, Menu, X, Home, Settings, Goal, ScanSearch, Stethoscope, Users2, Megaphone, Bot, CheckSquare, BookOpen, UserPlus, FileText } from 'lucide-react';
 import { useAuth, useSettings } from '../../App';
 import { cn } from '../../lib/utils';
 
@@ -18,6 +18,7 @@ export default function Layout({ children }: LayoutProps) {
 
   const menuItems = [
     { name: 'Dashboard', path: '/dashboard', icon: Home },
+    { name: 'Pendaftaran Pemain', path: '/registrations', icon: UserPlus },
     { name: 'Pemain', path: '/players', icon: Users },
     { name: 'Pelatih', path: '/coaches', icon: UserSquare2 },
     { name: 'Jadwal', path: '/schedule', icon: Calendar },
@@ -59,8 +60,8 @@ export default function Layout({ children }: LayoutProps) {
               )}
             </div>
             <div className="text-center">
-              <h1 className="font-display font-black text-sm tracking-[0.15em] uppercase leading-tight drop-shadow-sm text-[#fdc700]">
-                SSB BANTANG JUNIOR
+              <h1 className="font-display font-black text-sm tracking-[0.15em] uppercase leading-tight drop-shadow-sm">
+                <span className="text-white">SSB</span> <span className="text-[#fdc700]">BANTANG</span> <span className="text-blue-400">JUNIOR</span>
               </h1>
               <div className="h-px w-12 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent mx-auto mt-3 opacity-50" />
             </div>
