@@ -59,8 +59,8 @@ export default function Layout({ children }: LayoutProps) {
               )}
             </div>
             <div className="text-center">
-              <h1 className="font-display font-black text-sm tracking-[0.15em] text-white uppercase leading-tight drop-shadow-sm">
-                SSB <span className="text-[var(--color-primary)]">BANTANG JUNIOR</span>
+              <h1 className="font-display font-black text-sm tracking-[0.15em] uppercase leading-tight drop-shadow-sm text-[#fdc700]">
+                SSB BANTANG JUNIOR
               </h1>
               <div className="h-px w-12 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent mx-auto mt-3 opacity-50" />
             </div>

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Users, Search, Filter, Plus, ChevronRight, UserPlus, FileDown, Trash2, Edit2, Activity,
   CheckCircle2, Clock, MapPin, TrendingUp, SlidersHorizontal, LayoutGrid, List, AlertCircle,
@@ -27,6 +27,7 @@ const categories = ['All', 'U8', 'U9', 'U10', 'U11', 'U12', 'U13', 'U14', 'U15']
 const positions: string[] = ['All', 'Goalkeeper', 'Defender', 'Midfielder', 'Striker'];
 
 export default function Players() {
+  const navigate = useNavigate();
   const { data: players, addItems, updateItem, deleteItem } = useCMSData('players', initialPlayers);
   const { appName, logoUrl } = useSettings();
   
@@ -222,7 +223,7 @@ export default function Players() {
 
         {/* Player Roster Content */}
         {viewMode === 'grid' ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <AnimatePresence>
               {filteredAndSortedPlayers.map((player: any) => (
                 <motion.div
@@ -232,78 +233,83 @@ export default function Players() {
                   exit={{ opacity: 0, scale: 0.9 }}
                   key={player.id}
                   className="relative group cursor-pointer"
+                  onClick={() => navigate(`/players/${player.id}`)}
                 >
-                  <Link to={`/players/${player.id}`} className="block h-full">
-                    <div className="h-[480px] rounded-[2.5rem] bg-gradient-to-br from-[#131b2f] to-[#0a0f1c] border border-white/10 overflow-hidden hover:border-blue-500/50 hover:shadow-[0_0_40px_rgba(37,99,235,0.2)] transition-all duration-300 transform group-hover:-translate-y-2 shadow-2xl relative">
+                  <div className="aspect-[3/4] md:aspect-[4/5] lg:aspect-[3/4] rounded-3xl overflow-hidden relative shadow-xl border border-white/5 group-hover:border-blue-500/30 transition-all duration-500 bg-gradient-to-br from-[#0c162d] to-[#0a0f1c]">
                       
-                      {/* Full Frame Player Image Area */}
-                      <div className="absolute inset-0 overflow-hidden">
-                        {/* Background Atmosphere */}
-                        <div className="absolute inset-0 bg-[#0a0f1c]">
-                           <img src={player.photo} alt="" className="w-full h-full object-cover opacity-20 blur-2xl scale-125" />
-                        </div>
-                        
-                        {/* Main Interaction Image - Full Frame Display */}
-                        <img 
-                          src={player.photo} 
-                          alt={player.name} 
-                          className="absolute inset-0 w-full h-full object-cover object-top opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700 ease-out" 
-                        />
-                        
-                        {/* Dynamic Overlays */}
-                        <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#0a0f1c] via-[#0a0f1c]/80 to-transparent z-10" />
-                        <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(0,0,0,0.6)] z-10 pointer-events-none" />
+                      {/* Background & Photo (Full frame) */}
+                      <div className="absolute inset-0 bg-[#081225] overflow-hidden z-0">
+                         <img src={player.photo} alt="" className="w-full h-full object-cover opacity-40 blur-2xl scale-150" />
                       </div>
+                      <img 
+                        src={player.photo} 
+                        alt={player.name} 
+                        className="absolute inset-0 w-full h-full object-cover object-top opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700 ease-out z-10" 
+                      />
+                      <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#0a0f1c] via-[#0a0f1c]/40 to-transparent z-20" />
                       
-                      {/* Top Action Layer */}
-                      <div className="p-5 relative z-20 flex justify-between items-start">
-                        <div className="px-3 py-1 rounded-lg bg-blue-600/20 backdrop-blur-md border border-blue-500/30 text-white text-[10px] font-black uppercase tracking-widest">
+                      {/* Top Badges */}
+                      <div className="absolute top-4 left-4 right-4 flex justify-between items-start z-20">
+                        <div className="px-3 py-1 rounded border border-white/10 bg-[#0a0f1c]/60 backdrop-blur-md text-white text-[10px] font-bold uppercase shadow-lg">
                           {player.category}
                         </div>
                         
-                        <div className="w-11 h-11 rounded-full bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center shadow-[0_0_20px_rgba(250,204,21,0.4)] border-2 border-[#131b2f] group-hover:scale-110 transition-transform">
-                          <span className="font-display font-black text-black text-sm">{player.overall || 0}</span>
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-amber-600 shadow-[0_0_20px_rgba(250,204,21,0.4)] border border-white/10 group-hover:scale-110 transition-transform">
+                          <span className="font-display font-black text-black text-xs">{player.overall || 0}</span>
                         </div>
                       </div>
 
-                      {/* Bottom Info Area */}
-                      <div className="absolute inset-x-0 bottom-0 p-6 z-20">
-                        <div className="flex items-end gap-3 mb-2">
-                          <span className="text-4xl font-display font-black text-amber-500/30 leading-none group-hover:text-amber-500/60 transition-colors uppercase italic">{player.jersey}</span>
-                          <h3 className="font-display font-black text-white text-xl md:text-2xl uppercase tracking-tighter leading-tight group-hover:text-blue-400 transition-colors line-clamp-2">
+                      {/* Profile Info (Bottom) */}
+                      <div className="absolute bottom-4 left-4 right-4 z-20 transform transition-all duration-500 group-hover:-translate-y-4">
+                        <div className="flex items-end gap-3 mb-1">
+                          <span className="text-4xl font-display font-black text-yellow-400 leading-none drop-shadow-[0_0_15px_rgba(250,204,21,0.5)] italic">{player.jersey}</span>
+                          <h3 className="text-2xl font-display font-black text-white uppercase tracking-tighter drop-shadow-md group-hover:text-blue-400 transition-colors line-clamp-1">
                              {player.name}
                           </h3>
                         </div>
                         
-                        <div className="flex items-center gap-3 mb-5">
-                           <span className="text-xs text-blue-400 font-black uppercase tracking-widest">{player.position}</span>
-                           <span className="w-1.5 h-1.5 rounded-full bg-white/20" />
-                           <span className="text-[10px] text-white/50 font-bold uppercase tracking-wider">{player.age || calculateAge(player.dob)} TAHUN</span>
+                        <div className="flex items-center gap-2 mb-3">
+                           <span className="text-[10px] font-black text-blue-400/80 uppercase tracking-widest">{player.position}</span>
+                           <span className="w-1 h-1 rounded-full bg-white/30" />
+                           <span className="text-[10px] text-white/50 font-bold uppercase tracking-widest">{player.age || calculateAge(player.dob)} TAHUN</span>
                         </div>
-
-                        {/* Professional Metrics */}
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="bg-white/5 backdrop-blur-md p-3 rounded-2xl border border-white/5 text-center group-hover:bg-white/10 transition-colors">
-                            <span className="block text-[8px] font-black text-white/30 uppercase tracking-[0.2em] mb-1">Height</span>
-                            <span className="text-xs font-bold text-white/90">{player.height} CM</span>
-                          </div>
-                          <div className="bg-white/5 backdrop-blur-md p-3 rounded-2xl border border-white/5 text-center group-hover:bg-white/10 transition-colors">
-                            <span className="block text-[8px] font-black text-white/30 uppercase tracking-[0.2em] mb-1">Foot</span>
-                            <span className="text-xs font-bold text-white/90">{player.dominantFoot?.substring(0, 3) || 'RGT'}</span>
-                          </div>
+                        
+                        {/* Hidden on default, slide up on hover */}
+                        <div className="h-0 opacity-0 group-hover:h-auto group-hover:opacity-100 transition-all duration-500 overflow-hidden">
+                           <div className="pt-2 border-t border-white/10 mb-4 grid grid-cols-2 gap-3">
+                              <div>
+                                 <span className="block text-[9px] uppercase text-white/40 font-bold mb-0.5 tracking-wider">Height</span>
+                                 <span className="text-sm font-bold text-white tracking-widest">{player.height || 0} CM</span>
+                              </div>
+                              <div>
+                                 <span className="block text-[9px] uppercase text-white/40 font-bold mb-0.5 tracking-wider">Foot</span>
+                                 <span className="text-sm font-bold text-white/80">{player.dominantFoot === 'Left' ? 'KIRI' : player.dominantFoot === 'Right' ? 'KANAN' : (player.dominantFoot || '-').substring(0,5).toUpperCase()}</span>
+                              </div>
+                           </div>
+                           <button className="w-full py-2.5 rounded-xl bg-blue-600/90 hover:bg-blue-500 text-white text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-colors">
+                              Lihat Profil <ChevronRight className="w-4 h-4" />
+                           </button>
                         </div>
                       </div>
-                    </div>
-                  </Link>
 
-                  {/* Admin Actions Overlay */}
-                  <div className="absolute -top-3 -right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-30">
-                    <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleOpenEdit(player); }} className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center shadow-lg hover:bg-blue-400 transition-colors">
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </button>
-                    <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(player.id, player.name); }} className="w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg hover:bg-red-400 transition-colors">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                      {/* Admin Actions Overlay */}
+                      <div className="absolute bottom-3 right-3 flex gap-2 z-30 transition-transform duration-500">
+                        <button 
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleOpenEdit(player); }} 
+                          title="Edit Pemain"
+                          className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-blue-400 hover:bg-blue-500 hover:text-white hover:border-blue-500 hover:shadow-[0_0_15px_rgba(37,99,235,0.5)] transition-all"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button 
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(player.id, player.name); }} 
+                          title="Hapus Pemain"
+                          className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500 hover:shadow-[0_0_15px_rgba(239,68,68,0.5)] transition-all"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
                   </div>
                 </motion.div>
               ))}

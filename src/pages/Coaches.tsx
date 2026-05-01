@@ -148,17 +148,17 @@ export default function Coaches() {
                 className="relative group cursor-pointer"
                 onClick={() => navigate(`/coaches/${coach.id}`)}
                >
-                  <div className="h-[480px] rounded-3xl overflow-hidden relative shadow-xl border border-white/5 group-hover:border-blue-500/30 transition-all duration-500 bg-gradient-to-br from-[#0c162d] to-[#0a0f1c]">
+                  <div className="aspect-[3/4] md:aspect-[4/5] lg:aspect-[3/4] rounded-3xl overflow-hidden relative shadow-xl border border-white/5 group-hover:border-blue-500/30 transition-all duration-500 bg-gradient-to-br from-[#0c162d] to-[#0a0f1c]">
                      
                      {/* Background & Photo (Full frame) */}
+                     <div className="absolute inset-0 bg-[#081225] overflow-hidden z-0">
+                        <img src={coach.photo} alt="" className="w-full h-full object-cover opacity-40 blur-2xl scale-150" />
+                     </div>
                      <img 
                         src={coach.photo} 
                         alt={coach.name} 
                         className="absolute inset-0 w-full h-full object-cover object-top opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700 ease-out z-10" 
                      />
-                     <div className="absolute inset-0 bg-[#081225] overflow-hidden">
-                        <img src={coach.photo} alt="" className="w-full h-full object-cover opacity-40 blur-2xl scale-150" />
-                     </div>
                      <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#0a0f1c] via-[#0a0f1c]/40 to-transparent z-20" />
                      
                      {/* Top Badges */}
