@@ -202,7 +202,10 @@ export default function RegistrationAdmin() {
                         </div>
                         <div>
                           <p className="font-bold text-sm text-white mb-0.5 tracking-tight">{regFullName}</p>
-                          <p className="text-[10px] text-white/50 uppercase tracking-widest font-mono">{regId} • {regGender}</p>
+                          <p className="text-[10px] text-white/50 uppercase tracking-widest font-mono mb-1">{regId} • {regGender}</p>
+                          {(reg.previousSSB || reg.previousssb) === 'Ya' && (
+                             <span className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 text-[9px] font-black uppercase tracking-widest border border-blue-500/20">Eks. {reg.previousSSBName || reg.previousssbname}</span>
+                          )}
                         </div>
                       </div>
                     </td>

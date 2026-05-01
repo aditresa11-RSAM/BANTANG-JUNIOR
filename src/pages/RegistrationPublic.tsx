@@ -16,6 +16,8 @@ export default function RegistrationPublic() {
     height: '',
     weight: '',
     position: 'Midfielder',
+    previousSSB: 'Tidak',
+    previousSSBName: '',
     
     parentName: '',
     phone: '',
@@ -222,6 +224,24 @@ export default function RegistrationPublic() {
                          ))}
                        </div>
                     </div>
+                    <div className="md:col-span-2 mt-4 pt-4 border-t border-white/5">
+                        <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3">Pernah Masuk SSB Sebelumnya?</label>
+                        <div className="grid grid-cols-2 gap-3 mb-4">
+                          {['Ya', 'Tidak'].map(opt => (
+                            <button type="button" key={opt} onClick={() => setFormData({...formData, previousSSB: opt})}
+                              className={`p-4 rounded-2xl border text-xs font-black uppercase tracking-widest transition-all duration-300 ${formData.previousSSB === opt ? 'bg-blue-500/10 border-blue-500 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.2)] scale-[1.02]' : 'bg-[#080d19] border-white/5 text-white/40 hover:bg-white/5 hover:text-white/60'}`}
+                            >
+                               {opt}
+                            </button>
+                          ))}
+                        </div>
+                        {formData.previousSSB === 'Ya' && (
+                          <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                             <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2">Sebutkan Nama SSB Sebelumnya</label>
+                             <input required value={formData.previousSSBName} onChange={e => setFormData({...formData, previousSSBName: e.target.value})} type="text" className="w-full bg-[#080d19] border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-blue-500 transition-all shadow-inner" placeholder="Contoh: SSB Bantang Senior" />
+                          </div>
+                        )}
+                    </div>
                   </div>
                 </motion.div>
               )}
@@ -340,6 +360,7 @@ export default function RegistrationPublic() {
                       <div className="grid grid-cols-2 gap-4">
                         <div><p className="text-white/30 text-[9px] uppercase font-bold tracking-wider mb-1">Nama Lengkap</p><p className="font-bold text-sm tracking-tight">{formData.fullName || '-'}</p></div>
                         <div><p className="text-white/30 text-[9px] uppercase font-bold tracking-wider mb-1">Kategori (Posisi)</p><p className="font-bold text-sm tracking-tight">{formData.ageCategory || '-'} • {formData.position}</p></div>
+                        <div><p className="text-white/30 text-[9px] uppercase font-bold tracking-wider mb-1">Riwayat SSB</p><p className="font-bold text-sm tracking-tight">{formData.previousSSB === 'Ya' ? formData.previousSSBName : 'Tidak Pernah'}</p></div>
                         <div className="col-span-2"><p className="text-white/30 text-[9px] uppercase font-bold tracking-wider mb-1">Tempat, Tanggal Lahir</p><p className="font-bold text-sm tracking-tight">{formData.birthPlace || '-'}, {formData.birthDate ? new Date(formData.birthDate).toLocaleDateString('id-ID') : '-'}</p></div>
                       </div>
                     </div>
