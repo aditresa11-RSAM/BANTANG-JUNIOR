@@ -6,6 +6,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, createContext, useContext, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { supabase } from './lib/supabase';
 
 // Pages - I will create these shortly
 import LandingPage from './pages/LandingPage';
@@ -32,12 +33,15 @@ import Announcements from './pages/Announcements';
 import AICoach from './pages/AICoach';
 import GKCompare from './pages/GKCompare';
 import RegistrationPublic from './pages/RegistrationPublic';
+import Register from './pages/Register';
 import RegistrationAdmin from './pages/RegistrationAdmin';
+import ProgramDetail from './pages/ProgramDetail';
+import ManagePrograms from './pages/ManagePrograms';
 
 // Auth context
 interface AuthContextType {
   user: any;
-  login: (credentials: any) => Promise<boolean>;
+  login: (credentials: any) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -148,21 +152,65 @@ export default function App() {
         localStorage.removeItem('ssb_user');
       }
     }
+    
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        const userProfile = { id: session.user.id, username: session.user.email, role: 'player' };
+        setUser(userProfile);
+        localStorage.setItem('ssb_user', JSON.stringify(userProfile));
+      } else {
+        setUser(null);
+        localStorage.removeItem('ssb_user');
+      }
+    });
+
     setIsLoading(false);
+
+    return () => {
+        subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (credentials: any) => {
-    // Mock authentication logic as requested
     // Admin Default: IMR2026 / 123456
     if (credentials.username === 'IMR2026' && credentials.password === '123456') {
       const adminUser = { id: 'admin-1', username: 'IMR2026', name: 'IMR Admin', role: 'admin' };
       setUser(adminUser);
       localStorage.setItem('ssb_user', JSON.stringify(adminUser));
-      return true;
+      return { success: true };
     }
-    // Handle other roles or supabase real auth here if keys are set
-    return false;
+    
+    // Real Supabase auth
+    try {
+        let identifier = credentials.username;
+        // If it's a simple username (no @), append our internal domain
+        if (!identifier.includes('@')) {
+            identifier = `${identifier.toLowerCase().trim()}@ssb.internal`;
+        }
+
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: identifier,
+            password: credentials.password,
+        });
+        
+        if (error) throw error;
+        
+        if (data.user) {
+            // Clean up the username for display (remove internal suffix if it exists)
+            const cleanUsername = data.user.email?.split('@')[0] || data.user.email;
+            const userProfile = { id: data.user.id, username: cleanUsername, role: 'player' };
+            setUser(userProfile);
+            localStorage.setItem('ssb_user', JSON.stringify(userProfile));
+            return { success: true };
+        }
+        return { success: false, error: 'Login gagal' };
+    } catch(e: any) {
+        console.error('Login error', e);
+        return { success: false, error: e.message || 'Login gagal' };
+    }
   };
+
 
   const logout = () => {
     setUser(null);
@@ -192,7 +240,9 @@ export default function App() {
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" />} />
-              <Route path="/register" element={<RegistrationPublic />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/register-player" element={<RegistrationPublic />} />
+              <Route path="/programs/:id" element={<ProgramDetail />} />
               
               {/* Protected Routes */}
               <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/" />} />
@@ -215,6 +265,7 @@ export default function App() {
               <Route path="/coaches/:id" element={user ? <CoachProfile /> : <Navigate to="/" />} />
               <Route path="/gallery" element={user ? <Gallery /> : <Navigate to="/" />} />
               <Route path="/announcements" element={user ? <Announcements /> : <Navigate to="/" />} />
+              <Route path="/programs/manage" element={user ? <ManagePrograms /> : <Navigate to="/" />} />
               <Route path="/settings" element={user ? <Settings /> : <Navigate to="/" />} />
               <Route path="/ai-coach" element={user ? <AICoach /> : <Navigate to="/" />} />
             </Routes>

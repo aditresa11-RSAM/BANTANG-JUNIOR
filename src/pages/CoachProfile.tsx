@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { 
-  ArrowLeft, Star, Award, Shield, Calendar, Trophy, Users, CheckCircle2, ChevronRight
+  ArrowLeft, Award, Shield, Calendar, Trophy, Users, CheckCircle2, ChevronRight
 } from 'lucide-react';
 import Layout from '../components/ui/Layout';
 import { useCMSData } from '../lib/store';
@@ -53,11 +53,6 @@ export default function CoachProfile() {
                  <p className="text-xs font-black text-blue-400/80 uppercase tracking-[0.2em]">
                     {coach.license}
                  </p>
-              </div>
-              
-              <div className="absolute top-6 right-6 flex items-center gap-1 bg-[#0a0f1c]/80 backdrop-blur-md px-3 py-1.5 rounded border border-white/10 text-xs font-bold text-white shadow-lg z-10">
-                 <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                 {coach.rating}
               </div>
             </div>
             

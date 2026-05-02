@@ -32,7 +32,10 @@ export function useCMSData<T extends { id: string }>(collectionName: string, ini
             }
           }
           if (error) {
-            console.warn(`Supabase fetch error for ${collectionName}:`, error.message);
+            // Suppress table missing errors as it's expected if tables haven't been created
+            if (!error.message.includes('Could not find the table')) {
+              console.warn(`Supabase fetch error for ${collectionName}:`, error.message);
+            }
           }
         } catch (err) {
           console.warn(`Exception fetching Supabase data for ${collectionName}:`, err);

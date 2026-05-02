@@ -18,6 +18,7 @@ export default function Layout({ children }: LayoutProps) {
 
   const menuItems = [
     { name: 'Dashboard', path: '/dashboard', icon: Home },
+    { name: 'Program Unggulan', path: '/programs/manage', icon: FileText },
     { name: 'Pendaftaran Pemain', path: '/registrations', icon: UserPlus },
     { name: 'Pemain', path: '/players', icon: Users },
     { name: 'Pelatih', path: '/coaches', icon: UserSquare2 },
@@ -29,11 +30,11 @@ export default function Layout({ children }: LayoutProps) {
     { name: 'Absensi Pemain', path: '/attendance', icon: CheckSquare },
     { name: 'Materi Latihan', path: '/materials', icon: BookOpen },
     { name: 'Pengumuman', path: '/announcements', icon: Megaphone },
-    { name: 'Keuangan', path: '/financials', icon: CreditCard },
+    { name: 'Keuangan', path: '/financials', icon: CreditCard, adminOnly: true },
     { name: 'Galeri', path: '/gallery', icon: ImageIcon },
-    { name: 'Pengaturan', path: '/settings', icon: Settings },
-    { name: 'AI Coach', path: '/ai-coach', icon: Bot },
-  ];
+    { name: 'Pengaturan', path: '/settings', icon: Settings, adminOnly: true },
+    { name: 'AI Coach', path: '/ai-coach', icon: Bot, adminOnly: true },
+  ].filter(item => !(item.adminOnly && user?.role !== 'admin'));
 
   const handleLogout = () => {
     logout();

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Trophy, Target, Users, MapPin, Clock, Calendar, ChevronRight, TrendingUp, Activity, Award, Zap, BarChart2, Table as TableIcon, Plus, Edit2, Trash2, Save, Image as ImageIcon, Loader2 } from 'lucide-react';
 import Layout from '../components/ui/Layout';
 import { cn } from '../lib/utils';
-import { useSettings } from '../App';
+import { useSettings, useAuth } from '../App';
 import { useCMSData } from '../lib/store';
 import { uploadFile } from '../lib/supabase';
 import { Modal } from '../components/ui/Modal';
@@ -20,6 +20,7 @@ const initialResults = [
 ];
 
 export default function MatchCenter() {
+  const { user } = useAuth();
   const { appName, logoUrl } = useSettings();
   const { data: upcomingMatches, addItems: addUpcoming, updateItem: updateUpcoming, deleteItem: deleteUpcoming } = useCMSData('upcoming_matches', initialUpcomingMatches);
   const { data: results, addItems: addResult, updateItem: updateResult, deleteItem: deleteResult } = useCMSData('match_results', initialResults);
@@ -91,12 +92,16 @@ export default function MatchCenter() {
             <p className="text-white/40 text-sm">CMS Admin: Kelola jadwal pertandingan, hasil, dan statistik tim.</p>
           </div>
           <div className="flex items-center gap-3">
-             <button onClick={() => handleOpenAdd('upcoming')} className="glow-button !py-2 flex items-center gap-2">
-                <Plus className="w-4 h-4" /> Tambah Jadwal
-             </button>
-             <button onClick={() => handleOpenAdd('result')} className="px-4 py-2 rounded-xl bg-green-500/10 border border-green-500/30 text-green-400 text-xs font-bold hover:bg-green-500/20 transition-all flex items-center gap-2">
-                <Plus className="w-4 h-4" /> Input Hasil
-             </button>
+             {user?.role === 'admin' && (
+               <>
+                 <button onClick={() => handleOpenAdd('upcoming')} className="glow-button !py-2 flex items-center gap-2">
+                    <Plus className="w-4 h-4" /> Tambah Jadwal
+                 </button>
+                 <button onClick={() => handleOpenAdd('result')} className="px-4 py-2 rounded-xl bg-green-500/10 border border-green-500/30 text-green-400 text-xs font-bold hover:bg-green-500/20 transition-all flex items-center gap-2">
+                    <Plus className="w-4 h-4" /> Input Hasil
+                 </button>
+               </>
+             )}
           </div>
         </div>
 
@@ -174,10 +179,12 @@ export default function MatchCenter() {
               <div className="space-y-4">
                  {upcomingMatches.map((match: any) => (
                    <div key={match.id} className="glass-card p-6 flex items-center gap-6 group hover:bg-white/[0.02] transition-colors relative h-28">
-                      <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                          <button onClick={() => handleOpenEdit(match, 'upcoming')} className="p-2 rounded-lg bg-black/40 text-blue-400 hover:text-white transition-colors"><Edit2 className="w-3.5 h-3.5"/></button>
-                          <button onClick={() => setDeleteConfirm({ isOpen: true, id: match.id, type: 'upcoming' })} className="p-2 rounded-lg bg-black/40 text-red-500 hover:text-white transition-colors"><Trash2 className="w-3.5 h-3.5"/></button>
-                      </div>
+                      {user?.role === 'admin' && (
+                        <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                            <button onClick={() => handleOpenEdit(match, 'upcoming')} className="p-2 rounded-lg bg-black/40 text-blue-400 hover:text-white transition-colors"><Edit2 className="w-3.5 h-3.5"/></button>
+                            <button onClick={() => setDeleteConfirm({ isOpen: true, id: match.id, type: 'upcoming' })} className="p-2 rounded-lg bg-black/40 text-red-500 hover:text-white transition-colors"><Trash2 className="w-3.5 h-3.5"/></button>
+                        </div>
+                      )}
                       <div className="w-12 h-12 rounded-xl bg-white/5 flex flex-col items-center justify-center text-center border border-white/5">
                         <span className="text-xs font-bold leading-none text-white">{(match.date || '').split('-')[2] || '--'}</span>
                         <span className="text-[9px] uppercase text-white/40 mt-1">{(match.date || '').split('-')[1] ? new Date(match.date).toLocaleString('default', { month: 'short' }).toUpperCase() : 'MAY'}</span>
@@ -206,10 +213,12 @@ export default function MatchCenter() {
               <div className="space-y-4">
                  {results.map((match: any) => (
                    <div key={match.id} className="glass-card p-6 block group hover:bg-white/[0.02] transition-colors relative">
-                      <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                          <button onClick={() => handleOpenEdit(match, 'result')} className="p-2 rounded-lg bg-black/40 text-blue-400 hover:text-white transition-colors"><Edit2 className="w-3.5 h-3.5"/></button>
-                          <button onClick={() => setDeleteConfirm({ isOpen: true, id: match.id, type: 'result' })} className="p-2 rounded-lg bg-black/40 text-red-500 hover:text-white transition-colors"><Trash2 className="w-3.5 h-3.5"/></button>
-                      </div>
+                      {user?.role === 'admin' && (
+                        <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                            <button onClick={() => handleOpenEdit(match, 'result')} className="p-2 rounded-lg bg-black/40 text-blue-400 hover:text-white transition-colors"><Edit2 className="w-3.5 h-3.5"/></button>
+                            <button onClick={() => setDeleteConfirm({ isOpen: true, id: match.id, type: 'result' })} className="p-2 rounded-lg bg-black/40 text-red-500 hover:text-white transition-colors"><Trash2 className="w-3.5 h-3.5"/></button>
+                        </div>
+                      )}
                       <div className="flex items-center justify-between mb-4">
                          <span className="text-[9px] font-black text-white/30 uppercase tracking-widest">{match.category} • {match.tournament}</span>
                          <span className={cn(

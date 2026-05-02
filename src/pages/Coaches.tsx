@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
-  Plus, Edit2, Trash2, Image as ImageIcon, Star, Shield, Award, Calendar, ChevronRight, Loader2, Check, ChevronDown
+  Plus, Edit2, Trash2, Image as ImageIcon, Shield, Award, Calendar, ChevronRight, Loader2, Check, ChevronDown
 } from 'lucide-react';
 import Layout from '../components/ui/Layout';
 import { cn } from '../lib/utils';
 import { useCMSData } from '../lib/store';
+import { useAuth } from '../App';
 import { uploadFile } from '../lib/supabase';
 import { Modal } from '../components/ui/Modal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
@@ -19,7 +20,6 @@ const initialCoaches = [
     specialty: 'Head Coach', 
     experience: '12', 
     photo: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&q=80&w=600',
-    rating: 4.9,
     activeTeams: ['U14-Pro', 'U15-Pro']
   },
   { 
@@ -29,7 +29,6 @@ const initialCoaches = [
     specialty: 'Assistant Coach', 
     experience: '8', 
     photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=600',
-    rating: 4.8,
     activeTeams: ['U12-Junior', 'U13-Dev']
   },
   { 
@@ -39,7 +38,6 @@ const initialCoaches = [
     specialty: 'Fitness Coach', 
     experience: '15', 
     photo: 'https://images.unsplash.com/photo-1533227268408-a7746955c711?auto=format&fit=crop&q=80&w=600',
-    rating: 4.9,
     activeTeams: ['All Categories']
   },
   { 
@@ -49,12 +47,12 @@ const initialCoaches = [
     specialty: 'Goalkeeper Coach', 
     experience: '10', 
     photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=600',
-    rating: 4.7,
     activeTeams: ['GK Academy']
   },
 ];
 
 export default function Coaches() {
+  const { user } = useAuth();
   const { data: coaches, addItems, updateItem, deleteItem } = useCMSData('coaches', initialCoaches);
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -62,13 +60,13 @@ export default function Coaches() {
   const [editingCoach, setEditingCoach] = useState<any>(null);
   const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, id: '', name: '' });
   const [formData, setFormData] = useState({
-    name: '', license: '', specialty: '', experience: '', photo: '', rating: 4.5, activeTeams: [] as string[]
+    name: '', license: '', specialty: '', experience: '', photo: '', activeTeams: [] as string[]
   });
   const [isJabatanOpen, setIsJabatanOpen] = useState(false);
 
   const handleOpenAdd = () => {
     setEditingCoach(null);
-    setFormData({ name: '', license: '', specialty: '', experience: '', photo: '', rating: 4.5, activeTeams: [] });
+    setFormData({ name: '', license: '', specialty: '', experience: '', photo: '', activeTeams: [] });
     setIsModalOpen(true);
   };
 
@@ -130,9 +128,11 @@ export default function Coaches() {
              <h1 className="text-3xl md:text-4xl font-display font-black text-white uppercase tracking-tighter drop-shadow-lg">STAFF PELATIH</h1>
              <p className="text-blue-400/80 font-medium tracking-widest text-xs mt-1 uppercase">SSB BANTANG JUNIOR</p>
            </div>
-           <button onClick={handleOpenAdd} className="relative z-10 w-full md:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] px-6 py-3 rounded-xl justify-center flex items-center gap-2 transition-all font-bold uppercase tracking-wider text-xs border border-blue-400/30">
-             <Plus className="w-4 h-4" /> Recuit Coach
-           </button>
+           {user?.role === 'admin' && (
+             <button onClick={handleOpenAdd} className="relative z-10 w-full md:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] px-6 py-3 rounded-xl justify-center flex items-center gap-2 transition-all font-bold uppercase tracking-wider text-xs border border-blue-400/30">
+               <Plus className="w-4 h-4" /> Recuit Coach
+             </button>
+           )}
         </div>
 
         {/* Coaches Grid (Max 3 per row as requested) */}
@@ -163,10 +163,6 @@ export default function Coaches() {
                      
                      {/* Top Badges */}
                      <div className="absolute top-4 left-4 right-4 flex justify-end z-20">
-                        <div className="flex items-center gap-1 bg-[#0a0f1c]/60 backdrop-blur-md px-3 py-1 rounded border border-white/10 text-[10px] font-bold text-white shadow-lg">
-                           <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                           {coach.rating}
-                        </div>
                      </div>
 
                      {/* Profile Info (Bottom) */}
@@ -200,22 +196,24 @@ export default function Coaches() {
                      {/* Action Buttons: Bottom Right, moved up slightly if hovered? Or absolute bottom right fixed. */}
                      {/* The request says "Pojok kanan bawah card, Bulat kecil, icon only, glass transp" */}
                      {/* To avoid overlapping with expanded info, we put them at the very bottom right, z-30 */}
-                     <div className="absolute bottom-3 right-3 flex gap-2 z-30 transition-transform duration-500">
-                        <button 
-                          onClick={(e) => handleOpenEdit(coach, e)} 
-                          title="Edit Pelatih"
-                          className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-blue-400 hover:bg-blue-500 hover:text-white hover:border-blue-500 hover:shadow-[0_0_15px_rgba(37,99,235,0.5)] transition-all"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-                        <button 
-                          onClick={(e) => handleDelete(coach.id, coach.name, e)} 
-                          title="Hapus Pelatih"
-                          className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500 hover:shadow-[0_0_15px_rgba(239,68,68,0.5)] transition-all"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                     </div>
+                     {user?.role === 'admin' && (
+                       <div className="absolute bottom-3 right-3 flex gap-2 z-30 transition-transform duration-500">
+                          <button 
+                            onClick={(e) => handleOpenEdit(coach, e)} 
+                            title="Edit Pelatih"
+                            className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-blue-400 hover:bg-blue-500 hover:text-white hover:border-blue-500 hover:shadow-[0_0_15px_rgba(37,99,235,0.5)] transition-all"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button 
+                            onClick={(e) => handleDelete(coach.id, coach.name, e)} 
+                            title="Hapus Pelatih"
+                            className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500 hover:shadow-[0_0_15px_rgba(239,68,68,0.5)] transition-all"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                       </div>
+                     )}
 
                   </div>
                </motion.div>
@@ -326,11 +324,6 @@ export default function Coaches() {
             <div className="col-span-2 md:col-span-1">
               <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-1.5 block">Pengalaman (Tahun)</label>
               <input type="number" required value={formData.experience} onChange={(e) => setFormData({...formData, experience: e.target.value})} className="w-full bg-[#0a0f1c] border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="Cth: 12" />
-            </div>
-
-            <div className="col-span-2 md:col-span-1">
-              <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-1.5 block">Rating (1.0-5.0)</label>
-              <input type="number" step="0.1" max="5" min="0" required value={formData.rating} onChange={(e) => setFormData({...formData, rating: Number(e.target.value)})} className="w-full bg-[#0a0f1c] border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:border-blue-500" />
             </div>
 
             <div className="col-span-2">

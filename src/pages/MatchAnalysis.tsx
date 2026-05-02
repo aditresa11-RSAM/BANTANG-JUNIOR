@@ -12,7 +12,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Modal } from '../components/ui/Modal';
 import { supabase } from '../lib/supabase';
-import { useSettings } from '../App';
+import { useSettings, useAuth } from '../App';
 
 const getEmbedInfo = (url: string) => {
   if (!url) return null;
@@ -53,6 +53,7 @@ const HeatmapOverlay = () => (
 );
 
 export default function MatchAnalysis() {
+  const { user } = useAuth();
   const { logoUrl } = useSettings();
   const { data: dbMatches } = useCMSData('match_results', []);
   const { data: dbMatchStats, updateItem: updateStats, addItems: addStats } = useCMSData('match_stats', []);
@@ -401,9 +402,11 @@ export default function MatchAnalysis() {
                   <motion.div key="ringkasan" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-6">
                      <div className="flex items-center justify-between">
                         <h3 className="text-sm font-black text-white uppercase tracking-widest">Ringkasan Pertandingan</h3>
-                        <button onClick={handleEditStats} className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg text-[10px] font-bold uppercase tracking-widest transition flex items-center gap-2 border border-white/10">
-                           <Edit className="w-3.5 h-3.5" /> Edit Stats
-                        </button>
+                        {user?.role === 'admin' && (
+                          <button onClick={handleEditStats} className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg text-[10px] font-bold uppercase tracking-widest transition flex items-center gap-2 border border-white/10">
+                             <Edit className="w-3.5 h-3.5" /> Edit Stats
+                          </button>
+                        )}
                      </div>
                      
                      {/* STATS GRID */}
@@ -513,9 +516,11 @@ export default function MatchAnalysis() {
                         <h3 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
                            <Shield className="w-4 h-4 text-[var(--color-primary)]" /> Statistik Goalkeeper (GK)
                         </h3>
-                        <button onClick={handleEditStats} className="px-4 py-2 bg-[var(--color-primary)]/10 hover:bg-[var(--color-primary)]/20 text-[var(--color-primary)] rounded-lg text-[10px] font-bold uppercase tracking-widest transition flex items-center gap-2 border border-[var(--color-primary)]/20">
-                           <Edit className="w-3.5 h-3.5" /> Edit GK Stats
-                        </button>
+                        {user?.role === 'admin' && (
+                          <button onClick={handleEditStats} className="px-4 py-2 bg-[var(--color-primary)]/10 hover:bg-[var(--color-primary)]/20 text-[var(--color-primary)] rounded-lg text-[10px] font-bold uppercase tracking-widest transition flex items-center gap-2 border border-[var(--color-primary)]/20">
+                             <Edit className="w-3.5 h-3.5" /> Edit GK Stats
+                          </button>
+                        )}
                      </div>
                      
                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -580,9 +585,11 @@ export default function MatchAnalysis() {
                           <Users className="w-4 h-4 text-[var(--color-primary)]" /> Performa Pemain
                        </h3>
                        <div className="flex gap-4">
-                          <button onClick={handleAddPlayer} className="px-5 py-2.5 bg-[var(--color-primary)]/10 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/20 rounded-xl text-[10px] font-black uppercase tracking-widest transition flex items-center gap-2 border border-[var(--color-primary)]/20 shadow-[0_0_15px_rgba(250,204,21,0.1)]">
-                             <Plus className="w-4 h-4" /> Tambah Pemain
-                          </button>
+                          {user?.role === 'admin' && (
+                            <button onClick={handleAddPlayer} className="px-5 py-2.5 bg-[var(--color-primary)]/10 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/20 rounded-xl text-[10px] font-black uppercase tracking-widest transition flex items-center gap-2 border border-[var(--color-primary)]/20 shadow-[0_0_15px_rgba(250,204,21,0.1)]">
+                               <Plus className="w-4 h-4" /> Tambah Pemain
+                            </button>
+                          )}
                        </div>
                     </div>
 
@@ -690,9 +697,11 @@ export default function MatchAnalysis() {
                        <h3 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
                           <Video className="w-4 h-4 text-[var(--color-primary)]" /> Highlights Pertandingan
                        </h3>
-                       <button onClick={handleAddVideo} className="px-5 py-2.5 bg-[var(--color-primary)]/10 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/20 rounded-xl text-[10px] font-black uppercase tracking-widest transition flex items-center gap-2 border border-[var(--color-primary)]/20 shadow-[0_0_15px_rgba(250,204,21,0.1)]">
-                          <Plus className="w-4 h-4" /> Tambah Highlight
-                       </button>
+                       {user?.role === 'admin' && (
+                         <button onClick={handleAddVideo} className="px-5 py-2.5 bg-[var(--color-primary)]/10 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/20 rounded-xl text-[10px] font-black uppercase tracking-widest transition flex items-center gap-2 border border-[var(--color-primary)]/20 shadow-[0_0_15px_rgba(250,204,21,0.1)]">
+                            <Plus className="w-4 h-4" /> Tambah Highlight
+                         </button>
+                       )}
                     </div>
                     
                     {currentHighlights.length > 0 ? (
@@ -747,9 +756,13 @@ export default function MatchAnalysis() {
                           <Video className="w-16 h-16 text-white/10 mb-4" />
                           <h4 className="text-xl font-display font-black text-white uppercase tracking-widest mb-2">Video Highlight Kosong</h4>
                           <p className="text-white/40 text-xs mb-6 max-w-sm">Tambahkan video highlight dari pertandingan ini melalui direct upload (MP4) atau embed link YouTube/Drive.</p>
-                          <button onClick={handleAddVideo} className="px-6 py-3 bg-[var(--color-primary)] text-black font-black uppercase tracking-widest text-[10px] rounded-xl flex items-center gap-2 hover:scale-105 transition-transform shadow-[0_10px_20px_rgba(250,204,21,0.2)]">
-                             <Plus className="w-4 h-4" /> Tambah Video Highlight
-                          </button>
+                          {user?.role === 'admin' ? (
+                            <button onClick={handleAddVideo} className="px-6 py-3 bg-[var(--color-primary)] text-black font-black uppercase tracking-widest text-[10px] rounded-xl flex items-center gap-2 hover:scale-105 transition-transform shadow-[0_10px_20px_rgba(250,204,21,0.2)]">
+                               <Plus className="w-4 h-4" /> Tambah Video Highlight
+                            </button>
+                          ) : (
+                            <div className="px-6 py-3 bg-white/5 text-white/40 font-black uppercase tracking-widest text-[10px] rounded-xl flex items-center gap-2">Belum ada video highlight</div>
+                          )}
                        </div>
                     )}
                   </motion.div>
@@ -763,9 +776,11 @@ export default function MatchAnalysis() {
                        <h4 className="text-lg font-black text-white uppercase">Coach Budi Santoso</h4>
                        <p className="text-[10px] uppercase font-bold text-[var(--color-primary)] tracking-widest mb-4">Head Coach</p>
                        <p className="text-[10px] text-white/40">{selectedMatch.date}</p>
-                       <button onClick={handleEditNote} className="mt-6 w-full py-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/10 transition">
-                          Edit Catatan
-                       </button>
+                       {user?.role === 'admin' && (
+                         <button onClick={handleEditNote} className="mt-6 w-full py-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/10 transition">
+                            Edit Catatan
+                         </button>
+                       )}
                     </div>
                     
                     <div className="lg:col-span-2 glass-card p-6 md:p-8 rounded-[2.5rem] border border-white/5 flex flex-col justify-between">

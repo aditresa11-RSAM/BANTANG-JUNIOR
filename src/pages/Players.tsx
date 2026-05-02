@@ -9,7 +9,7 @@ import {
 import Layout from '../components/ui/Layout';
 import { cn } from '../lib/utils';
 import { useCMSData } from '../lib/store';
-import { useSettings } from '../App';
+import { useSettings, useAuth } from '../App';
 import { uploadFile } from '../lib/supabase';
 import { Modal } from '../components/ui/Modal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
@@ -30,6 +30,7 @@ export default function Players() {
   const navigate = useNavigate();
   const { data: players, addItems, updateItem, deleteItem } = useCMSData('players', initialPlayers);
   const { appName, logoUrl } = useSettings();
+  const { user } = useAuth();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
@@ -163,9 +164,11 @@ export default function Players() {
              <Link to="/compare-gk" className="w-full md:w-auto bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 hover:border-emerald-500/50 text-emerald-400 px-6 py-3 rounded-xl justify-center flex items-center gap-2 transition-all font-bold uppercase tracking-wider text-xs">
                 <Shield className="w-4 h-4 font-bold" /> Compare GK
              </Link>
-             <button onClick={handleOpenAdd} className="w-full md:w-auto bg-[var(--color-primary)] hover:bg-yellow-500 text-[#0a0f1c] px-6 py-3 rounded-xl justify-center flex items-center gap-2 transition-all font-bold uppercase tracking-wider text-xs shadow-[0_0_20px_rgba(250,204,21,0.3)]">
-                <Plus className="w-4 h-4 font-bold" /> Tambah Pemain
-             </button>
+             {user?.role === 'admin' && (
+               <button onClick={handleOpenAdd} className="w-full md:w-auto bg-[var(--color-primary)] hover:bg-yellow-500 text-[#0a0f1c] px-6 py-3 rounded-xl justify-center flex items-center gap-2 transition-all font-bold uppercase tracking-wider text-xs shadow-[0_0_20px_rgba(250,204,21,0.3)]">
+                  <Plus className="w-4 h-4 font-bold" /> Tambah Pemain
+               </button>
+             )}
            </div>
         </div>
 
@@ -293,22 +296,24 @@ export default function Players() {
                       </div>
 
                       {/* Admin Actions Overlay */}
-                      <div className="absolute bottom-3 right-3 flex gap-2 z-30 transition-transform duration-500">
-                        <button 
-                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleOpenEdit(player); }} 
-                          title="Edit Pemain"
-                          className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-blue-400 hover:bg-blue-500 hover:text-white hover:border-blue-500 hover:shadow-[0_0_15px_rgba(37,99,235,0.5)] transition-all"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-                        <button 
-                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(player.id, player.name); }} 
-                          title="Hapus Pemain"
-                          className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500 hover:shadow-[0_0_15px_rgba(239,68,68,0.5)] transition-all"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
+                      {user?.role === 'admin' && (
+                        <div className="absolute bottom-3 right-3 flex gap-2 z-30 transition-transform duration-500">
+                          <button 
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleOpenEdit(player); }} 
+                            title="Edit Pemain"
+                            className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-blue-400 hover:bg-blue-500 hover:text-white hover:border-blue-500 hover:shadow-[0_0_15px_rgba(37,99,235,0.5)] transition-all"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button 
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(player.id, player.name); }} 
+                            title="Hapus Pemain"
+                            className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500 hover:shadow-[0_0_15px_rgba(239,68,68,0.5)] transition-all"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )}
 
                   </div>
                 </motion.div>

@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useCMSData } from '../lib/store';
+import { useAuth } from '../App';
 import { Modal } from '../components/ui/Modal';
 import { uploadFile } from '../lib/supabase';
 
@@ -49,6 +50,7 @@ const TRAINING_CATEGORIES = [
 ];
 
 export default function Materials() {
+  const { user } = useAuth();
   const [filterTab, setFilterTab] = useState('All');
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -123,12 +125,14 @@ export default function Materials() {
             </p>
           </div>
 
-          <button 
-            onClick={openAdd}
-            className="w-full lg:w-auto px-8 py-4 bg-[var(--color-primary)] text-black font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-yellow-500 transition-all shadow-[0_10px_30px_rgba(250,204,21,0.2)] flex items-center justify-center gap-2"
-          >
-            <Plus className="w-5 h-5" /> Tambah Materi Baru
-          </button>
+          {user?.role === 'admin' && (
+            <button 
+              onClick={openAdd}
+              className="w-full lg:w-auto px-8 py-4 bg-[var(--color-primary)] text-black font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-yellow-500 transition-all shadow-[0_10px_30px_rgba(250,204,21,0.2)] flex items-center justify-center gap-2"
+            >
+              <Plus className="w-5 h-5" /> Tambah Materi Baru
+            </button>
+          )}
         </div>
 
         {/* FILTERS & SEARCH */}
@@ -456,25 +460,27 @@ export default function Materials() {
                     </div>
 
                     {/* Admin Actions */}
-                    <div className="glass-card p-6 rounded-[2rem] border border-white/5 space-y-3">
-                       <h4 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-4">Admin Actions</h4>
-                       
-                       <button onClick={() => { setIsViewModalOpen(false); openEdit(selectedMaterial); }} className="w-full py-3.5 bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white rounded-xl text-xs font-black uppercase tracking-widest border border-blue-500/20 transition-all flex items-center justify-center gap-2">
-                         <Edit2 className="w-4 h-4" /> Edit Materi
-                       </button>
-                       
-                       <button onClick={() => { deleteMaterial(selectedMaterial.id); setIsViewModalOpen(false); }} className="w-full py-3.5 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded-xl text-xs font-black uppercase tracking-widest border border-red-500/20 transition-all flex items-center justify-center gap-2">
-                         <Trash2 className="w-4 h-4" /> Hapus Materi
-                       </button>
-
-                       <div className="flex gap-3 pt-3">
-                         <button className="flex-1 py-3 bg-white/5 text-white/60 hover:text-white hover:bg-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/5 transition-all flex flex-col items-center justify-center gap-1">
-                           <Download className="w-4 h-4" /> PDF
+                    {user?.role === 'admin' && (
+                      <div className="glass-card p-6 rounded-[2rem] border border-white/5 space-y-3">
+                         <h4 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-4">Admin Actions</h4>
+                         
+                         <button onClick={() => { setIsViewModalOpen(false); openEdit(selectedMaterial); }} className="w-full py-3.5 bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white rounded-xl text-xs font-black uppercase tracking-widest border border-blue-500/20 transition-all flex items-center justify-center gap-2">
+                           <Edit2 className="w-4 h-4" /> Edit Materi
                          </button>
-                         <button className="flex-1 py-3 bg-white/5 text-white/60 hover:text-white hover:bg-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/5 transition-all flex flex-col items-center justify-center gap-1">
-                           <Share2 className="w-4 h-4" /> Share
+                         
+                         <button onClick={() => { deleteMaterial(selectedMaterial.id); setIsViewModalOpen(false); }} className="w-full py-3.5 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded-xl text-xs font-black uppercase tracking-widest border border-red-500/20 transition-all flex items-center justify-center gap-2">
+                           <Trash2 className="w-4 h-4" /> Hapus Materi
                          </button>
-                       </div>
+                      </div>
+                    )}
+                    
+                    <div className="flex gap-3 mt-6">
+                      <button className="flex-1 py-3 bg-white/5 text-white/60 hover:text-white hover:bg-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/5 transition-all flex flex-col items-center justify-center gap-1">
+                        <Download className="w-4 h-4" /> PDF
+                      </button>
+                      <button className="flex-1 py-3 bg-white/5 text-white/60 hover:text-white hover:bg-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/5 transition-all flex flex-col items-center justify-center gap-1">
+                        <Share2 className="w-4 h-4" /> Share
+                      </button>
                     </div>
 
                   </div>

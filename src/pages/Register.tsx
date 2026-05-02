@@ -3,33 +3,40 @@ import { motion } from 'motion/react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Trophy, User, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { useAuth, useSettings } from '../App';
+import { supabase } from '../lib/supabase';
 
-export default function Login() {
+export default function Register() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
   const { appName, logoUrl } = useSettings();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    if (password !== confirmPassword) {
+      setError('Password tidak cocok');
+      return;
+    }
     setError('');
+    setIsLoading(true);
 
-    const result = await login({ username, password });
-    if (result.success) {
-      navigate('/dashboard');
+    // Append fake domain for Supabase Auth consistency
+    const fakeEmail = `${username.toLowerCase().trim()}@ssb.internal`;
+
+    const { error: signUpError } = await supabase.auth.signUp({
+      email: fakeEmail,
+      password,
+    });
+
+    if (signUpError) {
+      setError(signUpError.message);
     } else {
-      if (result.error?.includes('Email not confirmed')) {
-        setError('Pendaftaran berhasil, namun email perlu dikonfirmasi. (Catatan: Anda bisa menonaktifkan konfirmasi email di dashboard Supabase jika ingin akses instan)');
-      } else if (result.error?.includes('Email logins are disabled') || result.error?.includes('disabled')) {
-        setError('Login email dinonaktifkan di Supabase. Pastikan Email/Password auth aktif di pengaturan Supabase.');
-      } else {
-        setError(result.error || 'Username atau password salah.');
-      }
+      setError('Pendaftaran berhasil! Silakan masuk dengan akun Anda.');
+      setTimeout(() => navigate('/login'), 2000);
     }
     setIsLoading(false);
   };
@@ -63,7 +70,7 @@ export default function Login() {
         </div>
 
         <div className="glass-card p-8 border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleRegister} className="space-y-6">
             <div className="space-y-2">
               <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest ml-1">Username</label>
               <div className="relative group">
@@ -82,31 +89,30 @@ export default function Login() {
             </div>
 
             <div className="space-y-2">
-              <div className="flex justify-between items-center px-1">
-                <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Password</label>
-                <button type="button" className="text-[10px] font-bold text-[var(--color-primary)] hover:underline uppercase tracking-widest">
-                  Forgot?
-                </button>
-              </div>
+              <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Password</label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock className="h-4 w-4 text-white/20 group-focus-within:text-[var(--color-primary)] transition-colors" />
-                </div>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-12 text-sm focus:outline-none focus:border-[var(--color-primary)]/50 focus:bg-white/10 transition-all placeholder:text-white/10"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl py-4 px-4 text-sm focus:outline-none focus:border-[var(--color-primary)]/50 focus:bg-white/10 transition-all placeholder:text-white/10"
                   placeholder="••••••••"
                   required
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-white/20 hover:text-white transition-colors"
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Ulangi Password</label>
+              <div className="relative group">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl py-4 px-4 text-sm focus:outline-none focus:border-[var(--color-primary)]/50 focus:bg-white/10 transition-all placeholder:text-white/10"
+                  placeholder="••••••••"
+                  required
+                />
               </div>
             </div>
 
@@ -120,21 +126,13 @@ export default function Login() {
               </motion.div>
             )}
 
-            <div className="flex items-center gap-3">
-              <input type="checkbox" id="remember" className="w-4 h-4 rounded border-white/10 bg-white/5 text-[var(--color-primary)] focus:ring-0" />
-              <label htmlFor="remember" className="text-xs text-white/40">Remember this account</label>
-            </div>
-
             <button
               type="submit"
               disabled={isLoading}
               className="glow-button w-full py-4 flex items-center justify-center gap-3 group disabled:opacity-50"
             >
-              {isLoading ? 'MASUK...' : 'MASUK'}
-              <motion.div
-                animate={{ x: [0, 5, 0], opacity: [1, 0.5, 1] }}
-                transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
-              >
+              {isLoading ? 'MENDAFTAR...' : 'DAFTAR AKUN'}
+              <motion.div>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </motion.div>
             </button>
@@ -142,11 +140,10 @@ export default function Login() {
 
           <div className="mt-8 pt-6 border-t border-white/5 text-center">
             <p className="text-white/40 text-xs">
-              Belum punya akun? <Link to="/register" className="text-[var(--color-primary)] font-bold hover:underline">Daftar Akun baru</Link>
+              Sudah punya akun? <Link to="/login" className="text-[var(--color-primary)] font-bold hover:underline">Masuk</Link>
             </p>
           </div>
         </div>
-
       </motion.div>
     </div>
   );

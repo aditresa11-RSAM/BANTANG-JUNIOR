@@ -14,7 +14,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/effect-fade';
 import Layout from '../components/ui/Layout';
-import { useSettings } from '../App';
+import { useSettings, useAuth } from '../App';
 import { cn } from '../lib/utils';
 import { useCMSData } from '../lib/store';
 import { uploadFile } from '../lib/supabase';
@@ -72,6 +72,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export default function Dashboard() {
+  const { user } = useAuth();
   const { appName } = useSettings();
   const navigate = useNavigate();
   const { data: sliders, addItems, updateItem, deleteItem } = useCMSData('dashboard_sliders', initialSliders);

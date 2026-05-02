@@ -5,11 +5,14 @@ import { useCMSData } from '../lib/store';
 import { cn } from '../lib/utils';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/ui/Layout';
+import { useAuth } from '../App';
 
 export default function RegistrationAdmin() {
   const { data: registrations, updateItem, deleteItem } = useCMSData('registrations', []);
   const { addItems: addPlayer } = useCMSData('players', []);
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
@@ -222,12 +225,14 @@ export default function RegistrationAdmin() {
                     </td>
                     <td className="p-5">
                        {/* Dropdown status for payment */}
-                       {['Diterima', 'Ditolak'].includes(regStatus) ? (
+                       {(!isAdmin || ['Diterima', 'Ditolak'].includes(regStatus)) ? (
                          <div className={cn(
                            "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[10px] font-black uppercase tracking-widest",
-                           regStatus === 'Diterima' ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" : "bg-red-500/10 border-red-500/30 text-red-400"
+                           regStatus === 'Diterima' ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" : 
+                           regStatus === 'Ditolak' ? "bg-red-500/10 border-red-500/30 text-red-400" :
+                           "bg-slate-500/10 border-slate-500/30 text-slate-400"
                          )}>
-                            {regStatus === 'Diterima' ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                            {regStatus === 'Diterima' ? <CheckCircle2 className="w-3 h-3" /> : regStatus === 'Ditolak' ? <XCircle className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
                             {regStatus}
                          </div>
                        ) : (
@@ -248,7 +253,7 @@ export default function RegistrationAdmin() {
                        )}
                     </td>
                     <td className="p-5 text-right flex justify-end gap-2">
-                       {!['Diterima', 'Ditolak'].includes(regStatus) && (
+                       {isAdmin && !['Diterima', 'Ditolak'].includes(regStatus) && (
                          <>
                            <button onClick={() => handleApprove(reg)} className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-black transition-colors" title="Terima & Masukkan ke Pemain">
                              <CheckCircle2 className="w-4 h-4" />
@@ -258,9 +263,11 @@ export default function RegistrationAdmin() {
                            </button>
                          </>
                        )}
-                       <button onClick={() => handleDelete(reg)} className="p-2 rounded-xl bg-white/5 text-white/50 hover:bg-red-500 hover:text-white transition-colors" title="Hapus Permanen">
-                         <Trash2 className="w-4 h-4" />
-                       </button>
+                       {isAdmin && (
+                        <button onClick={() => handleDelete(reg)} className="p-2 rounded-xl bg-white/5 text-white/50 hover:bg-red-500 hover:text-white transition-colors" title="Hapus Permanen">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                       )}
                     </td>
                   </tr>
                 )}) : (
