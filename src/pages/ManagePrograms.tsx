@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, Edit2, Trash2, Image as ImageIcon, Save, X, FileText } from 'lucide-react';
+import { Plus, Edit2, Trash2, Image as ImageIcon, Save, X, ArrowRight } from 'lucide-react';
 import { useCMSData } from '../lib/store';
 import { useAuth } from '../App';
 import { cn } from '../lib/utils';
 import { academyPrograms } from '../data/programs';
 import Layout from '../components/ui/Layout';
+import { useNavigate } from 'react-router-dom';
 
 export default function ManagePrograms() {
   const { user } = useAuth();
@@ -368,28 +369,15 @@ export default function ManagePrograms() {
 
 function ProgramCard({ program, onEdit, onDelete }: { key?: any, program: any, onEdit: (p: any) => void, onDelete: (id: string, title: string) => void | Promise<void> }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   return (
-    <div className="bg-[#0c162d]/80 backdrop-blur-xl border border-white/5 group overflow-hidden rounded-3xl relative">
-      {user?.role === 'admin' && (
-        <div className="absolute top-2 right-2 z-20 flex flex-col gap-2">
-          <button 
-            onClick={() => onEdit(program)}
-            className="w-8 h-8 rounded-full bg-blue-500/20 backdrop-blur-md border border-blue-500/50 flex items-center justify-center text-blue-400 hover:bg-blue-500 hover:text-white transition-colors"
-          >
-            <Edit2 className="w-3.5 h-3.5" />
-          </button>
-          <button 
-            onClick={() => onDelete(program.id, program.title)}
-            className="w-8 h-8 rounded-full bg-red-500/20 backdrop-blur-md border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500 hover:text-white transition-colors"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      )}
-
-      <div className="h-40 overflow-hidden relative">
+    <motion.div
+        whileHover={{ y: -10 }}
+        className="bg-[#0c162d]/80 backdrop-blur-xl border border-white/5 group overflow-hidden rounded-3xl"
+    >
+      <div className="h-48 overflow-hidden relative" onClick={() => navigate(`/programs/${program.id}`)}>
         {program.image ? (
-          <img src={program.image} alt={program.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+          <img src={program.image} alt={program.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" />
         ) : (
           <div className="w-full h-full bg-white/5 flex items-center justify-center">
             <ImageIcon className="w-8 h-8 text-white/20" />
@@ -397,16 +385,39 @@ function ProgramCard({ program, onEdit, onDelete }: { key?: any, program: any, o
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0c162d] via-black/20 to-transparent" />
         <span className={cn(
-          "absolute top-4 left-4 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-lg",
-          program.type === 'main' ? "bg-[var(--color-primary)] text-black" : "bg-purple-500 text-white"
+            "absolute top-4 left-4 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-lg",
+            program.type === 'main' ? "bg-[var(--color-primary)] text-black" : "bg-purple-500 text-white"
         )}>
-          {program.ageRange}
+            {program.ageRange}
         </span>
+        {user?.role === 'admin' && (
+            <div className="absolute top-2 right-2 z-20 flex flex-col gap-2">
+            <button 
+                onClick={(e) => { e.stopPropagation(); onEdit(program); }}
+                className="w-8 h-8 rounded-full bg-blue-500/20 backdrop-blur-md border border-blue-500/50 flex items-center justify-center text-blue-400 hover:bg-blue-500 hover:text-white transition-colors"
+            >
+                <Edit2 className="w-3.5 h-3.5" />
+            </button>
+            <button 
+                onClick={(e) => { e.stopPropagation(); onDelete(program.id, program.title); }}
+                className="w-8 h-8 rounded-full bg-red-500/20 backdrop-blur-md border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500 hover:text-white transition-colors"
+            >
+                <Trash2 className="w-3.5 h-3.5" />
+            </button>
+            </div>
+        )}
       </div>
-      <div className="p-5">
-        <h3 className="text-lg font-display font-bold mb-2 text-white">{program.title}</h3>
-        <p className="text-xs text-white/50 leading-relaxed line-clamp-2">{program.description}</p>
+
+      <div className="p-6 relative">
+        <h3 className="text-xl font-display font-bold mb-2 text-white group-hover:text-[var(--color-primary)] transition-colors">{program.title}</h3>
+        <p className="text-sm text-white/50 mb-6 leading-relaxed line-clamp-2">{program.description}</p>
+        <button 
+            onClick={() => navigate(`/programs/${program.id}`)}
+            className="text-xs font-bold flex items-center gap-2 text-white/70 hover:text-[var(--color-primary)] transition-all group-hover:tracking-wider uppercase"
+        >
+            Pelajari Lebih Lanjut <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+        </button>
       </div>
-    </div>
+    </motion.div>
   );
 }

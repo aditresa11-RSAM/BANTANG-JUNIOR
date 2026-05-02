@@ -142,17 +142,41 @@ export default function App() {
   }, [heroBgUrl]);
 
   useEffect(() => {
-    // Check for "remembered" session
-    const savedUser = localStorage.getItem('ssb_user');
-    if (savedUser) {
+    const initializeAuth = async () => {
       try {
-        setUser(JSON.parse(savedUser));
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error || !session) {
+          // If error or no session, clear everything, unless we have a local admin
+          const savedUser = localStorage.getItem('ssb_user');
+          if (!savedUser || JSON.parse(savedUser).role !== 'admin') {
+            await supabase.auth.signOut();
+            setUser(null);
+            localStorage.removeItem('ssb_user');
+          } else {
+            setUser(JSON.parse(savedUser));
+          }
+        } else {
+            // Ensure ssb_user matches session unless we have a local admin
+            const savedUser = localStorage.getItem('ssb_user');
+            if (!savedUser || JSON.parse(savedUser).role !== 'admin') {
+              const userProfile = { id: session.user.id, username: session.user.email, role: 'player' };
+              setUser(userProfile);
+              localStorage.setItem('ssb_user', JSON.stringify(userProfile));
+            }
+        }
       } catch (e) {
-        console.error('Failed to parse saved user', e);
+        console.error('Auth initialization error', e);
+        await supabase.auth.signOut();
+        setUser(null);
         localStorage.removeItem('ssb_user');
+      } finally {
+        setIsLoading(false);
       }
-    }
+    };
     
+    initializeAuth();
+
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
@@ -167,12 +191,13 @@ export default function App() {
         localStorage.setItem('ssb_user', JSON.stringify(userProfile));
       } else {
         // If we log out, remove the user
-        setUser(null);
-        localStorage.removeItem('ssb_user');
+        const currentUser = JSON.parse(localStorage.getItem('ssb_user') || 'null');
+        if (currentUser && currentUser.role !== 'admin') {
+          setUser(null);
+          localStorage.removeItem('ssb_user');
+        }
       }
     });
-
-    setIsLoading(false);
 
     return () => {
         subscription.unsubscribe();
