@@ -10,9 +10,12 @@ import { useNavigate } from 'react-router-dom';
 
 export default function ManagePrograms() {
   const { user } = useAuth();
-  const { data: programs, addItems, updateItem, deleteItem } = useCMSData('programs', academyPrograms);
+  const { data: programs, addItems, updateItem, deleteItem, isLoading } = useCMSData('programs', academyPrograms);
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+
+  // If Supabase returns empty but we have initial data, use initial data
+  const activePrograms = (programs && programs.length > 0) ? programs : academyPrograms;
   
   const [formData, setFormData] = useState({
     title: '',
@@ -341,11 +344,19 @@ export default function ManagePrograms() {
               <span className="w-2 h-6 bg-[var(--color-primary)] rounded-full"></span>
               Jalur Pembinaan Utama
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {programs.filter((p: any) => p.type === 'main').map((program: any) => (
-                <ProgramCard key={program.id} program={program} onEdit={handleEditStart} onDelete={handleDelete} />
-              ))}
-            </div>
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[1, 2, 3, 4].map(n => (
+                  <div key={n} className="h-64 bg-white/5 rounded-3xl animate-pulse" />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {activePrograms.filter((p: any) => p.type === 'main').map((program: any) => (
+                  <ProgramCard key={program.id} program={program} onEdit={handleEditStart} onDelete={handleDelete} />
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Special Programs */}
@@ -354,11 +365,19 @@ export default function ManagePrograms() {
               <span className="w-2 h-6 bg-purple-500 rounded-full"></span>
               Program Spesialis & Advanced
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {programs.filter((p: any) => p.type === 'special').map((program: any) => (
-                <ProgramCard key={program.id} program={program} onEdit={handleEditStart} onDelete={handleDelete} />
-              ))}
-            </div>
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[1, 2, 3, 4].map(n => (
+                  <div key={n} className="h-64 bg-white/5 rounded-3xl animate-pulse" />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {activePrograms.filter((p: any) => p.type === 'special').map((program: any) => (
+                  <ProgramCard key={program.id} program={program} onEdit={handleEditStart} onDelete={handleDelete} />
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

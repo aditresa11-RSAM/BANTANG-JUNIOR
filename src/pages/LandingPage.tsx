@@ -25,8 +25,11 @@ import { Edit2 } from 'lucide-react';
 export default function LandingPage() {
   const { appName, logoUrl, heroBgUrl } = useSettings();
   const { user } = useAuth();
-  const { data: programs } = useCMSData('programs', academyPrograms);
+  const { data: programs, isLoading } = useCMSData('programs', academyPrograms);
   const navigate = useNavigate();
+
+  // Fallback to initial data if empty
+  const activePrograms = (programs && programs.length > 0) ? programs : academyPrograms;
 
   useEffect(() => {
     if (user) return;
@@ -160,13 +163,20 @@ export default function LandingPage() {
               <span className="w-2 h-8 bg-[var(--color-primary)] rounded-full"></span>
               Jalur Pembinaan Utama
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {programs.filter((p: any) => p.type === 'main').map((program: any, idx: number) => (
-                <motion.div
-                  key={program.id}
-                  whileHover={{ y: -10 }}
-                  className="bg-[#0c162d]/80 backdrop-blur-xl border border-white/5 group overflow-hidden rounded-3xl"
-                >
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[1, 2, 3, 4].map(n => (
+                  <div key={n} className="h-64 bg-white/5 rounded-3xl animate-pulse" />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {activePrograms.filter((p: any) => p.type === 'main').map((program: any, idx: number) => (
+                  <motion.div
+                    key={program.id}
+                    whileHover={{ y: -10 }}
+                    className="bg-[#0c162d]/80 backdrop-blur-xl border border-white/5 group overflow-hidden rounded-3xl"
+                  >
                   <div className="h-48 overflow-hidden relative">
                     <img src={program.image} alt={program.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#0c162d] via-black/20 to-transparent" />
@@ -197,20 +207,27 @@ export default function LandingPage() {
                 </motion.div>
               ))}
             </div>
+            )}
           </div>
-
           <div>
             <h3 className="text-2xl font-bold mb-8 flex items-center gap-3">
               <span className="w-2 h-8 bg-purple-500 rounded-full"></span>
               Program Spesialis & Advanced
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {programs.filter((p: any) => p.type === 'special').map((program: any, idx: number) => (
-                <motion.div
-                  key={program.id}
-                  whileHover={{ y: -10 }}
-                  className="bg-[#0c162d]/80 backdrop-blur-xl border border-white/5 group overflow-hidden rounded-3xl"
-                >
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[1, 2, 3, 4].map(n => (
+                  <div key={n} className="h-64 bg-white/5 rounded-3xl animate-pulse" />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {activePrograms.filter((p: any) => p.type === 'special').map((program: any, idx: number) => (
+                  <motion.div
+                    key={program.id}
+                    whileHover={{ y: -10 }}
+                    className="bg-[#0c162d]/80 backdrop-blur-xl border border-white/5 group overflow-hidden rounded-3xl"
+                  >
                   <div className="h-40 overflow-hidden relative">
                     <img src={program.image} alt={program.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#0c162d] via-black/20 to-transparent" />
@@ -241,6 +258,7 @@ export default function LandingPage() {
                 </motion.div>
               ))}
             </div>
+            )}
           </div>
 
         </div>

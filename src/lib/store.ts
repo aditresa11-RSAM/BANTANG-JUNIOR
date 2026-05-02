@@ -3,7 +3,7 @@ import { supabase, isSupabaseConfigured } from './supabase';
 
 // General hook for managing data with Supabase and localStorage fallback
 export function useCMSData<T extends { id: string }>(collectionName: string, initialData: T[]) {
-  const [data, setData] = useState<T[]>([]);
+  const [data, setData] = useState<T[]>(initialData);
   const [isLoading, setIsLoading] = useState(true);
 
   const checkSupabase = () => {
@@ -17,7 +17,7 @@ export function useCMSData<T extends { id: string }>(collectionName: string, ini
         const saved = localStorage.getItem(`cms_${collectionName}`);
         if (saved) {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed)) {
+          if (Array.isArray(parsed) && parsed.length > 0) {
             setData(parsed);
           }
         }
