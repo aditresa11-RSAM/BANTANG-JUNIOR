@@ -142,6 +142,24 @@ export async function uploadFile(file: File, bucket: string = 'images'): Promise
   return await getCompressedBase64();
 }
 
+export async function uploadRawFile(file: File, bucket: string = 'videos'): Promise<string | null> {
+  const isSupabase = isSupabaseConfigured();
+  if (isSupabase) {
+    try {
+      const fileExt = file.name.split('.').pop() || 'mp4';
+      const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
+      const { data, error } = await supabase.storage.from(bucket).upload(fileName, file);
+      if (!error) {
+        const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(fileName);
+        return publicUrl;
+      }
+    } catch (e) {
+      console.error('Raw upload error:', e);
+    }
+  }
+  return URL.createObjectURL(file); // Fallback to blob URL for session persistence
+}
+
 // Types for the database (simplified)
 export type Role = 'admin' | 'coach' | 'parent' | 'player';
 

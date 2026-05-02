@@ -1,18 +1,20 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, Edit2, Trash2, Image as ImageIcon, Save, X, ArrowRight } from 'lucide-react';
+import { Plus, Edit2, Trash2, Image as ImageIcon, Save, X, ArrowRight, Loader2 } from 'lucide-react';
 import { useCMSData } from '../lib/store';
 import { useAuth } from '../App';
 import { cn } from '../lib/utils';
 import { academyPrograms } from '../data/programs';
 import Layout from '../components/ui/Layout';
 import { useNavigate } from 'react-router-dom';
+import { uploadFile, uploadRawFile } from '../lib/supabase';
 
 export default function ManagePrograms() {
   const { user } = useAuth();
   const { data: programs, addItems, updateItem, deleteItem, isLoading } = useCMSData('programs', academyPrograms);
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   // If Supabase returns empty but we have initial data, use initial data
   const activePrograms = (programs && programs.length > 0) ? programs : academyPrograms;
@@ -87,6 +89,24 @@ export default function ManagePrograms() {
       progressText: program.progressText || '',
       absensiText: program.absensiText || ''
     });
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setIsUploading(true);
+      try {
+        const publicUrl = await uploadFile(file, 'programs');
+        if (publicUrl) {
+          setFormData({ ...formData, image: publicUrl });
+        }
+      } catch (error) {
+        console.error("Upload failed:", error);
+        alert("Gagal mengunggah gambar. Pastikan bucket 'programs' tersedia di Supabase atau coba lagi.");
+      } finally {
+        setIsUploading(false);
+      }
+    }
   };
 
   const handleCancel = () => {
@@ -218,19 +238,33 @@ export default function ManagePrograms() {
                     </div>
                     <div>
                       <label className="block text-[10px] uppercase tracking-widest font-bold text-white/40 mb-2">URL Gambar Cover</label>
-                      <div className="flex gap-2">
+                      <div className="space-y-4">
+                        <div className="relative group w-full h-40 bg-[#080d19] border border-white/10 rounded-xl overflow-hidden flex flex-col items-center justify-center">
+                          {isUploading && (
+                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-20">
+                              <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+                            </div>
+                          )}
+                          {formData.image ? (
+                            <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="flex flex-col items-center justify-center text-white/20">
+                              <ImageIcon className="w-8 h-8 mb-2" />
+                              <span className="text-[10px] font-bold uppercase">Click to upload</span>
+                            </div>
+                          )}
+                          <label className="absolute inset-0 cursor-pointer flex items-center justify-center bg-black/0 hover:bg-black/40 opacity-0 hover:opacity-100 transition-all z-10">
+                            <span className="bg-purple-500 text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest">Pilih Gambar</span>
+                            <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                          </label>
+                        </div>
                         <input 
                           type="text" 
                           value={formData.image} 
                           onChange={e => setFormData({...formData, image: e.target.value})} 
-                          placeholder="https://..."
-                          className="flex-1 bg-[#080d19] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500 transition-colors"
+                          placeholder="Atau masukkan URL gambar: https://..."
+                          className="w-full bg-[#080d19] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500 transition-colors text-xs"
                         />
-                        {formData.image && (
-                          <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 border border-white/10">
-                            <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
-                          </div>
-                        )}
                       </div>
                     </div>
                   </>
@@ -306,6 +340,24 @@ export default function ManagePrograms() {
                     ].map(item => (
                       <div key={item.field} className="md:col-span-2">
                         <label className="block text-[10px] uppercase tracking-widest font-bold text-white/40 mb-2">{item.label}</label>
+                        {item.field === 'videoText' && (
+                          <div className="mb-2">
+                            <input 
+                              type="file" 
+                              accept="video/mp4,video/webm" 
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  setIsUploading(true);
+                                  const url = await uploadRawFile(file, 'programs-videos');
+                                  if (url) setFormData({...formData, videoText: url});
+                                  setIsUploading(false);
+                                }
+                              }}
+                              className="text-[10px] text-white/40 file:bg-white/5 file:border-white/10 file:text-white file:rounded-lg file:px-3 file:py-1 file:mr-4 file:cursor-pointer"
+                            />
+                          </div>
+                        )}
                         <textarea 
                           value={(formData as any)[item.field]} 
                           onChange={e => setFormData({...formData, [item.field]: e.target.value})} 

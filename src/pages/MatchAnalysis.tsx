@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../components/ui/Layout';
 import { useCMSData } from '../lib/store';
 import { motion, AnimatePresence } from 'motion/react';
+import { uploadFile, uploadRawFile } from '../lib/supabase';
 import { 
   BarChart3, Users, Trophy, Target, Video, Activity, Zap, 
   Shield, Play, AlertCircle, Edit, Trash2, Plus, Download, 
@@ -16,7 +17,7 @@ import { useSettings, useAuth } from '../App';
 
 const getEmbedInfo = (url: string) => {
   if (!url) return null;
-  if (url.includes('supabase.co') && url.endsWith('.mp4')) {
+  if ((url.includes('supabase.co') && (url.includes('.mp4') || url.includes('.webm'))) || url.startsWith('blob:')) {
     return {
       type: 'raw',
       embedUrl: url,
@@ -31,12 +32,12 @@ const getEmbedInfo = (url: string) => {
       thumbnail: `https://img.youtube.com/vi/${ytMatch[1]}/maxresdefault.jpg`
     };
   }
-  const driveMatch = url.match(/(?:drive\.google\.com\/file\/d\/|drive\.google\.com\/open\?id=)([^/]+)/);
+  const driveMatch = url.match(/\/d\/(.+?)(\/|$)/) || url.match(/id=([^&]+)/);
   if (driveMatch && driveMatch[1]) {
     return {
       type: 'drive',
       embedUrl: `https://drive.google.com/file/d/${driveMatch[1]}/preview`,
-      thumbnail: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=2693'
+      thumbnail: `https://drive.google.com/thumbnail?id=${driveMatch[1]}`
     };
   }
   return null;
@@ -56,10 +57,12 @@ export default function MatchAnalysis() {
   const { user } = useAuth();
   const { logoUrl } = useSettings();
   const { data: dbMatches } = useCMSData('match_results', []);
-  const { data: dbMatchStats, updateItem: updateStats, addItems: addStats } = useCMSData('match_stats', []);
+  const { data: dbMatchStats, updateItem: updateStats, addItems: addStats, isLoading: isStatsLoading } = useCMSData('match_stats', []);
   const { data: dbPlayerStats, updateItem: updatePStat, addItems: addPStat, deleteItem: delPStat } = useCMSData('player_match_stats', []);
   const { data: dbCoachNotes, updateItem: updateNote, addItems: addNote } = useCMSData('coach_notes', []);
   const { data: dbHighlights, updateItem: updateVideo, addItems: addVideo, deleteItem: delVideo } = useCMSData('match_highlights', []);
+  
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
   // Sort matches by date DESC
   const displayMatches = [...(dbMatches || [])].sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -195,6 +198,19 @@ export default function MatchAnalysis() {
      setIsPlayerModalOpen(true);
   };
 
+  const handlePlayerPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setIsUploadingPhoto(true);
+      try {
+        const url = await uploadFile(file, 'players');
+        if (url) setPlayerForm(prev => ({ ...prev, photo: url }));
+      } finally {
+        setIsUploadingPhoto(false);
+      }
+    }
+  };
+
   const savePlayer = () => {
      if (!currentMatchId || !playerForm.name.trim()) return;
      addPStat({ match_id: currentMatchId, name: playerForm.name, rating: Number(playerForm.rating), position: playerForm.position, goals: playerForm.goals, passing: playerForm.passing, photo: playerForm.photo });
@@ -216,12 +232,8 @@ export default function MatchAnalysis() {
      
      let finalUrl = videoForm.url;
      if (videoForm.file) {
-        const fileExt = videoForm.file.name.split('.').pop() || 'mp4';
-        const fileName = `${currentMatchId}_${Date.now()}.${fileExt}`;
-        const { data: uploadData, error: uploadError } = await supabase.storage.from('match-videos').upload(fileName, videoForm.file);
-        if (uploadError) { setVideoError(`Upload gagal: ${uploadError.message}`); setIsUploading(false); return; }
-        const { data: { publicUrl } } = supabase.storage.from('match-videos').getPublicUrl(fileName);
-        finalUrl = publicUrl;
+        const url = await uploadRawFile(videoForm.file, 'match-videos');
+        if (url) finalUrl = url;
      } else if (!finalUrl) {
        setVideoError('Harap upload video atau masukkan link.'); setIsUploading(false); return;
      }
@@ -999,8 +1011,18 @@ export default function MatchAnalysis() {
               <label className="text-xs font-black uppercase tracking-widest text-white/40 mb-1.5 block">Pass Acc (%)</label>
               <input type="number" value={playerForm.passing} onChange={e => setPlayerForm({...playerForm, passing: Number(e.target.value)})} className="w-full bg-[#0B1D3A] border border-white/10 rounded-xl p-3 text-white text-sm focus:border-[var(--color-primary)] outline-none" />
             </div>
+            <div>
+              <label className="text-xs font-black uppercase tracking-widest text-white/40 mb-1.5 block">Photo Pemain</label>
+              <div className="relative h-11">
+                <input type="file" accept="image/*" onChange={handlePlayerPhotoUpload} className="hidden" id="player-photo" />
+                <label htmlFor="player-photo" className="w-full h-full bg-[#0B1D3A] border border-white/10 rounded-xl px-4 flex items-center justify-between cursor-pointer hover:border-[var(--color-primary)] transition-colors">
+                  <span className="text-[10px] font-black text-white/40 uppercase truncate pr-2">{isUploadingPhoto ? 'Uploading...' : playerForm.photo ? 'Photo Terpilih' : 'Pilih File'}</span>
+                  <ImageIcon className="w-4 h-4 text-white/40" />
+                </label>
+              </div>
+            </div>
           </div>
-          <button onClick={savePlayer} className="w-full mt-2 py-3.5 bg-[var(--color-primary)] text-black font-black uppercase tracking-widest text-[10px] rounded-xl hover:scale-105 transition-transform shadow-[0_10px_20px_rgba(250,204,21,0.2)]">Simpan Pemain</button>
+          <button onClick={savePlayer} disabled={isUploadingPhoto} className="w-full mt-2 py-3.5 bg-[var(--color-primary)] text-black font-black uppercase tracking-widest text-[10px] rounded-xl hover:scale-105 transition-transform shadow-[0_10px_20px_rgba(250,204,21,0.2)] disabled:opacity-50">Simpan Pemain</button>
         </div>
       </Modal>
 
@@ -1009,7 +1031,7 @@ export default function MatchAnalysis() {
          {activeVideo && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4">
                <button onClick={() => setActiveVideo(null)} className="absolute top-6 right-6 w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white hover:bg-rose-500 hover:text-white transition-colors border border-white/20">
-                  <Play className="w-5 h-5 rotate-45 transform" /> {/* Fake Close Icon X */}
+                  <X className="w-6 h-6" />
                </button>
                <div className="w-full max-w-6xl aspect-video bg-black rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.8)] border border-white/10 relative">
                   {(() => {

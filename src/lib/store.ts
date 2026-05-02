@@ -59,8 +59,15 @@ export function useCMSData<T extends { id: string }>(collectionName: string, ini
     const item = { ...newItem, id: newItem.id || Math.random().toString(36).substring(2, 11) };
     
     // Optimistic Update
-    const previousData = [...data];
-    setData(prev => [item, ...prev]);
+    setData(prev => {
+      const updated = [item, ...prev];
+      try {
+        localStorage.setItem(`cms_${collectionName}`, JSON.stringify(updated));
+      } catch (e) {
+        console.error('Storage error:', e);
+      }
+      return updated;
+    });
 
     if (checkSupabase()) {
       try {
@@ -75,19 +82,19 @@ export function useCMSData<T extends { id: string }>(collectionName: string, ini
         console.error(`Failed to sync add to ${collectionName}:`, err);
       }
     }
-    
-    // Sync to local
-    try {
-      const updated = [item, ...previousData];
-      localStorage.setItem(`cms_${collectionName}`, JSON.stringify(updated));
-    } catch (e) {
-      console.error('Storage error:', e);
-    }
   };
 
   const updateItem = async (id: string, updatedFields: any) => {
     // Optimistic Update
-    setData(prev => prev.map(item => item.id === id ? { ...item, ...updatedFields } : item));
+    setData(prev => {
+      const updated = prev.map(item => item.id === id ? { ...item, ...updatedFields } : item);
+      try {
+        localStorage.setItem(`cms_${collectionName}`, JSON.stringify(updated));
+      } catch (e) {
+        console.error('Storage error:', e);
+      }
+      return updated;
+    });
 
     if (checkSupabase()) {
       try {
@@ -102,19 +109,19 @@ export function useCMSData<T extends { id: string }>(collectionName: string, ini
         console.error(`Failed to sync update to ${collectionName}:`, err);
       }
     }
-
-    // Sync to local
-    try {
-      const updated = data.map(item => item.id === id ? { ...item, ...updatedFields } : item);
-      localStorage.setItem(`cms_${collectionName}`, JSON.stringify(updated));
-    } catch (e) {
-      console.error('Storage error:', e);
-    }
   };
 
   const deleteItem = async (id: string) => {
     // Optimistic Update
-    setData(prev => prev.filter(item => item.id !== id));
+    setData(prev => {
+      const updated = prev.filter(item => item.id !== id);
+      try {
+        localStorage.setItem(`cms_${collectionName}`, JSON.stringify(updated));
+      } catch (e) {
+        console.error('Storage error:', e);
+      }
+      return updated;
+    });
 
     if (checkSupabase()) {
       try {
@@ -123,14 +130,6 @@ export function useCMSData<T extends { id: string }>(collectionName: string, ini
       } catch (err) {
         console.error(`Failed to sync delete from ${collectionName}:`, err);
       }
-    }
-
-    // Sync to local
-    try {
-      const updated = data.filter(item => item.id !== id);
-      localStorage.setItem(`cms_${collectionName}`, JSON.stringify(updated));
-    } catch (e) {
-      console.error('Storage error:', e);
     }
   };
 
