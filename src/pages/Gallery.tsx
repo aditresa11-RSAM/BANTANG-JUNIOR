@@ -24,6 +24,21 @@ import { Modal } from '../components/ui/Modal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { Loader2, X } from 'lucide-react';
 
+const getThumbnailUrl = (url: string, type: string) => {
+  if (!url) return '';
+  
+  if (type === 'video' && (url.includes('youtube.com') || url.includes('youtu.be'))) {
+    let videoId = '';
+    if (url.includes('v=')) videoId = url.split('v=')[1]?.split('&')[0];
+    else if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1]?.split('?')[0];
+    else if (url.includes('embed/')) videoId = url.split('embed/')[1]?.split('?')[0];
+    
+    if (videoId) return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+  }
+  
+  return url;
+};
+
 const getEmbedUrl = (url: string) => {
   if (!url) return '';
   
@@ -167,7 +182,7 @@ export default function Gallery() {
                onClick={() => { setSelectedMedia(item); setIsDetailModalOpen(true); }}
              >
                 <div className="aspect-[4/5] overflow-hidden relative">
-                   <img src={item.url} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                   <img src={getThumbnailUrl(item.url, item.type)} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                    
                    {/* Overlay */}
                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -222,7 +237,7 @@ export default function Gallery() {
                   </div>
                 )}
                 {formData.url ? (
-                  <img src={formData.url} alt="Preview" className="w-full h-full object-cover" />
+                  <img src={getThumbnailUrl(formData.url, formData.type)} alt="Preview" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full bg-white/5 flex flex-col items-center justify-center text-white/20">
                     <ImageIcon className="w-8 h-8 mb-2" />

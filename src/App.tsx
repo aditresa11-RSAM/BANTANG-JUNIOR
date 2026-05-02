@@ -156,10 +156,17 @@ export default function App() {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
+        // If we already have an admin user, don't overwrite it with a player session
+        const currentUser = JSON.parse(localStorage.getItem('ssb_user') || 'null');
+        if (currentUser && currentUser.role === 'admin') {
+          return;
+        }
+
         const userProfile = { id: session.user.id, username: session.user.email, role: 'player' };
         setUser(userProfile);
         localStorage.setItem('ssb_user', JSON.stringify(userProfile));
       } else {
+        // If we log out, remove the user
         setUser(null);
         localStorage.removeItem('ssb_user');
       }
