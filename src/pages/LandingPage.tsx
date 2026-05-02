@@ -113,7 +113,7 @@ export default function LandingPage() {
                   </motion.div>
                 </button>
                 <button 
-                  onClick={() => navigate('/register')}
+                  onClick={() => navigate('/register-player')}
                   className="w-full sm:w-[260px] bg-[#0c162d]/50 backdrop-blur-md border border-white/10 hover:bg-white/10 text-white font-bold tracking-widest uppercase transition-all duration-300 hover:scale-105 active:scale-95 py-4 text-sm rounded-2xl flex items-center justify-center gap-2 shadow-lg hover:border-white/20"
                 >
                   Daftar Siswa Baru

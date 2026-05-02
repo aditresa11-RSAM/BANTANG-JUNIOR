@@ -364,7 +364,7 @@ export default function PlayerProfile() {
                       {group.title}
                     </h3>
                   </div>
-                  <div className="w-full aspect-square relative z-10 max-w-[500px] mx-auto">
+                  <div className="w-full aspect-square relative z-10 max-w-[500px] mx-auto min-h-0 min-w-0">
                     <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                       <RadarChart cx="50%" cy="50%" outerRadius="70%" data={group.data}>
                         <PolarGrid stroke="rgba(255,255,255,0.05)" />
@@ -433,7 +433,7 @@ export default function PlayerProfile() {
                     Performance Radar
                   </h3>
                 </div>
-                <div className="flex-1 w-full min-h-[450px] relative z-10">
+                <div className="flex-1 w-full min-h-[450px] relative z-10 min-h-0 min-w-0">
                   <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                     <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
                       <PolarGrid stroke="rgba(255,255,255,0.05)" />
@@ -515,7 +515,7 @@ export default function PlayerProfile() {
         {isGoalkeeper && (
           <div className="mt-6 bg-[#0c1322] border border-white/5 shadow-2xl rounded-[2.5rem] p-8">
              <h3 className="text-xl font-display font-black text-white uppercase tracking-tight mb-6">Progress History (Goalkeeper)</h3>
-             <div className="w-full h-64">
+             <div className="w-full h-64 min-h-0 min-w-0">
                <ResponsiveContainer width="100%" height="100%">
                  <LineChart data={[
                     { month: 'Jan', reflex: 70, diving: 68 },

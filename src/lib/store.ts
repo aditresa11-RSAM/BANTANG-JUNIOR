@@ -12,28 +12,37 @@ export function useCMSData<T extends { id: string }>(collectionName: string, ini
 
   useEffect(() => {
     const loadData = async () => {
-      setIsLoading(true);
+      // 1. Instant load from local cache
+      try {
+        const saved = localStorage.getItem(`cms_${collectionName}`);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            setData(parsed);
+          }
+        }
+      } catch (e) {
+        console.error(`Failed to load local cache for ${collectionName}:`, e);
+      }
+      setIsLoading(false);
+
+      // 2. Background fetch from Supabase
       if (checkSupabase()) {
         try {
-          const { data: supaData, error } = await supabase.from(collectionName).select('*').order('created_at', { ascending: false });
-          // If we got data and it's not empty, use it and cache it locally
+          const { data: supaData, error } = await supabase
+            .from(collectionName)
+            .select('*')
+            .order('created_at', { ascending: false });
+
           if (!error && supaData) {
-            // Check if we actually got results (could be empty array which is fine)
-            if (supaData.length > 0) {
-              setData(supaData as T[]);
-              // Also update local cache for offline/faster subsequent loads
-              try {
-                localStorage.setItem(`cms_${collectionName}`, JSON.stringify(supaData));
-              } catch (e) {
-                 console.warn('Failed to cache Supabase data locally');
-              }
-              setIsLoading(false);
-              return;
+            setData(supaData as T[]);
+            try {
+              localStorage.setItem(`cms_${collectionName}`, JSON.stringify(supaData));
+            } catch (e) {
+              console.warn('Failed to cache Supabase data locally');
             }
-          }
-          if (error) {
-            // Suppress table missing errors as it's expected if tables haven't been created
-            if (!error.message.includes('Could not find the table')) {
+          } else if (error) {
+             if (!error.message.includes('Could not find the table')) {
               console.warn(`Supabase fetch error for ${collectionName}:`, error.message);
             }
           }
@@ -41,25 +50,6 @@ export function useCMSData<T extends { id: string }>(collectionName: string, ini
           console.warn(`Exception fetching Supabase data for ${collectionName}:`, err);
         }
       }
-      // Fallback to localStorage if Supabase is not configured, or if it returned empty/error
-      try {
-        const saved = localStorage.getItem(`cms_${collectionName}`);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed)) {
-            setData(parsed);
-          } else {
-            setData(initialData);
-          }
-        } else {
-          setData(initialData);
-          localStorage.setItem(`cms_${collectionName}`, JSON.stringify(initialData));
-        }
-      } catch (e) {
-        console.error(`Failed to handle local data for ${collectionName}:`, e);
-        setData(initialData);
-      }
-      setIsLoading(false);
     };
     loadData();
   }, [collectionName]);

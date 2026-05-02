@@ -89,12 +89,14 @@ export default function RegistrationAdmin() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-           <button onClick={() => window.open('/register', '_blank')} className="bg-white/5 hover:bg-white/10 text-white px-5 py-3 rounded-xl flex items-center gap-2 transition-all font-bold text-xs border border-white/10 uppercase tracking-widest">
-             <UserPlus className="w-4 h-4" /> Buka Form Publik
+           <button onClick={() => navigate('/register-player')} className="bg-white/5 hover:bg-white/10 text-white px-5 py-3 rounded-xl flex items-center gap-2 transition-all font-bold text-xs border border-white/10 uppercase tracking-widest">
+             <UserPlus className="w-4 h-4" /> DAFTAR SISWA BARU
            </button>
-           <button className="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-3 rounded-xl flex items-center gap-2 transition-all font-bold text-xs shadow-[0_4px_20px_rgba(5,150,105,0.3)] uppercase tracking-widest">
-             <Download className="w-4 h-4" /> Export CSV
-           </button>
+           {isAdmin && (
+             <button className="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-3 rounded-xl flex items-center gap-2 transition-all font-bold text-xs shadow-[0_4px_20px_rgba(5,150,105,0.3)] uppercase tracking-widest">
+               <Download className="w-4 h-4" /> Export CSV
+             </button>
+           )}
         </div>
       </div>
 

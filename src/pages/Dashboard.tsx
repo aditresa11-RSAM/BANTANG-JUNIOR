@@ -407,7 +407,7 @@ export default function Dashboard() {
                   <h3 className="text-sm font-black uppercase tracking-widest text-white">Distribusi Kelas Umur</h3>
               </div>
               <div className="flex-1 flex flex-col md:flex-row items-center gap-8">
-                 <div className="w-[200px] h-[200px] relative shrink-0 min-w-0">
+                 <div className="w-[200px] h-[200px] relative shrink-0 min-w-0 min-h-0">
                     <ResponsiveContainer width="100%" height="100%">
                        <PieChart>
                          <Pie data={stats.categoryData} innerRadius={65} outerRadius={90} paddingAngle={2} dataKey="value" stroke="none">
@@ -441,7 +441,7 @@ export default function Dashboard() {
                   <div className="w-2 h-2 rounded-full bg-emerald-500" />
                   <h3 className="text-sm font-black uppercase tracking-widest text-white">Rata-Rata Rating Performa</h3>
               </div>
-              <div className="w-full h-[300px] relative min-w-0">
+              <div className="w-full h-[300px] relative min-w-0 min-h-0">
                  <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={stats.performanceData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                        <defs>

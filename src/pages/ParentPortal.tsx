@@ -68,7 +68,7 @@ export default function ParentPortal() {
                   <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2"><Activity className="w-4 h-4 text-emerald-400" /> Kehadiran</h3>
                   <span className="text-xl font-black text-emerald-400">95%</span>
                 </div>
-                <div className="w-full h-[100px]">
+                <div className="w-full h-[100px] min-h-0">
                   <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                     <AreaChart data={attendanceData}>
                       <defs>
