@@ -197,7 +197,7 @@ export default function PlayerProfile() {
         if (gkStatId) {
           updateGkStats(gkStatId, { ...gkFormData, player_id: id });
         } else {
-          addGkStats([{ ...gkFormData, player_id: id }]);
+          addGkStats({ ...gkFormData, player_id: id });
         }
       }
     }

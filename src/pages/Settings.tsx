@@ -646,8 +646,24 @@ CREATE TABLE IF NOT EXISTS programs (
     image TEXT,
     videotext TEXT,
     type TEXT,
+    totalplayers TEXT,
+    kurikulumtext TEXT,
+    materitext TEXT,
+    jadwaltext TEXT,
+    statistiktext TEXT,
+    progresstext TEXT,
+    absensitext TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
+-- Fix missing columns for programs
+ALTER TABLE IF EXISTS public.programs ADD COLUMN IF NOT EXISTS totalplayers TEXT;
+ALTER TABLE IF EXISTS public.programs ADD COLUMN IF NOT EXISTS kurikulumtext TEXT;
+ALTER TABLE IF EXISTS public.programs ADD COLUMN IF NOT EXISTS materitext TEXT;
+ALTER TABLE IF EXISTS public.programs ADD COLUMN IF NOT EXISTS jadwaltext TEXT;
+ALTER TABLE IF EXISTS public.programs ADD COLUMN IF NOT EXISTS statistiktext TEXT;
+ALTER TABLE IF EXISTS public.programs ADD COLUMN IF NOT EXISTS progresstext TEXT;
+ALTER TABLE IF EXISTS public.programs ADD COLUMN IF NOT EXISTS absensitext TEXT;
 
 CREATE TABLE IF NOT EXISTS announcements (
     id TEXT PRIMARY KEY,
@@ -811,7 +827,7 @@ WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboar
         'upcoming_matches', 'match_results', 'gallery', 
         'financials', 'training_schedule', 'match_analysis', 'scouting', 'medicals',
         'training_materials', 'announcements', 'attendance', 'tactics', 'match_highlights',
-        'match_stats', 'player_match_stats', 'coach_notes', 'goalkeeper_stats'
+        'match_stats', 'player_match_stats', 'coach_notes', 'goalkeeper_stats', 'programs'
       ];
       
       const allowedColumns: Record<string, string[]> = {
@@ -834,7 +850,8 @@ WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboar
         match_stats: ['id', 'match_id', 'possession', 'shots', 'shots_on_target', 'pass_accuracy', 'score', 'gk_saves', 'gk_conceded', 'gk_clean_sheet', 'gk_save_pct', 'gk_high_claim', 'gk_punches', 'gk_sweeper', 'gk_errors', 'gk_dist_pct', 'created_at'],
         player_match_stats: ['id', 'match_id', 'name', 'rating', 'goals', 'passing', 'position', 'photo', 'created_at'],
         coach_notes: ['id', 'match_id', 'note', 'created_at'],
-        goalkeeper_stats: ['id', 'player_id', 'reflex', 'diving', 'handling', 'positioning', 'instinct', 'distribution', 'kicking', 'throwing', 'reaction_speed', 'agility', 'shot_stopping', 'one_on_one', 'decision_making', 'composure', 'concentration', 'anticipation', 'passing_accuracy', 'jumping_reach', 'strength', 'balance', 'created_at']
+        goalkeeper_stats: ['id', 'player_id', 'reflex', 'diving', 'handling', 'positioning', 'instinct', 'distribution', 'kicking', 'throwing', 'reaction_speed', 'agility', 'shot_stopping', 'one_on_one', 'decision_making', 'composure', 'concentration', 'anticipation', 'passing_accuracy', 'jumping_reach', 'strength', 'balance', 'created_at'],
+        programs: ['id', 'title', 'agerange', 'description', 'descriptiondetail', 'targets', 'sessionsperweek', 'durationpersession', 'coach', 'image', 'videotext', 'type', 'totalplayers', 'kurikulumtext', 'materitext', 'jadwaltext', 'statistiktext', 'progresstext', 'absensitext', 'created_at']
       };
       
       try {
@@ -847,7 +864,12 @@ WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboar
                      if (parsed && Array.isArray(parsed) && parsed.length > 0) {
                          const chunkSize = 20;
                          for (let i = 0; i < parsed.length; i += chunkSize) {
-                             const chunk = parsed.slice(i, i + chunkSize).map(item => {
+                             const chunk = parsed.slice(i, i + chunkSize).map(rawItem => {
+                                 let item = rawItem;
+                                 if (item && typeof item === 'object' && '0' in item && typeof item['0'] === 'object') {
+                                     // Recover corrupted array wrapped in object
+                                     item = { ...item['0'], id: item.id || item['0'].id };
+                                 }
                                  const temp: any = { ...item };
                                  
                                  // Mappings for UI -> DB inconsistency
@@ -872,6 +894,8 @@ WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboar
                                  if ('field' in temp && !temp.location) temp.location = temp.field;
                                  if ('materials' in temp && !temp.description) temp.description = temp.materials;
                                  if ('isPinned' in temp && !temp.is_pinned) temp.is_pinned = temp.isPinned;
+                                 if ('playerId' in temp && !temp.player_id) temp.player_id = temp.playerId;
+                                 if ('matchId' in temp && !temp.match_id) temp.match_id = temp.matchId;
                                  if ('date' in temp && table === 'match_analysis' && !temp.match_date) temp.match_date = temp.date;
 
                                  // Final Sanitization: Lowercase keys and remove any field not in allowedColumns
