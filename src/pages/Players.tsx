@@ -74,7 +74,7 @@ export default function Players() {
 
   const filteredAndSortedPlayers = useMemo(() => {
     let result = players.filter((p: any) => {
-      const matchSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchSearch = (p.name || '').toLowerCase().includes(searchTerm.toLowerCase());
       const matchCat = activeCategory === 'All' || p.category === activeCategory;
       const matchPos = activePosition === 'All' || p.position === activePosition;
       return matchSearch && matchCat && matchPos;
@@ -242,10 +242,10 @@ export default function Players() {
                       
                       {/* Background & Photo (Full frame) */}
                       <div className="absolute inset-0 bg-[#081225] overflow-hidden z-0">
-                         <img src={player.photo} alt="" className="w-full h-full object-cover opacity-40 blur-2xl scale-150" />
+                         <img src={player.photo || null} alt="" className="w-full h-full object-cover opacity-40 blur-2xl scale-150" />
                       </div>
                       <img 
-                        src={player.photo} 
+                        src={player.photo || null} 
                         alt={player.name} 
                         className="absolute inset-0 w-full h-full object-cover object-top opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700 ease-out z-10" 
                       />
@@ -354,7 +354,7 @@ export default function Players() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-4">
-                          <img src={player.photo} alt={player.name} className="w-12 h-12 rounded-xl object-cover ring-2 ring-transparent group-hover:ring-blue-500/50 transition-all" />
+                          <img src={player.photo || null} alt={player.name} className="w-12 h-12 rounded-xl object-cover ring-2 ring-transparent group-hover:ring-blue-500/50 transition-all" />
                           <div>
                             <p className="font-bold text-sm tracking-tight text-white uppercase">{player.name}</p>
                             <p className="text-[11px] text-blue-400 font-bold uppercase">{player.position} <span className="text-amber-500/50 font-normal">| #{player.jersey}</span></p>

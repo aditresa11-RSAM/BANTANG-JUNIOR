@@ -28,12 +28,12 @@ export default function Announcements() {
   const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, id: '' });
   
   const [formData, setFormData] = useState({
-    title: '', date: new Date().toISOString().split('T')[0], category: 'Umum', content: '', target: 'Semua Anggota', priority: 'Normal', isPinned: false, image: null, pdf: null
+    title: '', date: new Date().toISOString().split('T')[0], category: 'Umum', content: '', target: 'Semua Anggota', priority: 'Normal', is_pinned: false, image: null, pdf: null
   });
 
   const handleOpenAdd = () => {
     setEditingRecord(null);
-    setFormData({ title: '', date: new Date().toISOString().split('T')[0], category: 'Umum', content: '', target: 'Semua Anggota', priority: 'Normal', isPinned: false, image: null, pdf: null });
+    setFormData({ title: '', date: new Date().toISOString().split('T')[0], category: 'Umum', content: '', target: 'Semua Anggota', priority: 'Normal', is_pinned: false, image: null, pdf: null });
     setIsModalOpen(true);
   };
 
@@ -58,16 +58,18 @@ export default function Announcements() {
   };
 
   const togglePin = (rec: any) => {
-    updateItem(rec.id, { ...rec, isPinned: !rec.isPinned });
+    updateItem(rec.id, { ...rec, is_pinned: !(rec.is_pinned || rec.isPinned) });
   };
 
   const filtered = records.filter((r:any) => {
     if (filterCat !== 'Semua' && r.category !== filterCat) return false;
-    if (search && !r.title.toLowerCase().includes(search.toLowerCase()) && !r.content.toLowerCase().includes(search.toLowerCase())) return false;
+    if (search && !(r.title || '').toLowerCase().includes(search.toLowerCase()) && !(r.content || '').toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   }).sort((a:any, b:any) => {
-    if (a.isPinned && !b.isPinned) return -1;
-    if (!a.isPinned && b.isPinned) return 1;
+    const aPinned = a.is_pinned || a.isPinned;
+    const bPinned = b.is_pinned || b.isPinned;
+    if (aPinned && !bPinned) return -1;
+    if (!aPinned && bPinned) return 1;
     return new Date(b.date).getTime() - new Date(a.date).getTime();
   });
 
@@ -159,13 +161,13 @@ export default function Announcements() {
                      </div>
                   )}
 
-                  {ann.isPinned && (
+                  {(ann.is_pinned || ann.isPinned) && (
                      <Pin className="absolute top-1 left-1 opacity-20 w-32 h-32 text-blue-500 rotate-12 pointer-events-none" />
                   )}
 
                   <div className="flex flex-col lg:flex-row gap-6 relative z-10 w-full">
                      <div className="absolute top-0 right-0 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity mt-8 lg:-mt-2">
-                        <button onClick={() => togglePin(ann)} className={cn("p-2 rounded-xl backdrop-blur transition-all border", ann.isPinned ? "bg-amber-500/20 text-amber-400 border-amber-500/30" : "bg-white/5 text-white/40 hover:text-white hover:bg-white/10")} title="Pin Pengumuman"><Pin className="w-4 h-4 fill-current"/></button>
+                        <button onClick={() => togglePin(ann)} className={cn("p-2 rounded-xl backdrop-blur transition-all border", (ann.is_pinned || ann.isPinned) ? "bg-amber-500/20 text-amber-400 border-amber-500/30" : "bg-white/5 text-white/40 hover:text-white hover:bg-white/10")} title="Pin Pengumuman"><Pin className="w-4 h-4 fill-current"/></button>
                         <button onClick={() => handleOpenEdit(ann)} className="p-2 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white shadow border border-blue-500/20 backdrop-blur transition-all" title="Edit Pengumuman"><Edit2 className="w-4 h-4"/></button>
                         <button onClick={() => setDeleteConfirm({ isOpen: true, id: ann.id })} className="p-2 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white shadow border border-red-500/20 backdrop-blur transition-all" title="Hapus Pengumuman"><Trash2 className="w-4 h-4"/></button>
                      </div>
@@ -274,7 +276,7 @@ export default function Announcements() {
             </div>
 
             <div className="col-span-2 flex items-center gap-3 bg-blue-900/20 border border-blue-500/20 p-4 rounded-2xl">
-                <input type="checkbox" id="pin" checked={formData.isPinned} onChange={(e) => setFormData({...formData, isPinned: e.target.checked})} className="w-5 h-5 rounded border-white/10 bg-black/50 text-blue-500 focus:ring-blue-500" />
+                <input type="checkbox" id="pin" checked={formData.is_pinned || (formData as any).isPinned} onChange={(e) => setFormData({...formData, is_pinned: e.target.checked})} className="w-5 h-5 rounded border-white/10 bg-black/50 text-blue-500 focus:ring-blue-500" />
                 <label htmlFor="pin" className="text-sm font-bold text-blue-200 cursor-pointer">Sematkan di Atas (Pin to Top)</label>
             </div>
           </div>

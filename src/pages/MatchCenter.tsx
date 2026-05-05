@@ -56,11 +56,35 @@ export default function MatchCenter() {
   const handleMatchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (matchType === 'upcoming') {
-      if (editingMatch) updateUpcoming(editingMatch.id, matchForm);
-      else addUpcoming({ ...matchForm, rivalLogo: matchForm.rivalLogo || 'https://cdn-icons-png.flaticon.com/128/3163/3163351.png' });
+      const payload = {
+        id: editingMatch ? editingMatch.id : undefined,
+        tournament: matchForm.tournament,
+        rival: matchForm.rival,
+        rivalLogo: matchForm.rivalLogo || 'https://cdn-icons-png.flaticon.com/128/3163/3163351.png',
+        date: matchForm.date,
+        time: matchForm.time,
+        venue: matchForm.venue,
+        category: matchForm.category,
+        result: matchForm.result, // from form default "Win"
+      };
+      
+      if (editingMatch) updateUpcoming(editingMatch.id, payload);
+      else addUpcoming(payload);
     } else {
-      if (editingMatch) updateResult(editingMatch.id, matchForm);
-      else addResult(matchForm);
+      const payload = {
+        id: editingMatch ? editingMatch.id : undefined,
+        tournament: matchForm.tournament,
+        rival: matchForm.rival,
+        rivalLogo: matchForm.rivalLogo || 'https://cdn-icons-png.flaticon.com/128/3163/3163351.png',
+        score: matchForm.score,
+        date: matchForm.date,
+        category: matchForm.category,
+        result: matchForm.result,
+        scorers: matchForm.scorers
+      };
+      
+      if (editingMatch) updateResult(editingMatch.id, payload);
+      else addResult(payload);
     }
     setIsMatchModalOpen(false);
   };

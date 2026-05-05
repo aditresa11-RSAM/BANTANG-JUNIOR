@@ -280,7 +280,7 @@ export default function Dashboard() {
              {sliders.length > 0 ? (
                <Swiper
                  modules={[Autoplay, Navigation, Pagination, EffectFade]}
-                 effect="fade" spaceBetween={0} slidesPerView={1} loop={true} speed={1000}
+                 effect="fade" spaceBetween={0} slidesPerView={1} loop={sliders.length > 1} speed={1000}
                  onSwiper={setSwiperInstance}
                  onSlideChange={(swiper) => {
                    setActiveIndex(swiper.realIndex);
@@ -302,7 +302,7 @@ export default function Dashboard() {
                           </>
                         ) : (
                           <>
-                            <img src={slider.img} alt="" className="absolute inset-0 w-full h-full object-cover scale-[1.02]" />
+                            <img src={slider.img || null} alt="" className="absolute inset-0 w-full h-full object-cover scale-[1.02]" />
                             <div className="absolute inset-0 bg-gradient-to-t from-[#0c162d] via-black/20 to-transparent" />
                           </>
                         )}
@@ -408,7 +408,7 @@ export default function Dashboard() {
               </div>
               <div className="flex-1 flex flex-col md:flex-row items-center gap-8">
                  <div className="w-[200px] h-[200px] relative shrink-0 min-w-0 min-h-0">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                        <PieChart>
                          <Pie data={stats.categoryData} innerRadius={65} outerRadius={90} paddingAngle={2} dataKey="value" stroke="none">
                            {stats.categoryData.map((e, i) => <Cell key={i} fill={e.color} />)}
@@ -442,7 +442,7 @@ export default function Dashboard() {
                   <h3 className="text-sm font-black uppercase tracking-widest text-white">Rata-Rata Rating Performa</h3>
               </div>
               <div className="w-full h-[300px] relative min-w-0 min-h-0">
-                 <ResponsiveContainer width="100%" height="100%">
+                 <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                     <AreaChart data={stats.performanceData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                        <defs>
                           <linearGradient id="colorPerf" x1="0" y1="0" x2="0" y2="1">

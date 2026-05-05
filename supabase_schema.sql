@@ -57,11 +57,36 @@ CREATE TABLE IF NOT EXISTS public.coaches (
 
 -- Table: gallery
 CREATE TABLE IF NOT EXISTS public.gallery (
-  id TEXT PRIMARY KEY,
-  type TEXT DEFAULT 'photo',
-  url TEXT NOT NULL,
-  title TEXT,
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  title TEXT NOT NULL,
+  type TEXT CHECK (type IN ('image', 'youtube', 'drive')),
+  media_url TEXT NOT NULL,
+  thumbnail_url TEXT,
   category TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Table: training_schedule (Aliased logic for schedules)
+CREATE TABLE IF NOT EXISTS public.training_schedule (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  title TEXT NOT NULL,
+  date TEXT NOT NULL,
+  time TEXT,
+  location TEXT,
+  category TEXT,
+  coach TEXT,
+  description TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Table: match_analysis (Master record for analysis)
+CREATE TABLE IF NOT EXISTS public.match_analysis (
+  id TEXT PRIMARY KEY,
+  match_date TEXT,
+  rival TEXT,
+  score TEXT,
+  status TEXT DEFAULT 'Draft',
+  highlights_count NUMERIC DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -188,72 +213,9 @@ USING (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', '
 WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'materials'));
 */
 
--- Set up Row Level Security (RLS)
--- Allow public access for now since this is an MVP without complex auth yet
-ALTER TABLE public.players ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.coaches ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.gallery ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.dashboard_sliders ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.leaderboard ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.upcoming_matches ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.match_results ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.schedules ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.financials ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.settings ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Allow public read access" ON public.players FOR SELECT USING (true);
-CREATE POLICY "Allow public insert access" ON public.players FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update access" ON public.players FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete access" ON public.players FOR DELETE USING (true);
-
-CREATE POLICY "Allow public read access" ON public.coaches FOR SELECT USING (true);
-CREATE POLICY "Allow public insert access" ON public.coaches FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update access" ON public.coaches FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete access" ON public.coaches FOR DELETE USING (true);
-
-CREATE POLICY "Allow public read access" ON public.gallery FOR SELECT USING (true);
-CREATE POLICY "Allow public insert access" ON public.gallery FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update access" ON public.gallery FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete access" ON public.gallery FOR DELETE USING (true);
-
-CREATE POLICY "Allow public read access" ON public.dashboard_sliders FOR SELECT USING (true);
-CREATE POLICY "Allow public insert access" ON public.dashboard_sliders FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update access" ON public.dashboard_sliders FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete access" ON public.dashboard_sliders FOR DELETE USING (true);
-
-CREATE POLICY "Allow public read access" ON public.leaderboard FOR SELECT USING (true);
-CREATE POLICY "Allow public insert access" ON public.leaderboard FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update access" ON public.leaderboard FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete access" ON public.leaderboard FOR DELETE USING (true);
-
-CREATE POLICY "Allow public read access" ON public.upcoming_matches FOR SELECT USING (true);
-CREATE POLICY "Allow public insert access" ON public.upcoming_matches FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update access" ON public.upcoming_matches FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete access" ON public.upcoming_matches FOR DELETE USING (true);
-
-CREATE POLICY "Allow public read access" ON public.match_results FOR SELECT USING (true);
-CREATE POLICY "Allow public insert access" ON public.match_results FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update access" ON public.match_results FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete access" ON public.match_results FOR DELETE USING (true);
-
-CREATE POLICY "Allow public read access" ON public.schedules FOR SELECT USING (true);
-CREATE POLICY "Allow public insert access" ON public.schedules FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update access" ON public.schedules FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete access" ON public.schedules FOR DELETE USING (true);
-
-CREATE POLICY "Allow public read access" ON public.financials FOR SELECT USING (true);
-CREATE POLICY "Allow public insert access" ON public.financials FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update access" ON public.financials FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete access" ON public.financials FOR DELETE USING (true);
-
-CREATE POLICY "Allow public read access" ON public.settings FOR SELECT USING (true);
-CREATE POLICY "Allow public insert access" ON public.settings FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update access" ON public.settings FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete access" ON public.settings FOR DELETE USING (true);
-
 -- Table: attendance
 CREATE TABLE IF NOT EXISTS public.attendance (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id TEXT PRIMARY KEY,
   player_id TEXT NOT NULL,
   date TEXT NOT NULL,
   status TEXT NOT NULL,
@@ -262,7 +224,7 @@ CREATE TABLE IF NOT EXISTS public.attendance (
 
 -- Table: training_materials
 CREATE TABLE IF NOT EXISTS public.training_materials (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
   category TEXT,
   description TEXT,
@@ -273,23 +235,12 @@ CREATE TABLE IF NOT EXISTS public.training_materials (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- RLS for new tables
-ALTER TABLE public.attendance ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.training_materials ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Allow public read access" ON public.attendance FOR SELECT USING (true);
-CREATE POLICY "Allow public insert access" ON public.attendance FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update access" ON public.attendance FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete access" ON public.attendance FOR DELETE USING (true);
-
-CREATE POLICY "Allow public read access" ON public.training_materials FOR SELECT USING (true);
-CREATE POLICY "Allow public insert access" ON public.training_materials FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update access" ON public.training_materials FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete access" ON public.training_materials FOR DELETE USING (true);
+-- Fix missing columns for training_materials
+ALTER TABLE IF EXISTS public.training_materials ADD COLUMN IF NOT EXISTS media_url TEXT;
 
 -- Table: tactics
 CREATE TABLE IF NOT EXISTS public.tactics (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   mode TEXT DEFAULT '11v11',
   formation_id TEXT,
@@ -297,14 +248,18 @@ CREATE TABLE IF NOT EXISTS public.tactics (
   positions JSONB,
   paths JSONB,
   is_template BOOLEAN DEFAULT false,
+  notes TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
-ALTER TABLE public.tactics ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow public read access" ON public.tactics FOR SELECT USING (true);
-CREATE POLICY "Allow public insert access" ON public.tactics FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update access" ON public.tactics FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete access" ON public.tactics FOR DELETE USING (true);
+-- Fix missing columns for tactics
+ALTER TABLE IF EXISTS public.tactics ADD COLUMN IF NOT EXISTS name TEXT;
+ALTER TABLE IF EXISTS public.tactics ADD COLUMN IF NOT EXISTS formation_id TEXT;
+ALTER TABLE IF EXISTS public.tactics ADD COLUMN IF NOT EXISTS strategy TEXT;
+ALTER TABLE IF EXISTS public.tactics ADD COLUMN IF NOT EXISTS positions JSONB;
+ALTER TABLE IF EXISTS public.tactics ADD COLUMN IF NOT EXISTS paths JSONB;
+ALTER TABLE IF EXISTS public.tactics ADD COLUMN IF NOT EXISTS is_template BOOLEAN DEFAULT false;
+ALTER TABLE IF EXISTS public.tactics ADD COLUMN IF NOT EXISTS notes TEXT;
 
 -- Table: match_stats
 CREATE TABLE IF NOT EXISTS public.match_stats (
@@ -359,40 +314,111 @@ CREATE TABLE IF NOT EXISTS public.match_highlights (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- Ensure storage bucket exists
+-- Table: programs
+CREATE TABLE IF NOT EXISTS public.programs (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  agerange TEXT,
+  description TEXT,
+  descriptiondetail TEXT,
+  targets TEXT,
+  sessionsperweek TEXT,
+  durationpersession TEXT,
+  coach TEXT,
+  image TEXT,
+  videotext TEXT,
+  type TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Table: announcements
+CREATE TABLE IF NOT EXISTS public.announcements (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  content TEXT,
+  date TEXT,
+  category TEXT,
+  important BOOLEAN,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Set up Row Level Security (RLS)
+-- Allow public access for now since this is an MVP without complex auth yet
+ALTER TABLE IF EXISTS public.players ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.coaches ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.gallery ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.training_schedule ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.match_analysis ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.dashboard_sliders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.leaderboard ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.upcoming_matches ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.match_results ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.schedules ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.financials ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.attendance ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.training_materials ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.tactics ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.match_stats ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.player_match_stats ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.coach_notes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.match_highlights ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.programs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.announcements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.goalkeeper_stats ENABLE ROW LEVEL SECURITY;
+
+-- Helper to apply permissive policies to a table
+DO $$ 
+DECLARE 
+    t text;
+    tables text[] := ARRAY[
+        'players', 'coaches', 'gallery', 'training_schedule', 'match_analysis', 
+        'dashboard_sliders', 'leaderboard', 'upcoming_matches', 'match_results', 
+        'schedules', 'financials', 'settings', 'attendance', 'training_materials', 
+        'tactics', 'match_stats', 'player_match_stats', 'coach_notes', 
+        'match_highlights', 'programs', 'announcements', 'goalkeeper_stats'
+    ];
+BEGIN
+    FOREACH t IN ARRAY tables LOOP
+        EXECUTE format('DROP POLICY IF EXISTS "Allow public read access" ON public.%I', t);
+        EXECUTE format('DROP POLICY IF EXISTS "Allow public insert access" ON public.%I', t);
+        EXECUTE format('DROP POLICY IF EXISTS "Allow public update access" ON public.%I', t);
+        EXECUTE format('DROP POLICY IF EXISTS "Allow public delete access" ON public.%I', t);
+        
+        EXECUTE format('CREATE POLICY "Allow public read access" ON public.%I FOR SELECT USING (true)', t);
+        EXECUTE format('CREATE POLICY "Allow public insert access" ON public.%I FOR INSERT WITH CHECK (true)', t);
+        EXECUTE format('CREATE POLICY "Allow public update access" ON public.%I FOR UPDATE USING (true)', t);
+        EXECUTE format('CREATE POLICY "Allow public delete access" ON public.%I FOR DELETE USING (true)', t);
+    END LOOP;
+END $$;
+
+-- Ensure storage buckets exist
 INSERT INTO storage.buckets (id, name, public) 
-VALUES ('match-videos', 'match-videos', true)
-ON CONFLICT (id) DO NOTHING;
+VALUES 
+  ('match-videos', 'match-videos', true),
+  ('programs', 'programs', true),
+  ('programs-videos', 'programs-videos', true),
+  ('players', 'players', true),
+  ('settings', 'settings', true),
+  ('gallery', 'gallery', true),
+  ('coaches', 'coaches', true),
+  ('dashboard', 'dashboard', true),
+  ('matches', 'matches', true),
+  ('materials', 'materials', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
 
-CREATE POLICY "Allow public read access on match-videos" ON storage.objects FOR SELECT USING (bucket_id = 'match-videos');
-CREATE POLICY "Allow public insert access on match-videos" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'match-videos');
-CREATE POLICY "Allow public update access on match-videos" ON storage.objects FOR UPDATE USING (bucket_id = 'match-videos');
-CREATE POLICY "Allow public delete access on match-videos" ON storage.objects FOR DELETE USING (bucket_id = 'match-videos');
+DROP POLICY IF EXISTS "Allow public read access on match-videos" ON storage.objects;
+DROP POLICY IF EXISTS "Allow public insert access on match-videos" ON storage.objects;
+DROP POLICY IF EXISTS "Allow public update access on match-videos" ON storage.objects;
+DROP POLICY IF EXISTS "Allow public delete access on match-videos" ON storage.objects;
 
-ALTER TABLE public.match_stats ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.player_match_stats ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.coach_notes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.match_highlights ENABLE ROW LEVEL SECURITY;
+-- Permissive policy for all buckets
+DROP POLICY IF EXISTS "Allow public access" ON storage.objects;
+CREATE POLICY "Allow public access" ON storage.objects 
+FOR ALL TO public, anon, authenticated
+USING (true)
+WITH CHECK (true);
 
-CREATE POLICY "Allow public read access" ON public.match_stats FOR SELECT USING (true);
-CREATE POLICY "Allow public insert access" ON public.match_stats FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update access" ON public.match_stats FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete access" ON public.match_stats FOR DELETE USING (true);
-
-CREATE POLICY "Allow public read access" ON public.player_match_stats FOR SELECT USING (true);
-CREATE POLICY "Allow public insert access" ON public.player_match_stats FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update access" ON public.player_match_stats FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete access" ON public.player_match_stats FOR DELETE USING (true);
-
-CREATE POLICY "Allow public read access" ON public.coach_notes FOR SELECT USING (true);
-CREATE POLICY "Allow public insert access" ON public.coach_notes FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update access" ON public.coach_notes FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete access" ON public.coach_notes FOR DELETE USING (true);
-
-CREATE POLICY "Allow public read access" ON public.match_highlights FOR SELECT USING (true);
-CREATE POLICY "Allow public insert access" ON public.match_highlights FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update access" ON public.match_highlights FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete access" ON public.match_highlights FOR DELETE USING (true);
 
 -- Table: goalkeeper_stats
 CREATE TABLE IF NOT EXISTS public.goalkeeper_stats (
@@ -422,7 +448,3 @@ CREATE TABLE IF NOT EXISTS public.goalkeeper_stats (
 );
 
 ALTER TABLE public.goalkeeper_stats ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow public read access" ON public.goalkeeper_stats FOR SELECT USING (true);
-CREATE POLICY "Allow public insert access" ON public.goalkeeper_stats FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update access" ON public.goalkeeper_stats FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete access" ON public.goalkeeper_stats FOR DELETE USING (true);

@@ -474,14 +474,77 @@ CREATE TABLE IF NOT EXISTS match_results (
 );
 
 CREATE TABLE IF NOT EXISTS gallery (
-    id TEXT PRIMARY KEY, 
-    type TEXT, 
-    url TEXT, 
-    title TEXT, 
-    thumbnail TEXT,
-    category TEXT, 
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    type TEXT,
+    media_url TEXT,
+    thumbnail_url TEXT,
+    category TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
+-- Fix missing columns for gallery if it already existed
+ALTER TABLE IF EXISTS public.gallery ADD COLUMN IF NOT EXISTS media_url TEXT;
+ALTER TABLE IF EXISTS public.gallery ADD COLUMN IF NOT EXISTS thumbnail_url TEXT;
+ALTER TABLE IF EXISTS public.gallery ADD COLUMN IF NOT EXISTS title TEXT;
+-- Migrate data from old 'url' column to 'media_url' if it exists and media_url is empty
+DO $$ 
+BEGIN 
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='gallery' AND column_name='url') THEN
+        UPDATE public.gallery SET media_url = url WHERE media_url IS NULL;
+    END IF;
+END $$;
+ALTER TABLE IF EXISTS public.gallery ALTER COLUMN title SET NOT NULL;
+
+CREATE TABLE IF NOT EXISTS training_schedule (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    date TEXT,
+    time TEXT,
+    location TEXT,
+    category TEXT,
+    coach TEXT,
+    description TEXT,
+    status TEXT,
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Fix missing columns for training_schedule (migration from old schedules table)
+ALTER TABLE IF EXISTS public.training_schedule ADD COLUMN IF NOT EXISTS location TEXT;
+ALTER TABLE IF EXISTS public.training_schedule ADD COLUMN IF NOT EXISTS description TEXT;
+ALTER TABLE IF EXISTS public.training_schedule ADD COLUMN IF NOT EXISTS status TEXT;
+ALTER TABLE IF EXISTS public.training_schedule ADD COLUMN IF NOT EXISTS notes TEXT;
+DO $$ 
+BEGIN 
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='training_schedule' AND column_name='field') THEN
+        UPDATE public.training_schedule SET location = field WHERE location IS NULL;
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='training_schedule' AND column_name='materials') THEN
+        UPDATE public.training_schedule SET description = materials WHERE description IS NULL;
+    END IF;
+END $$;
+
+CREATE TABLE IF NOT EXISTS match_analysis (
+    id TEXT PRIMARY KEY,
+    match_date TEXT,
+    rival TEXT,
+    score TEXT,
+    status TEXT,
+    highlights_count INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Fix missing columns for match_analysis
+ALTER TABLE IF EXISTS public.match_analysis ADD COLUMN IF NOT EXISTS match_date TEXT;
+ALTER TABLE IF EXISTS public.match_analysis ADD COLUMN IF NOT EXISTS rival TEXT;
+ALTER TABLE IF EXISTS public.match_analysis ADD COLUMN IF NOT EXISTS score TEXT;
+DO $$ 
+BEGIN 
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='match_analysis' AND column_name='date') THEN
+        UPDATE public.match_analysis SET match_date = date WHERE match_date IS NULL;
+    END IF;
+END $$;
 
 CREATE TABLE IF NOT EXISTS financials (
     id TEXT PRIMARY KEY, 
@@ -492,20 +555,6 @@ CREATE TABLE IF NOT EXISTS financials (
     status TEXT, 
     description TEXT,
     category TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS schedules (
-    id TEXT PRIMARY KEY, 
-    title TEXT, 
-    date TEXT, 
-    time TEXT, 
-    category TEXT, 
-    coach TEXT, 
-    field TEXT, 
-    activity TEXT,
-    venue TEXT,
-    status TEXT, 
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -559,10 +608,147 @@ CREATE TABLE IF NOT EXISTS attendance (
 
 CREATE TABLE IF NOT EXISTS tactics (
     id TEXT PRIMARY KEY, 
+    name TEXT,
     formation JSONB, 
+    formation_id TEXT,
     mode TEXT, 
     strategy TEXT, 
+    positions JSONB,
+    paths JSONB,
+    is_template BOOLEAN DEFAULT false,
     notes TEXT, 
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Fix missing columns for tactics
+ALTER TABLE IF EXISTS public.tactics ADD COLUMN IF NOT EXISTS name TEXT;
+ALTER TABLE IF EXISTS public.tactics ADD COLUMN IF NOT EXISTS formation_id TEXT;
+ALTER TABLE IF EXISTS public.tactics ADD COLUMN IF NOT EXISTS positions JSONB;
+ALTER TABLE IF EXISTS public.tactics ADD COLUMN IF NOT EXISTS paths JSONB;
+ALTER TABLE IF EXISTS public.tactics ADD COLUMN IF NOT EXISTS is_template BOOLEAN DEFAULT false;
+DO $$ 
+BEGIN 
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='tactics' AND column_name='isTemplate') THEN
+        UPDATE public.tactics SET is_template = "isTemplate" WHERE is_template IS NULL;
+    END IF;
+END $$;
+
+CREATE TABLE IF NOT EXISTS programs (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    agerange TEXT,
+    description TEXT,
+    descriptiondetail TEXT,
+    targets TEXT,
+    sessionsperweek TEXT,
+    durationpersession TEXT,
+    coach TEXT,
+    image TEXT,
+    videotext TEXT,
+    type TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS announcements (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    content TEXT,
+    date TEXT,
+    category TEXT,
+    target TEXT,
+    priority TEXT,
+    is_pinned BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Fix missing columns for announcements
+ALTER TABLE IF EXISTS public.announcements ADD COLUMN IF NOT EXISTS target TEXT;
+ALTER TABLE IF EXISTS public.announcements ADD COLUMN IF NOT EXISTS priority TEXT;
+ALTER TABLE IF EXISTS public.announcements ADD COLUMN IF NOT EXISTS is_pinned BOOLEAN DEFAULT false;
+DO $$ 
+BEGIN 
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='announcements' AND column_name='isPinned') THEN
+        UPDATE public.announcements SET is_pinned = "isPinned" WHERE is_pinned IS NULL;
+    END IF;
+END $$;
+
+CREATE TABLE IF NOT EXISTS match_highlights (
+    id TEXT PRIMARY KEY,
+    match_id TEXT NOT NULL,
+    title TEXT,
+    url TEXT,
+    category TEXT,
+    minute TEXT,
+    description TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Fix missing columns if table already existed
+ALTER TABLE IF EXISTS public.match_highlights ADD COLUMN IF NOT EXISTS minute TEXT;
+ALTER TABLE IF EXISTS public.match_highlights ADD COLUMN IF NOT EXISTS category TEXT;
+
+CREATE TABLE IF NOT EXISTS match_stats (
+    id TEXT PRIMARY KEY,
+    match_id TEXT NOT NULL,
+    possession NUMERIC,
+    shots NUMERIC,
+    shots_on_target NUMERIC,
+    pass_accuracy NUMERIC,
+    score TEXT,
+    gk_saves NUMERIC,
+    gk_conceded NUMERIC,
+    gk_clean_sheet BOOLEAN,
+    gk_save_pct NUMERIC,
+    gk_high_claim NUMERIC,
+    gk_punches NUMERIC,
+    gk_sweeper NUMERIC,
+    gk_errors NUMERIC,
+    gk_dist_pct NUMERIC,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS player_match_stats (
+    id TEXT PRIMARY KEY,
+    match_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    rating NUMERIC,
+    goals NUMERIC,
+    passing NUMERIC,
+    position TEXT,
+    photo TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS coach_notes (
+    id TEXT PRIMARY KEY,
+    match_id TEXT NOT NULL,
+    note TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS goalkeeper_stats (
+    id TEXT PRIMARY KEY,
+    player_id TEXT NOT NULL,
+    reflex NUMERIC,
+    diving NUMERIC,
+    handling NUMERIC,
+    positioning NUMERIC,
+    instinct NUMERIC,
+    distribution NUMERIC,
+    kicking NUMERIC,
+    throwing NUMERIC,
+    reaction_speed NUMERIC,
+    agility NUMERIC,
+    shot_stopping NUMERIC,
+    one_on_one NUMERIC,
+    decision_making NUMERIC,
+    composure NUMERIC,
+    concentration NUMERIC,
+    anticipation NUMERIC,
+    passing_accuracy NUMERIC,
+    jumping_reach NUMERIC,
+    strength NUMERIC,
+    balance NUMERIC,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -576,6 +762,10 @@ BEGIN
         EXECUTE format('ALTER TABLE %I DISABLE ROW LEVEL SECURITY', t);
         EXECUTE format('DROP POLICY IF EXISTS "Allow All" ON %I', t);
         EXECUTE format('DROP POLICY IF EXISTS "Allow All Auth" ON %I', t);
+        EXECUTE format('DROP POLICY IF EXISTS "Allow public read access" ON %I', t);
+        EXECUTE format('DROP POLICY IF EXISTS "Allow public insert access" ON %I', t);
+        EXECUTE format('DROP POLICY IF EXISTS "Allow public update access" ON %I', t);
+        EXECUTE format('DROP POLICY IF EXISTS "Allow public delete access" ON %I', t);
         EXECUTE format('CREATE POLICY "Allow All" ON %I FOR ALL TO anon USING (true) WITH CHECK (true)', t);
         EXECUTE format('CREATE POLICY "Allow All Auth" ON %I FOR ALL TO authenticated USING (true) WITH CHECK (true)', t);
     END LOOP;
@@ -591,6 +781,7 @@ VALUES
   ('coaches', 'coaches', true),
   ('dashboard', 'dashboard', true),
   ('matches', 'matches', true),
+  ('match-videos', 'match-videos', true),
   ('materials', 'materials', true)
 ON CONFLICT (id) DO UPDATE SET public = true;
 
@@ -606,8 +797,8 @@ DROP POLICY IF EXISTS "Permissive Upload" ON storage.objects;
 -- Create a single permissive policy for the MVP
 CREATE POLICY "Allow All Storage" ON storage.objects 
 FOR ALL TO anon, authenticated, public 
-USING (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'materials')) 
-WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'materials'));
+USING (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'match-videos', 'materials')) 
+WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'match-videos', 'materials'));
   `;
 
   const syncToCloud = async () => {
@@ -618,8 +809,9 @@ WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboar
       const tables = [
         'players', 'dashboard_sliders', 'coaches', 
         'upcoming_matches', 'match_results', 'gallery', 
-        'financials', 'schedules', 'scouting', 'medicals',
-        'training_materials', 'attendance', 'tactics'
+        'financials', 'training_schedule', 'match_analysis', 'scouting', 'medicals',
+        'training_materials', 'announcements', 'attendance', 'tactics', 'match_highlights',
+        'match_stats', 'player_match_stats', 'coach_notes', 'goalkeeper_stats'
       ];
       
       const allowedColumns: Record<string, string[]> = {
@@ -628,14 +820,21 @@ WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboar
         coaches: ['id', 'name', 'role', 'experience', 'license', 'photourl', 'photo', 'specialty', 'rating', 'activeteams', 'phone', 'email', 'created_at'],
         upcoming_matches: ['id', 'tournament', 'rival', 'rivallogo', 'date', 'time', 'venue', 'category', 'result', 'created_at'],
         match_results: ['id', 'tournament', 'rival', 'rivallogo', 'score', 'date', 'category', 'result', 'scorers', 'created_at'],
-        gallery: ['id', 'type', 'url', 'title', 'category', 'thumbnail', 'created_at'],
+        gallery: ['id', 'type', 'media_url', 'title', 'category', 'thumbnail_url', 'created_at'],
         financials: ['id', 'player', 'date', 'amount', 'type', 'status', 'description', 'category', 'created_at'],
-        schedules: ['id', 'title', 'date', 'time', 'category', 'coach', 'field', 'status', 'venue', 'activity', 'created_at'],
+        training_schedule: ['id', 'title', 'date', 'time', 'category', 'coach', 'location', 'description', 'status', 'notes', 'created_at'],
+        match_analysis: ['id', 'match_date', 'rival', 'score', 'status', 'highlights_count', 'created_at'],
         scouting: ['id', 'name', 'position', 'currentteam', 'price', 'status', 'rating', 'match_rating', 'photo', 'notes', 'age', 'created_at'],
         medicals: ['id', 'name', 'position', 'injury', 'estimatedreturn', 'status', 'progress', 'photo', 'playername', 'created_at'],
         training_materials: ['id', 'title', 'category', 'description', 'duration', 'age_group', 'level', 'media_url', 'created_at'],
+        announcements: ['id', 'title', 'content', 'date', 'category', 'target', 'priority', 'is_pinned', 'created_at'],
         attendance: ['id', 'player_id', 'date', 'status', 'created_at'],
-        tactics: ['id', 'name', 'mode', 'formation_id', 'strategy', 'positions', 'paths', 'is_template', 'created_at']
+        tactics: ['id', 'name', 'mode', 'formation_id', 'strategy', 'positions', 'paths', 'is_template', 'created_at'],
+        match_highlights: ['id', 'match_id', 'title', 'url', 'category', 'minute', 'description', 'created_at'],
+        match_stats: ['id', 'match_id', 'possession', 'shots', 'shots_on_target', 'pass_accuracy', 'score', 'gk_saves', 'gk_conceded', 'gk_clean_sheet', 'gk_save_pct', 'gk_high_claim', 'gk_punches', 'gk_sweeper', 'gk_errors', 'gk_dist_pct', 'created_at'],
+        player_match_stats: ['id', 'match_id', 'name', 'rating', 'goals', 'passing', 'position', 'photo', 'created_at'],
+        coach_notes: ['id', 'match_id', 'note', 'created_at'],
+        goalkeeper_stats: ['id', 'player_id', 'reflex', 'diving', 'handling', 'positioning', 'instinct', 'distribution', 'kicking', 'throwing', 'reaction_speed', 'agility', 'shot_stopping', 'one_on_one', 'decision_making', 'composure', 'concentration', 'anticipation', 'passing_accuracy', 'jumping_reach', 'strength', 'balance', 'created_at']
       };
       
       try {
@@ -668,6 +867,12 @@ WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboar
                                  if ('role' in temp && table === 'coaches' && !temp.specialty) temp.specialty = temp.role;
                                  if ('photo' in temp && !temp.photourl) temp.photourl = temp.photo;
                                  if ('photourl' in temp && !temp.photo) temp.photo = temp.photourl;
+                                 if ('url' in temp && !temp.media_url) temp.media_url = temp.url;
+                                 if ('thumbnail' in temp && !temp.thumbnail_url) temp.thumbnail_url = temp.thumbnail;
+                                 if ('field' in temp && !temp.location) temp.location = temp.field;
+                                 if ('materials' in temp && !temp.description) temp.description = temp.materials;
+                                 if ('isPinned' in temp && !temp.is_pinned) temp.is_pinned = temp.isPinned;
+                                 if ('date' in temp && table === 'match_analysis' && !temp.match_date) temp.match_date = temp.date;
 
                                  // Final Sanitization: Lowercase keys and remove any field not in allowedColumns
                                  const sanitized: any = {};

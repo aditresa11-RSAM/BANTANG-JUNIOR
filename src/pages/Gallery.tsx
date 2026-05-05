@@ -25,42 +25,37 @@ import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { Loader2, X } from 'lucide-react';
 
 const getMediaDetails = (url: string, type: string) => {
-  let category: 'YOUTUBE' | 'DRIVE' | 'IMAGE' = 'IMAGE';
-  let thumbnailUrl = url;
+  let category: 'youtube' | 'drive' | 'image' = 'image';
+  let thumbnailUrl = '';
   let embedUrl = url;
 
-  if (type === 'video') {
-    if (url.includes('youtube.com') || url.includes('youtu.be')) {
-      category = 'YOUTUBE';
-      const videoId = url.split('v=')[1]?.split('&')[0] || url.split('youtu.be/')[1]?.split('?')[0] || url.split('embed/')[1]?.split('?')[0];
-      if (videoId) {
-        thumbnailUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
-        embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&rel=0&modestbranding=1`;
-      }
-    } else if (url.includes('drive.google.com')) {
-      category = 'DRIVE';
-      const fileId = url.match(/\/d\/(.+?)(\/|$)/)?.[1];
-      if (fileId) {
-        thumbnailUrl = `https://drive.google.com/thumbnail?id=${fileId}`;
-        embedUrl = `https://drive.google.com/file/d/${fileId}/preview`;
-      }
+  if (!url) return { type: category, thumbnailUrl, embedUrl };
+
+  if (url.includes('youtube.com') || url.includes('youtu.be')) {
+    category = 'youtube';
+    const videoId = url.split('v=')[1]?.split('&')[0] || url.split('youtu.be/')[1]?.split('?')[0] || url.split('embed/')[1]?.split('?')[0];
+    if (videoId) {
+      thumbnailUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+      embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&rel=0&modestbranding=1`;
     }
+  } else if (url.includes('drive.google.com')) {
+    category = 'drive';
+    const fileId = url.match(/\/d\/(.+?)(\/|$)/)?.[1];
+    if (fileId) {
+      thumbnailUrl = `https://drive.google.com/thumbnail?id=${fileId}`;
+      embedUrl = `https://drive.google.com/file/d/${fileId}/preview`;
+    }
+  } else {
+    thumbnailUrl = url;
   }
 
-  return { category, thumbnailUrl, embedUrl };
+  return { type: category, thumbnailUrl, embedUrl };
 };
 
-const initialMedia = [
-  { id: '1', type: 'photo', url: 'https://images.unsplash.com/photo-1543351611-58f69d7c1781?auto=format&fit=crop&q=80&w=1000', title: 'Latihan Bersama Coach', category: 'Training' },
-  { id: '2', type: 'photo', url: 'https://images.unsplash.com/photo-1517466787929-bc94061c5c50?auto=format&fit=crop&q=80&w=1000', title: 'Trophy Celebration', category: 'Event' },
-  { id: '3', type: 'video', url: 'https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&q=80&w=1000', title: 'Top 10 Goals Week 4', category: 'Highlights' },
-  { id: '4', type: 'photo', url: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=1000', title: 'New Facility Launch', category: 'Facility' },
-];
-
-const categories = ['All', 'Training', 'Tournament', 'Event', 'Highlights', 'Facility'];
+const categories = ['All', 'Training', 'Matches', 'Events', 'Highlights', 'Documentation'];
 
 export default function Gallery() {
-  const { data: media, addItems, updateItem, deleteItem } = useCMSData('gallery', initialMedia);
+  const { data: media, addItems, updateItem, deleteItem, isLoading } = useCMSData('gallery', []);
   const [activeTab, setActiveTab] = useState('All');
   const [mediaTypeFilter, setMediaTypeFilter] = useState('All');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -68,19 +63,19 @@ export default function Gallery() {
   const [editingItem, setEditingItem] = useState<any>(null);
   const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, id: '', title: '' });
   const [formData, setFormData] = useState({
-    title: '', category: 'Training', type: 'photo', url: ''
+    title: '', category: 'Training', type: 'image', media_url: '', thumbnail_url: ''
   });
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<any>(null);
 
   const filteredMedia = media.filter((m: any) => 
     (activeTab === 'All' || m.category === activeTab) &&
-    (mediaTypeFilter === 'All' || (mediaTypeFilter === 'Photo' ? m.type === 'photo' : m.type === 'video'))
+    (mediaTypeFilter === 'All' || (mediaTypeFilter === 'Photo' ? m.type === 'image' : m.type !== 'image'))
   );
 
   const handleOpenAdd = () => {
     setEditingItem(null);
-    setFormData({ title: '', category: 'Training', type: 'photo', url: '' });
+    setFormData({ title: '', category: 'Training', type: 'image', media_url: '', thumbnail_url: '' });
     setIsModalOpen(true);
   };
 
@@ -93,10 +88,17 @@ export default function Gallery() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const details = getMediaDetails(formData.media_url, formData.type);
+    const finalData = {
+      ...formData,
+      type: details.type,
+      thumbnail_url: details.thumbnailUrl || formData.thumbnail_url
+    };
+
     if (editingItem) {
-      updateItem(editingItem.id, formData);
+      updateItem(editingItem.id, finalData);
     } else {
-      addItems({ ...formData, url: formData.url || 'https://images.unsplash.com/photo-1543351611-58f69d7c1781?auto=format&fit=crop&q=80&w=1000' });
+      addItems(finalData);
     }
     setIsModalOpen(false);
   };
@@ -108,7 +110,7 @@ export default function Gallery() {
       try {
         const publicUrl = await uploadFile(file, 'gallery');
         if (publicUrl) {
-          setFormData({ ...formData, url: publicUrl });
+          setFormData({ ...formData, media_url: publicUrl, thumbnail_url: publicUrl, type: 'image' });
         }
       } catch (error) {
         console.error("Upload failed:", error);
@@ -130,7 +132,7 @@ export default function Gallery() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
             <h1 className="text-3xl font-display font-bold text-glow uppercase tracking-tight">MEDIA ARCHIVE</h1>
-            <p className="text-white/40 text-sm">CMS Admin: Kelola arsip visual momen berharga akademi kami.</p>
+            <p className="text-white/40 text-sm">CMS Admin: Data tersimpan permanen di database Supabase.</p>
           </div>
           <div className="flex items-center gap-3">
              <button onClick={handleOpenAdd} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-[0_0_20px_rgba(37,99,235,0.3)] !py-2 px-6 rounded-xl flex items-center gap-2 transition-all font-semibold uppercase tracking-wider text-xs">
@@ -177,64 +179,74 @@ export default function Gallery() {
         </div>
 
         {/* Media Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-           {filteredMedia.map((item: any) => {
-             const { category, thumbnailUrl } = getMediaDetails(item.url, item.type);
-             return (
-               <motion.div 
-                 layout
-                 initial={{ opacity: 0, scale: 0.9 }}
-                 animate={{ opacity: 1, scale: 1 }}
-                 key={item.id}
-                 className="glass-card group overflow-hidden relative cursor-pointer"
-                 onClick={() => { setSelectedMedia(item); setIsDetailModalOpen(true); }}
-               >
-                  <div className="aspect-[4/5] overflow-hidden relative">
-                     <img 
-                        src={thumbnailUrl} 
-                        alt={item.title} 
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1543351611-58f69d7c1781?auto=format&fit=crop&q=80&w=1000';
-                        }}
-                     />
-                     
-                     {/* Overlay */}
-                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <div className="absolute top-4 right-4 flex flex-col gap-2">
-                           <button onClick={(e) => handleOpenEdit(item, e)} className="p-2 backdrop-blur-md bg-black/40 rounded-xl border border-white/20 hover:bg-blue-500 hover:text-white transition-all text-blue-400">
-                              <Edit2 className="w-4 h-4" />
-                           </button>
-                           <button onClick={(e) => handleDelete(item.id, item.title, e)} className="p-2 backdrop-blur-md bg-black/40 rounded-xl border border-white/20 hover:bg-red-500 hover:text-white transition-all text-red-400">
-                              <Trash2 className="w-4 h-4" />
-                           </button>
-                        </div>
-                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-4 bg-white/20 backdrop-blur-md rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Play className="w-6 h-6 text-white fill-white" />
-                        </div>
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="aspect-[4/5] rounded-[2rem] bg-white/5 animate-pulse" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {filteredMedia.map((item: any) => {
+              const { embedUrl, thumbnailUrl } = getMediaDetails(item.media_url, item.type);
+              const displayThumbnail = item.thumbnail_url || thumbnailUrl;
+              
+              return (
+                <motion.div 
+                  layout
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  key={item.id}
+                  className="glass-card group overflow-hidden relative cursor-pointer"
+                  onClick={() => { setSelectedMedia({...item, embedUrl}); setIsDetailModalOpen(true); }}
+                >
+                   <div className="aspect-[4/5] overflow-hidden relative">
+                      <img 
+                         src={displayThumbnail || null} 
+                         alt={item.title} 
+                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                         onError={(e) => {
+                           (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1543351611-58f69d7c1781?auto=format&fit=crop&q=80&w=1000';
+                         }}
+                      />
+                      
+                      {/* Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                         <div className="absolute top-4 right-4 flex flex-col gap-2">
+                            <button onClick={(e) => handleOpenEdit(item, e)} className="p-2 backdrop-blur-md bg-black/40 rounded-xl border border-white/20 hover:bg-blue-500 hover:text-white transition-all text-blue-400">
+                               <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button onClick={(e) => handleDelete(item.id, item.title, e)} className="p-2 backdrop-blur-md bg-black/40 rounded-xl border border-white/20 hover:bg-red-500 hover:text-white transition-all text-red-400">
+                               <Trash2 className="w-4 h-4" />
+                            </button>
+                         </div>
+                         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-4 bg-white/20 backdrop-blur-md rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                           <Play className="w-6 h-6 text-white fill-white" />
+                         </div>
 
-                        <div className="absolute bottom-6 left-6 right-6">
-                           <div className="flex items-center gap-2 mb-2">
-                              <span className="text-[10px] font-black uppercase text-white/80 tracking-widest bg-black/40 px-2 py-1 rounded">
-                                {item.type === 'video' ? category : 'IMAGE'}
-                              </span>
-                              <span className="text-[10px] font-black uppercase text-white/60 tracking-widest">{item.category}</span>
-                           </div>
-                           <h3 className="text-lg font-display font-bold leading-tight text-white">{item.title}</h3>
+                         <div className="absolute bottom-6 left-6 right-6">
+                            <div className="flex items-center gap-2 mb-2">
+                               <span className="text-[10px] font-black uppercase text-white/80 tracking-widest bg-black/40 px-2 py-1 rounded">
+                                 {item.type.toUpperCase()}
+                               </span>
+                               <span className="text-[10px] font-black uppercase text-white/60 tracking-widest">{item.category}</span>
+                            </div>
+                            <h3 className="text-lg font-display font-bold leading-tight text-white">{item.title}</h3>
+                         </div>
+                      </div>
+                      
+                      {/* Static indicator for videos */}
+                      {item.type !== 'image' && (
+                        <div className="absolute top-4 left-4 p-2 bg-red-600 rounded">
+                           <Video className="w-3 h-3 text-white" />
                         </div>
-                     </div>
-                     
-                     {/* Static indicator for videos */}
-                     {item.type === 'video' && (
-                       <div className="absolute top-4 left-4 p-2 bg-red-600 rounded">
-                          <Video className="w-3 h-3 text-white" />
-                       </div>
-                     )}
-                  </div>
-               </motion.div>
-             )
-           })}
-        </div>
+                      )}
+                   </div>
+                </motion.div>
+              )
+            })}
+          </div>
+        )}
 
         {/* Load More */}
         <div className="flex justify-center mt-12">
@@ -258,12 +270,12 @@ export default function Gallery() {
                     <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
                   </div>
                 )}
-                {formData.url ? (
-                  <img src={getMediaDetails(formData.url, formData.type).thumbnailUrl} alt="Preview" className="w-full h-full object-cover" />
+                {formData.media_url ? (
+                  <img src={getMediaDetails(formData.media_url, formData.type).thumbnailUrl || formData.thumbnail_url || null} alt="Preview" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full bg-white/5 flex flex-col items-center justify-center text-white/20">
                     <ImageIcon className="w-8 h-8 mb-2" />
-                    <span className="text-xs">Pilih Gambar / Frame Video</span>
+                    <span className="text-xs">Pilih Gambar / Link Video</span>
                   </div>
                 )}
               </div>
@@ -278,8 +290,8 @@ export default function Gallery() {
 
           <div className="space-y-4">
             <div>
-              <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-1.5 block">URL Media (YouTube/Drive Link)</label>
-              <input type="text" value={formData.url} onChange={(e) => setFormData({...formData, url: e.target.value})} className="w-full bg-surface-raised border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]" placeholder="https://..." />
+              <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-1.5 block">URL Media (Image/YouTube/Drive)</label>
+              <input type="text" value={formData.media_url} onChange={(e) => setFormData({...formData, media_url: e.target.value})} className="w-full bg-surface-raised border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]" placeholder="https://..." />
             </div>
 
             <div>
@@ -295,10 +307,11 @@ export default function Gallery() {
                 </select>
               </div>
               <div>
-                <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-1.5 block">Jenis Media</label>
-                <select value={formData.type} onChange={(e) => setFormData({...formData, type: e.target.value})} className="w-full bg-surface-raised border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]">
-                  <option value="photo">Photo</option>
-                  <option value="video">Video</option>
+                <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-1.5 block">Tipe Sumber</label>
+                <select value={formData.type} onChange={(e) => setFormData({...formData, type: e.target.value as any})} className="w-full bg-surface-raised border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]">
+                  <option value="image">Image / Local Upload</option>
+                  <option value="youtube">YouTube</option>
+                  <option value="drive">Google Drive</option>
                 </select>
               </div>
             </div>
@@ -309,7 +322,7 @@ export default function Gallery() {
                Batal
              </button>
              <button type="submit" className="flex-1 py-3 rounded-xl bg-[var(--color-primary)] text-black font-bold text-sm hover:shadow-[0_0_20px_var(--color-primary-glow)] transition-all">
-               {editingItem ? 'Simpan' : 'Upload'}
+               {editingItem ? 'Simpan' : 'Simpan ke Database'}
              </button>
           </div>
         </form>
@@ -346,15 +359,15 @@ export default function Gallery() {
                  <X className="w-5 h-5" />
                </button>
 
-               {selectedMedia.type === 'video' ? (
+               {selectedMedia.type !== 'image' ? (
                  <iframe 
-                   src={getMediaDetails(selectedMedia.url, selectedMedia.type).embedUrl} 
+                   src={selectedMedia.embedUrl} 
                    className="w-full h-full border-none" 
                    allow="autoplay; encrypted-media; gyroscope; picture-in-picture"
                    allowFullScreen
                  />
                ) : (
-                 <img src={selectedMedia.url} className="w-full h-full object-contain" alt={selectedMedia.title} />
+                 <img src={selectedMedia.media_url || null} className="w-full h-full object-contain" alt={selectedMedia.title} />
                )}
 
                <div className="absolute bottom-0 inset-x-0 p-8 bg-gradient-to-t from-black via-black/50 to-transparent pointer-events-none">

@@ -152,10 +152,10 @@ export default function Coaches() {
                      
                      {/* Background & Photo (Full frame) */}
                      <div className="absolute inset-0 bg-[#081225] overflow-hidden z-0">
-                        <img src={coach.photo} alt="" className="w-full h-full object-cover opacity-40 blur-2xl scale-150" />
+                        <img src={coach.photo || null} alt="" className="w-full h-full object-cover opacity-40 blur-2xl scale-150" />
                      </div>
                      <img 
-                        src={coach.photo} 
+                        src={coach.photo || null} 
                         alt={coach.name} 
                         className="absolute inset-0 w-full h-full object-cover object-top opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700 ease-out z-10" 
                      />

@@ -21,7 +21,7 @@ export default function Attendance() {
 
   const filteredPlayers = players.filter(p => {
     const matchCat = filterCat === 'All' || p.category === filterCat;
-    const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
+    const matchSearch = (p.name || '').toLowerCase().includes(search.toLowerCase());
     return matchCat && matchSearch;
   });
 

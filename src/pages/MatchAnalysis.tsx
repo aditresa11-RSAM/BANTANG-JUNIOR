@@ -6,7 +6,7 @@ import { uploadFile, uploadRawFile } from '../lib/supabase';
 import { 
   BarChart3, Users, Trophy, Target, Video, Activity, Zap, 
   Shield, Play, AlertCircle, Edit, Trash2, Plus, Download, 
-  ChevronDown, Hexagon, FileText, Crosshair
+  ChevronDown, Hexagon, FileText, Crosshair, Image as ImageIcon, X
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import jsPDF from 'jspdf';
@@ -239,8 +239,11 @@ export default function MatchAnalysis() {
      }
 
      const payload = { 
-       match_id: currentMatchId, title: videoForm.title, url: finalUrl, 
-       category: videoForm.category, minute: videoForm.minute, description: videoForm.desc 
+       match_id: currentMatchId, 
+       title: videoForm.category ? `[${videoForm.category}] ${videoForm.title}` : videoForm.title, 
+       url: finalUrl, 
+       minute: videoForm.minute, 
+       description: videoForm.desc 
      };
 
      if (videoForm.id) updateVideo(videoForm.id, payload);
@@ -737,17 +740,21 @@ export default function MatchAnalysis() {
                                          </div>
                                       </div>
                                       <div className="absolute bottom-2 left-2 flex gap-1.5">
-                                         {video.category && (
-                                           <span className={cn("text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded shadow-md border border-white/10",
-                                              video.category === 'Goal' ? "bg-emerald-500 text-white" :
-                                              video.category === 'Assist' ? "bg-blue-500 text-white" :
-                                              video.category === 'Save' ? "bg-amber-500 text-black" :
-                                              video.category === 'Error' ? "bg-rose-500 text-white" :
-                                              "bg-purple-500 text-white"
-                                           )}>
-                                              {video.category}
-                                           </span>
-                                         )}
+                                         {(() => {
+                                            const displayCategory = video.category || (video.title?.match(/^\[(.*?)\]/) ? video.title.match(/^\[(.*?)\]/)[1] : null);
+                                            if (!displayCategory) return null;
+                                            return (
+                                              <span className={cn("text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded shadow-md border border-white/10",
+                                                 displayCategory === 'Goal' ? "bg-emerald-500 text-white" :
+                                                 displayCategory === 'Assist' ? "bg-blue-500 text-white" :
+                                                 displayCategory === 'Save' ? "bg-amber-500 text-black" :
+                                                 displayCategory === 'Error' ? "bg-rose-500 text-white" :
+                                                 "bg-purple-500 text-white"
+                                              )}>
+                                                 {displayCategory}
+                                              </span>
+                                            );
+                                         })()}
                                       </div>
                                       {video.minute && (
                                          <div className="absolute bottom-2 right-2 text-[10px] font-black text-white bg-black/60 px-2 py-1 rounded border border-white/10">
@@ -756,7 +763,9 @@ export default function MatchAnalysis() {
                                       )}
                                    </div>
                                    <div className="p-4">
-                                      <h4 className="text-sm font-bold text-white mb-1 truncate">{video.title}</h4>
+                                      <h4 className="text-sm font-bold text-white mb-1 truncate">
+                                         {video.title?.replace(/^\[.*?\]\s?/, '') || video.title}
+                                      </h4>
                                       <p className="text-[10px] text-white/50 line-clamp-2">{video.description || 'Tidak ada deskripsi.'}</p>
                                    </div>
                                 </div>

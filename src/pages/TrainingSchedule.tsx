@@ -11,21 +11,25 @@ import { ConfirmModal } from '../components/ui/ConfirmModal';
 
 const CATEGORIES = ['Semua Tim', 'U8', 'U9', 'U10', 'U11', 'U12', 'U13', 'U14', 'U15', 'GK', 'Elite'];
 
+const dt = new Date();
+const currentYear = dt.getFullYear();
+const currentMonth = String(dt.getMonth() + 1).padStart(2, '0');
+
 const initialSessions = [
-  { id: '1', title: 'Individual Technique & Ball Mastery', date: '2026-04-28', time: '16:00 - 17:30', category: 'U12', coach: 'Coach Andre', field: 'Lapangan A', status: 'Upcoming', materials: 'Ball Control DRILL', notes: 'Fokus pada sentuhan pertama' },
-  { id: '2', title: 'Tactical Awareness & Positioning', date: '2026-04-28', time: '16:00 - 18:00', category: 'U15', coach: 'Coach Sarah', field: 'Lapangan B', status: 'Upcoming', materials: 'Positional Play', notes: 'Transisi cepat bertahan ke menyerang' },
-  { id: '3', title: 'Physical Conditioning (Endurance)', date: '2026-04-29', time: '08:00 - 10:00', category: 'U14', coach: 'Coach Mike', field: 'Gym Area', status: 'Upcoming', materials: 'Endurance Circuit', notes: '' },
-  { id: '4', title: 'Goalkeeper Specialist Training', date: '2026-04-29', time: '16:00 - 17:30', category: 'GK', coach: 'Coach Budi', field: 'Lapangan C', status: 'Upcoming', materials: 'Reflex & Distribution', notes: '' },
-  { id: '5', title: 'Set Piece Execution', date: '2026-04-25', time: '16:00 - 18:00', category: 'U15', coach: 'Coach Sarah', field: 'Lapangan B', status: 'Completed', materials: 'Corners & Free Kicks', notes: 'Evaluasi akurasi umpan' },
+  { id: '1', title: 'Individual Technique & Ball Mastery', date: `${currentYear}-${currentMonth}-28`, time: '16:00 - 17:30', category: 'U12', coach: 'Coach Andre', field: 'Lapangan A', status: 'Upcoming', materials: 'Ball Control DRILL', notes: 'Fokus pada sentuhan pertama' },
+  { id: '2', title: 'Tactical Awareness & Positioning', date: `${currentYear}-${currentMonth}-28`, time: '16:00 - 18:00', category: 'U15', coach: 'Coach Sarah', field: 'Lapangan B', status: 'Upcoming', materials: 'Positional Play', notes: 'Transisi cepat bertahan ke menyerang' },
+  { id: '3', title: 'Physical Conditioning (Endurance)', date: `${currentYear}-${currentMonth}-29`, time: '08:00 - 10:00', category: 'U14', coach: 'Coach Mike', field: 'Gym Area', status: 'Upcoming', materials: 'Endurance Circuit', notes: '' },
+  { id: '4', title: 'Goalkeeper Specialist Training', date: `${currentYear}-${currentMonth}-29`, time: '16:00 - 17:30', category: 'GK', coach: 'Coach Budi', field: 'Lapangan C', status: 'Upcoming', materials: 'Reflex & Distribution', notes: '' },
+  { id: '5', title: 'Set Piece Execution', date: `${currentYear}-${currentMonth}-25`, time: '16:00 - 18:00', category: 'U15', coach: 'Coach Sarah', field: 'Lapangan B', status: 'Completed', materials: 'Corners & Free Kicks', notes: 'Evaluasi akurasi umpan' },
 ];
 
 const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 export default function TrainingSchedule() {
-  const { data: sessions, addItems, updateItem, deleteItem } = useCMSData('schedules', initialSessions);
+  const { data: sessions, addItems, updateItem, deleteItem } = useCMSData('training_schedule', initialSessions);
 
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 3, 28)); // April 2026
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [viewType, setViewType] = useState('list'); // 'list' or 'calendar'
   const [filterCat, setFilterCat] = useState('Semua Tim');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -35,7 +39,7 @@ export default function TrainingSchedule() {
   const [editingSession, setEditingSession] = useState<any>(null);
   const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, id: '' });
   const [formData, setFormData] = useState({
-    title: '', date: '2026-04-28', time: '16:00 - 18:00', category: 'U15', coach: 'Coach', field: 'Lapangan A', status: 'Upcoming', materials: '', notes: ''
+    title: '', date: new Date().toISOString().split('T')[0], time: '16:00 - 18:00', category: 'U15', coach: '', location: '', status: 'Upcoming', description: '', notes: ''
   });
 
   const formattedDate = `${months[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
@@ -60,7 +64,7 @@ export default function TrainingSchedule() {
   const handleOpenAdd = () => {
     setEditingSession(null);
     const dateStr = currentDate.toISOString().split('T')[0];
-    setFormData({ title: '', date: dateStr, time: '16:00 - 18:00', category: 'U15', coach: '', field: '', status: 'Upcoming', materials: '', notes: '' });
+    setFormData({ title: '', date: dateStr, time: '16:00 - 18:00', category: 'U15', coach: '', location: '', status: 'Upcoming', description: '', notes: '' });
     setIsModalOpen(true);
   };
 
@@ -72,10 +76,25 @@ export default function TrainingSchedule() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const payload = {
+      id: editingSession ? editingSession.id : undefined,
+      title: formData.title,
+      date: formData.date,
+      time: formData.time,
+      category: formData.category,
+      coach: formData.coach,
+      location: formData.location || (formData as any).field,
+      field: formData.location || (formData as any).field, // backward compatibility
+      description: formData.description || (formData as any).materials,
+      materials: formData.description || (formData as any).materials, // backward compatibility
+      notes: formData.notes || '',
+      status: formData.status || 'Upcoming'
+    };
+
     if (editingSession) {
-      updateItem(editingSession.id, formData);
+      updateItem(editingSession.id, payload);
     } else {
-      addItems(formData);
+      addItems(payload);
     }
     setIsModalOpen(false);
   };
@@ -207,9 +226,9 @@ export default function TrainingSchedule() {
                           </div>
                           <h4 className="text-lg font-black tracking-tight text-white group-hover:text-amber-400 transition-colors mb-4">{session.title}</h4>
                           <div className="flex flex-wrap gap-4 mt-auto">
-                            <div className="flex items-center gap-2 text-[10px] font-bold text-white/50 uppercase tracking-widest"><MapPin className="w-3.5 h-3.5 text-emerald-400" /> {session.field}</div>
+                            <div className="flex items-center gap-2 text-[10px] font-bold text-white/50 uppercase tracking-widest"><MapPin className="w-3.5 h-3.5 text-emerald-400" /> {session.location || session.field}</div>
                             <div className="flex items-center gap-2 text-[10px] font-bold text-white/50 uppercase tracking-widest"><Users className="w-3.5 h-3.5 text-purple-400" /> {session.coach}</div>
-                            {session.materials && <div className="flex items-center gap-2 text-[10px] font-bold text-white/50 uppercase tracking-widest"><BookOpen className="w-3.5 h-3.5 text-pink-400" /> {session.materials}</div>}
+                            {(session.description || session.materials) && <div className="flex items-center gap-2 text-[10px] font-bold text-white/50 uppercase tracking-widest"><BookOpen className="w-3.5 h-3.5 text-pink-400" /> {session.description || session.materials}</div>}
                           </div>
                         </div>
                       </div>
@@ -283,11 +302,11 @@ export default function TrainingSchedule() {
             </div>
             <div className="col-span-2 md:col-span-1">
               <label className="text-[10px] uppercase tracking-widest text-white/40 font-black mb-2 block">Lapangan / Lokasi</label>
-              <input type="text" required value={formData.field} onChange={(e) => setFormData({...formData, field: e.target.value})} className="w-full bg-black/60 border border-white/10 rounded-2xl py-4 px-5 text-sm text-white focus:outline-none focus:border-blue-500 transition-all font-bold" placeholder="Cth: Lapangan A" />
+              <input type="text" required value={formData.location || (formData as any).field || ''} onChange={(e) => setFormData({...formData, location: e.target.value})} className="w-full bg-black/60 border border-white/10 rounded-2xl py-4 px-5 text-sm text-white focus:outline-none focus:border-blue-500 transition-all font-bold" placeholder="Cth: Lapangan A" />
             </div>
             <div className="col-span-2 md:col-span-1">
               <label className="text-[10px] uppercase tracking-widest text-white/40 font-black mb-2 block">Materi Latihan (Opsional)</label>
-              <input type="text" value={formData.materials || ''} onChange={(e) => setFormData({...formData, materials: e.target.value})} className="w-full bg-black/60 border border-white/10 rounded-2xl py-4 px-5 text-sm text-white focus:outline-none focus:border-blue-500 transition-all font-bold" placeholder="Cth: Ball Control Drill" />
+              <input type="text" value={formData.description || (formData as any).materials || ''} onChange={(e) => setFormData({...formData, description: e.target.value})} className="w-full bg-black/60 border border-white/10 rounded-2xl py-4 px-5 text-sm text-white focus:outline-none focus:border-blue-500 transition-all font-bold" placeholder="Cth: Ball Control Drill" />
             </div>
             <div className="col-span-2">
               <label className="text-[10px] uppercase tracking-widest text-white/40 font-black mb-2 block">Catatan Khusus (Opsional)</label>

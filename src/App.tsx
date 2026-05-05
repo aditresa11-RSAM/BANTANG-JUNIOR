@@ -215,9 +215,9 @@ export default function App() {
     
     // Real Supabase auth
     try {
-        let identifier = credentials.username;
+        let identifier = credentials.username || '';
         // If it's a simple username (no @), append our internal domain
-        if (!identifier.includes('@')) {
+        if (identifier && !identifier.includes('@')) {
             identifier = `${identifier.toLowerCase().trim()}@ssb.internal`;
         }
 

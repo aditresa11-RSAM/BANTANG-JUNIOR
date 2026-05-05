@@ -40,8 +40,8 @@ export default function CoachProfile() {
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(37,99,235,0.1),transparent_70%)] pointer-events-none" />
               {/* Image full width container */}
               <div className="relative h-[600px] w-full flex items-center justify-center bg-[#081225] overflow-hidden">
-                 <img src={coach.photo} alt="" className="absolute inset-0 w-full h-full object-cover opacity-50 blur-3xl scale-125" />
-                 <img src={coach.photo} alt={coach.name} className="relative z-10 max-w-full max-h-full object-contain drop-shadow-[0_20px_60px_rgba(0,0,0,0.95)]" />
+                 <img src={coach.photo || null} alt="" className="absolute inset-0 w-full h-full object-cover opacity-50 blur-3xl scale-125" />
+                 <img src={coach.photo || null} alt={coach.name} className="relative z-10 max-w-full max-h-full object-contain drop-shadow-[0_20px_60px_rgba(0,0,0,0.95)]" />
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f1c] via-[#0a0f1c]/10 to-transparent pointer-events-none" />
               

@@ -293,7 +293,7 @@ export default function PlayerProfile() {
            {/* Big Photo & Basics */}
            <div className="md:w-[400px] shrink-0 relative p-8 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-white/10 bg-gradient-to-b from-white/5 to-transparent">
              <div className="w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden border-4 border-white/10 relative shadow-[0_0_50px_rgba(37,99,235,0.2)] mb-6 group-hover:scale-105 transition-transform duration-500">
-               <img src={formData.photo} alt={formData.name} className="w-full h-full object-cover object-top" />
+               <img src={formData.photo || null} alt={formData.name} className="w-full h-full object-cover object-top" />
                <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[#111827] to-transparent" />
                {isEditing && (
                  <label className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer text-white">
@@ -365,7 +365,7 @@ export default function PlayerProfile() {
                     </h3>
                   </div>
                   <div className="w-full aspect-square relative z-10 max-w-[500px] mx-auto min-h-0 min-w-0">
-                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                       <RadarChart cx="50%" cy="50%" outerRadius="70%" data={group.data}>
                         <PolarGrid stroke="rgba(255,255,255,0.05)" />
                         <PolarAngleAxis dataKey="subject" tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 11, fontWeight: '900', textTransform: 'uppercase' }} />
@@ -434,7 +434,7 @@ export default function PlayerProfile() {
                   </h3>
                 </div>
                 <div className="flex-1 w-full min-h-[450px] relative z-10 min-h-0 min-w-0">
-                  <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                     <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
                       <PolarGrid stroke="rgba(255,255,255,0.05)" />
                       <PolarAngleAxis dataKey="subject" tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 11, fontWeight: '900', textTransform: 'uppercase' }} />
@@ -516,7 +516,7 @@ export default function PlayerProfile() {
           <div className="mt-6 bg-[#0c1322] border border-white/5 shadow-2xl rounded-[2.5rem] p-8">
              <h3 className="text-xl font-display font-black text-white uppercase tracking-tight mb-6">Progress History (Goalkeeper)</h3>
              <div className="w-full h-64 min-h-0 min-w-0">
-               <ResponsiveContainer width="100%" height="100%">
+               <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                  <LineChart data={[
                     { month: 'Jan', reflex: 70, diving: 68 },
                     { month: 'Feb', reflex: 72, diving: 70 },

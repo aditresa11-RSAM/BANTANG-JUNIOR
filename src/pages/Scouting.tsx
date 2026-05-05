@@ -49,7 +49,7 @@ export default function Scouting() {
               <div className="flex justify-between items-start mb-6">
                 <div className="flex gap-4">
                   <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-white/10">
-                    <img src={target.photo} alt={target.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                    <img src={target.photo || null} alt={target.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                   </div>
                   <div>
                      <h3 className="text-xl font-display font-black text-white uppercase tracking-tighter">{target.name}</h3>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Plus, Edit2, Trash2, Image as ImageIcon, Save, X, ArrowRight, Loader2 } from 'lucide-react';
 import { useCMSData } from '../lib/store';
@@ -94,19 +94,33 @@ export default function ManagePrograms() {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Show immediate local preview
+      const localPreview = URL.createObjectURL(file);
+      setFormData(prev => ({ ...prev, image: localPreview }));
+      
       setIsUploading(true);
       try {
-        const publicUrl = await uploadFile(file, 'programs');
+        const publicUrl = await uploadFile(file, 'gallery');
         if (publicUrl) {
-          setFormData({ ...formData, image: publicUrl });
+          setFormData(prev => ({ ...prev, image: publicUrl }));
+        } else {
+          // If publicUrl is empty, fallback failed as well
+          setFormData(prev => ({ ...prev, image: '' }));
+          alert('Gagal memproses gambar. Coba gambar lain.');
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Upload failed:", error);
-        alert("Gagal mengunggah gambar. Pastikan bucket 'programs' tersedia di Supabase atau coba lagi.");
+        alert("Gagal mengunggah gambar. Coba lagi.");
+        // Revert local preview
+        setFormData(prev => ({ ...prev, image: '' }));
       } finally {
         setIsUploading(false);
       }
     }
+  };
+
+  const handleRemoveImage = () => {
+    setFormData(prev => ({ ...prev, image: '' }));
   };
 
   const handleCancel = () => {
@@ -246,15 +260,25 @@ export default function ManagePrograms() {
                             </div>
                           )}
                           {formData.image ? (
-                            <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
+                            <>
+                              <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
+                              <button 
+                                type="button"
+                                onClick={handleRemoveImage}
+                                className="absolute top-2 right-2 bg-red-500/80 hover:bg-red-600 text-white p-1.5 rounded-lg z-30 transition-all opacity-0 group-hover:opacity-100"
+                                title="Hapus Gambar"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </>
                           ) : (
                             <div className="flex flex-col items-center justify-center text-white/20">
                               <ImageIcon className="w-8 h-8 mb-2" />
                               <span className="text-[10px] font-bold uppercase">Click to upload</span>
                             </div>
                           )}
-                          <label className="absolute inset-0 cursor-pointer flex items-center justify-center bg-black/0 hover:bg-black/40 opacity-0 hover:opacity-100 transition-all z-10">
-                            <span className="bg-purple-500 text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest">Pilih Gambar</span>
+                          <label className="absolute inset-0 cursor-pointer flex items-center justify-center bg-black/0 hover:bg-black/20 opacity-0 hover:opacity-100 transition-all z-10">
+                            <span className="bg-purple-500/80 backdrop-blur-sm text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest border border-white/20">Ganti Gambar</span>
                             <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
                           </label>
                         </div>
@@ -349,7 +373,7 @@ export default function ManagePrograms() {
                                 const file = e.target.files?.[0];
                                 if (file) {
                                   setIsUploading(true);
-                                  const url = await uploadRawFile(file, 'programs-videos');
+                                  const url = await uploadRawFile(file, 'match-videos');
                                   if (url) setFormData({...formData, videoText: url});
                                   setIsUploading(false);
                                 }

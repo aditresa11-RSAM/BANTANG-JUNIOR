@@ -44,8 +44,8 @@ export default function Financials() {
   });
 
   const filteredTransactions = transactions.filter((tx: any) => 
-    tx.player.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    tx.id.toLowerCase().includes(searchTerm.toLowerCase())
+    (tx.player || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (tx.id || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const totalRevenue = transactions

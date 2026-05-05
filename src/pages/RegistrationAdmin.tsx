@@ -25,7 +25,7 @@ export default function RegistrationAdmin() {
       const regId = reg.registrationId || reg.registrationid || '';
       const regStatus = reg.status || '';
       const regAge = reg.ageCategory || reg.agecategory || '';
-      const matchSearch = regFullName.toLowerCase().includes(searchTerm.toLowerCase()) || regId.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchSearch = (regFullName || '').toLowerCase().includes(searchTerm.toLowerCase()) || (regId || '').toLowerCase().includes(searchTerm.toLowerCase());
       const matchStatus = filterStatus === 'All' || regStatus === filterStatus;
       const matchAge = filterAge === 'All' || regAge === filterAge;
       return matchSearch && matchStatus && matchAge;

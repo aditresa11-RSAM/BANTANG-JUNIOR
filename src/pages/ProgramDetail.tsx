@@ -45,7 +45,7 @@ export default function ProgramDetail() {
         
         {/* HEADER HERO */}
         <div className="relative w-full h-[300px] md:h-[400px] rounded-3xl overflow-hidden group">
-          <img src={program.image} alt={program.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" />
+          <img src={program.image || null} alt={program.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#080d19] via-[#080d19]/60 to-transparent" />
           
           <button 

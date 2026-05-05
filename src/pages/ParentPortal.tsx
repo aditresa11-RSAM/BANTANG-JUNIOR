@@ -69,7 +69,7 @@ export default function ParentPortal() {
                   <span className="text-xl font-black text-emerald-400">95%</span>
                 </div>
                 <div className="w-full h-[100px] min-h-0">
-                  <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                     <AreaChart data={attendanceData}>
                       <defs>
                         <linearGradient id="colorAtt" x1="0" y1="0" x2="0" y2="1">

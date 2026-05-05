@@ -83,7 +83,7 @@ export default function Materials() {
 
   const filteredMaterials = materials.filter(m => {
     const matchCat = filterTab === 'All' || m.category === filterTab;
-    const matchSearch = m.title.toLowerCase().includes(search.toLowerCase()) || m.description?.toLowerCase().includes(search.toLowerCase());
+    const matchSearch = (m.title || '').toLowerCase().includes(search.toLowerCase()) || (m.description || '').toLowerCase().includes(search.toLowerCase());
     return matchCat && matchSearch;
   });
 

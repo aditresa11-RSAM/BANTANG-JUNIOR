@@ -148,7 +148,7 @@ export default function PlayerCompare() {
             <div className="glass-card p-6 md:p-8 rounded-[2.5rem] border border-[var(--color-primary)]/20 relative overflow-hidden flex flex-col items-center">
               <h3 className="text-sm font-black text-white uppercase tracking-widest mb-6">Radar Perbandingan (GK Only)</h3>
               <div className="w-full max-w-md aspect-square relative z-10 mx-auto min-h-0 min-w-0">
-                 <ResponsiveContainer width="100%" height="100%">
+                 <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                     <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
                        <defs>
                           <linearGradient id="gkGradientA" x1="0" y1="0" x2="0" y2="1">

@@ -1,7 +1,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { BarChart3, Users, Calendar, Activity, CreditCard, UserSquare2, Trophy, ImageIcon, LogOut, Bell, Search, Menu, X, Home, Settings, Goal, ScanSearch, Stethoscope, Users2, Megaphone, Bot, CheckSquare, BookOpen, UserPlus, FileText } from 'lucide-react';
+import { BarChart3, Users, Calendar, Activity, CreditCard, UserSquare2, Trophy, Image as ImageIcon, LogOut, Bell, Search, Menu, X, Home, Settings, Goal, ScanSearch, Stethoscope, Users2, Megaphone, Bot, CheckSquare, BookOpen, UserPlus, FileText } from 'lucide-react';
 import { useAuth, useSettings } from '../../App';
 import { cn } from '../../lib/utils';
 

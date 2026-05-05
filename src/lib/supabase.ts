@@ -64,19 +64,12 @@ export async function uploadFile(file: File, bucket: string = 'images'): Promise
         return publicUrl;
       } else {
         console.warn('Supabase native upload failed:', error.message);
-        // If it's a specific Supabase error (not anonymous/config), we might want to know
-        if (error.message.includes('bucket') || error.message.includes('policy')) {
-          throw new Error(`Supabase Storage Error: ${error.message}. Pastikan bucket "${bucket}" sudah dibuat dan diset Public.`);
-        }
+        console.warn('Falling back to local base64 compression...');
       }
     } catch (e: any) {
       if (timeoutId) clearTimeout(timeoutId);
       console.error('Supabase upload exception:', e);
-      // If Supabase is configured, we really want it to work. 
-      // Only fallback if it's a generic connection issue or if we explicitly want to allow local storage.
-      if (e.message?.includes('Supabase Storage Error')) {
-        throw e;
-      }
+      console.warn('Falling back to local base64 compression...');
     }
   }
 
