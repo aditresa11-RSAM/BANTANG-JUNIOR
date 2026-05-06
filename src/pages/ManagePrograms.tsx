@@ -72,22 +72,22 @@ export default function ManagePrograms() {
     setFormTab('basic');
     setFormData({
       title: program.title || '',
-      ageRange: program.ageRange || '',
+      ageRange: program.ageRange || program.agerange || '',
       description: program.description || '',
       image: program.image || '',
       type: program.type || 'main',
-      descriptionDetail: program.descriptionDetail || '',
+      descriptionDetail: program.descriptionDetail || program.descriptiondetail || '',
       targets: program.targets || 'Kekuatan, Ketangkasan, Taktik',
-      sessionsPerWeek: program.sessionsPerWeek || '3 Sesi',
-      totalPlayers: program.totalPlayers || '45 Aktif',
+      sessionsPerWeek: program.sessionsPerWeek || program.sessionsperweek || '3 Sesi',
+      totalPlayers: program.totalPlayers || program.totalplayers || '45 Aktif',
       coach: program.coach || 'Tim Coach A',
-      kurikulumText: program.kurikulumText || '',
-      materiText: program.materiText || '',
-      jadwalText: program.jadwalText || '',
-      statistikText: program.statistikText || '',
-      videoText: program.videoText || '',
-      progressText: program.progressText || '',
-      absensiText: program.absensiText || ''
+      kurikulumText: program.kurikulumText || program.kurikulumtext || '',
+      materiText: program.materiText || program.materitext || '',
+      jadwalText: program.jadwalText || program.jadwaltext || '',
+      statistikText: program.statistikText || program.statistiktext || '',
+      videoText: program.videoText || program.videotext || '',
+      progressText: program.progressText || program.progresstext || '',
+      absensiText: program.absensiText || program.absensitext || ''
     });
   };
 
@@ -483,7 +483,7 @@ function ProgramCard({ program, onEdit, onDelete }: { key?: any, program: any, o
             "absolute top-4 left-4 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-lg",
             program.type === 'main' ? "bg-[var(--color-primary)] text-black" : "bg-purple-500 text-white"
         )}>
-            {program.ageRange}
+            {program.ageRange || program.agerange}
         </span>
         {user?.role === 'admin' && (
             <div className="absolute top-2 right-2 z-20 flex flex-col gap-2">

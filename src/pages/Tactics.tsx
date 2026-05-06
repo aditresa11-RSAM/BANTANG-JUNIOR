@@ -5,7 +5,7 @@ import {
   Plus, PenTool, MousePointer, Eraser, Undo, Redo, Trash2, 
   Settings, Share2, Download, Save, Layers, Circle, ArrowRight,
   Maximize2, Minimize2, Goal, Map, Zap, Shield, Target, Activity,
-  ChevronDown, Type, History, Play, Check, Cloud
+  ChevronDown, Type, History, Play, Check, Cloud, X
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useCMSData } from '../lib/store';
@@ -20,17 +20,25 @@ const FIELD_MODES = [
 
 const FORMATIONS: Record<string, any[]> = {
   '7v7': [
-    { id: '2-3-1', name: '2-3-1', pos: [{x:50, y:90}, {x:30, y:75}, {x:70, y:75}, {x:20, y:45}, {x:50, y:50}, {x:80, y:45}, {x:50, y:20}] },
-    { id: '3-2-1', name: '3-2-1', pos: [{x:50, y:90}, {x:20, y:75}, {x:50, y:75}, {x:80, y:75}, {x:35, y:45}, {x:65, y:45}, {x:50, y:20}] },
+    { id: '2-3-1', name: '2-3-1', pos: [{x:50, y:90, role:'GK'}, {x:30, y:75, role:'DEF'}, {x:70, y:75, role:'DEF'}, {x:20, y:45, role:'MID'}, {x:50, y:50, role:'MID'}, {x:80, y:45, role:'MID'}, {x:50, y:20, role:'FWD'}] },
+    { id: '3-2-1', name: '3-2-1', pos: [{x:50, y:90, role:'GK'}, {x:20, y:75, role:'DEF'}, {x:50, y:75, role:'DEF'}, {x:80, y:75, role:'DEF'}, {x:35, y:45, role:'MID'}, {x:65, y:45, role:'MID'}, {x:50, y:20, role:'FWD'}] },
+    { id: '3-1-2', name: '3-1-2', pos: [{x:50, y:90, role:'GK'}, {x:20, y:75, role:'DEF'}, {x:50, y:75, role:'DEF'}, {x:80, y:75, role:'DEF'}, {x:50, y:50, role:'MID'}, {x:35, y:25, role:'FWD'}, {x:65, y:25, role:'FWD'}] },
+    { id: '2-2-2', name: '2-2-2', pos: [{x:50, y:90, role:'GK'}, {x:30, y:75, role:'DEF'}, {x:70, y:75, role:'DEF'}, {x:30, y:45, role:'MID'}, {x:70, y:45, role:'MID'}, {x:35, y:25, role:'FWD'}, {x:65, y:25, role:'FWD'}] },
   ],
   '9v9': [
-    { id: '3-3-2', name: '3-3-2', pos: [{x:50, y:90}, {x:20, y:75}, {x:50, y:75}, {x:80, y:75}, {x:20, y:50}, {x:50, y:50}, {x:80, y:50}, {x:35, y:25}, {x:65, y:25}] },
-    { id: '4-3-1', name: '4-3-1', pos: [{x:50, y:90}, {x:20, y:75}, {x:40, y:75}, {x:60, y:75}, {x:80, y:75}, {x:20, y:45}, {x:50, y:45}, {x:80, y:45}, {x:50, y:20}] },
+    { id: '3-3-2', name: '3-3-2', pos: [{x:50, y:90, role:'GK'}, {x:20, y:75, role:'DEF'}, {x:50, y:75, role:'DEF'}, {x:80, y:75, role:'DEF'}, {x:20, y:50, role:'MID'}, {x:50, y:50, role:'MID'}, {x:80, y:50, role:'MID'}, {x:35, y:25, role:'FWD'}, {x:65, y:25, role:'FWD'}] },
+    { id: '3-2-3', name: '3-2-3', pos: [{x:50, y:90, role:'GK'}, {x:20, y:75, role:'DEF'}, {x:50, y:75, role:'DEF'}, {x:80, y:75, role:'DEF'}, {x:35, y:50, role:'MID'}, {x:65, y:50, role:'MID'}, {x:20, y:25, role:'FWD'}, {x:50, y:25, role:'FWD'}, {x:80, y:25, role:'FWD'}] },
+    { id: '4-3-1', name: '4-3-1', pos: [{x:50, y:90, role:'GK'}, {x:20, y:75, role:'DEF'}, {x:40, y:75, role:'DEF'}, {x:60, y:75, role:'DEF'}, {x:80, y:75, role:'DEF'}, {x:20, y:45, role:'MID'}, {x:50, y:45, role:'MID'}, {x:80, y:45, role:'MID'}, {x:50, y:20, role:'FWD'}] },
+    { id: '2-4-2', name: '2-4-2', pos: [{x:50, y:90, role:'GK'}, {x:35, y:75, role:'DEF'}, {x:65, y:75, role:'DEF'}, {x:20, y:50, role:'MID'}, {x:40, y:50, role:'MID'}, {x:60, y:50, role:'MID'}, {x:80, y:50, role:'MID'}, {x:35, y:25, role:'FWD'}, {x:65, y:25, role:'FWD'}] },
   ],
   '11v11': [
-    { id: '4-3-3', name: '4-3-3', pos: [{x:50, y:90}, {x:20, y:70}, {x:40, y:75}, {x:60, y:75}, {x:80, y:70}, {x:50, y:55}, {x:30, y:45}, {x:70, y:45}, {x:20, y:20}, {x:80, y:20}, {x:50, y:12}] },
-    { id: '4-4-2', name: '4-4-2', pos: [{x:50, y:90}, {x:20, y:70}, {x:40, y:75}, {x:60, y:75}, {x:80, y:70}, {x:20, y:45}, {x:40, y:50}, {x:60, y:50}, {x:80, y:45}, {x:35, y:20}, {x:65, y:20}] },
-    { id: '4-2-3-1', name: '4-2-3-1', pos: [{x:50, y:90}, {x:20, y:70}, {x:40, y:75}, {x:60, y:75}, {x:80, y:70}, {x:40, y:55}, {x:60, y:55}, {x:20, y:35}, {x:50, y:35}, {x:80, y:35}, {x:50, y:12}] },
+    { id: '4-3-3', name: '4-3-3', pos: [{x:50, y:90, role:'GK'}, {x:20, y:70, role:'DEF'}, {x:40, y:75, role:'DEF'}, {x:60, y:75, role:'DEF'}, {x:80, y:70, role:'DEF'}, {x:50, y:55, role:'MID'}, {x:30, y:45, role:'MID'}, {x:70, y:45, role:'MID'}, {x:20, y:20, role:'FWD'}, {x:50, y:12, role:'FWD'}, {x:80, y:20, role:'FWD'}] },
+    { id: '4-4-2', name: '4-4-2', pos: [{x:50, y:90, role:'GK'}, {x:20, y:70, role:'DEF'}, {x:40, y:75, role:'DEF'}, {x:60, y:75, role:'DEF'}, {x:80, y:70, role:'DEF'}, {x:20, y:45, role:'MID'}, {x:40, y:50, role:'MID'}, {x:60, y:50, role:'MID'}, {x:80, y:45, role:'MID'}, {x:35, y:20, role:'FWD'}, {x:65, y:20, role:'FWD'}] },
+    { id: '4-2-3-1', name: '4-2-3-1', pos: [{x:50, y:90, role:'GK'}, {x:20, y:70, role:'DEF'}, {x:40, y:75, role:'DEF'}, {x:60, y:75, role:'DEF'}, {x:80, y:70, role:'DEF'}, {x:40, y:55, role:'MID'}, {x:60, y:55, role:'MID'}, {x:20, y:35, role:'MID'}, {x:50, y:35, role:'MID'}, {x:80, y:35, role:'MID'}, {x:50, y:12, role:'FWD'}] },
+    { id: '3-5-2', name: '3-5-2', pos: [{x:50, y:90, role:'GK'}, {x:30, y:75, role:'DEF'}, {x:50, y:75, role:'DEF'}, {x:70, y:75, role:'DEF'}, {x:20, y:50, role:'MID'}, {x:35, y:45, role:'MID'}, {x:50, y:55, role:'MID'}, {x:65, y:45, role:'MID'}, {x:80, y:50, role:'MID'}, {x:35, y:20, role:'FWD'}, {x:65, y:20, role:'FWD'}] },
+    { id: '5-3-2', name: '5-3-2', pos: [{x:50, y:90, role:'GK'}, {x:20, y:70, role:'DEF'}, {x:35, y:75, role:'DEF'}, {x:50, y:75, role:'DEF'}, {x:65, y:75, role:'DEF'}, {x:80, y:70, role:'DEF'}, {x:30, y:45, role:'MID'}, {x:50, y:45, role:'MID'}, {x:70, y:45, role:'MID'}, {x:35, y:20, role:'FWD'}, {x:65, y:20, role:'FWD'}] },
+    { id: '3-4-3', name: '3-4-3', pos: [{x:50, y:90, role:'GK'}, {x:30, y:75, role:'DEF'}, {x:50, y:75, role:'DEF'}, {x:70, y:75, role:'DEF'}, {x:20, y:50, role:'MID'}, {x:40, y:50, role:'MID'}, {x:60, y:50, role:'MID'}, {x:80, y:50, role:'MID'}, {x:20, y:20, role:'FWD'}, {x:50, y:20, role:'FWD'}, {x:80, y:20, role:'FWD'}] },
+    { id: '4-1-4-1', name: '4-1-4-1', pos: [{x:50, y:90, role:'GK'}, {x:20, y:70, role:'DEF'}, {x:40, y:75, role:'DEF'}, {x:60, y:75, role:'DEF'}, {x:80, y:70, role:'DEF'}, {x:50, y:60, role:'MID'}, {x:20, y:40, role:'MID'}, {x:40, y:40, role:'MID'}, {x:60, y:40, role:'MID'}, {x:80, y:40, role:'MID'}, {x:50, y:15, role:'FWD'}] },
   ]
 };
 
@@ -68,12 +76,19 @@ export default function Tactics() {
   const [redoStack, setRedoStack] = useState<any[]>([]);
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showPlayerSelect, setShowPlayerSelect] = useState<number | null>(null);
+
+  const [showNames, setShowNames] = useState(true);
+  const [isSimulating, setIsSimulating] = useState(false);
 
   const { data: savedTactics, addItems: syncTactics } = useCMSData('tactics', []);
+  const { data: players } = useCMSData('players', []);
 
   // Sync positions when formation changes
   useEffect(() => {
-    setPositions(formation.pos);
+    // Reset positions but keep previously assigned players if they fit?
+    // For simplicity, we just keep the positions and map over them.
+    setPositions(formation.pos.map((p: any) => ({...p, playerId: null})));
     setPaths([]);
   }, [formation]);
 
@@ -194,7 +209,23 @@ export default function Tactics() {
   const updatePosition = (index: number, x: number, y: number) => {
     setPositions(prev => {
       const next = [...prev];
-      next[index] = { x, y };
+      next[index] = { ...next[index], x, y };
+      return next;
+    });
+  };
+
+  const assignPlayer = (index: number, playerId: string | null) => {
+    setPositions(prev => {
+      const next = [...prev];
+      // if assigning a player, ensure they are not elsewhere
+      if (playerId) {
+        for (let i = 0; i < next.length; i++) {
+          if (next[i].playerId === playerId) {
+            next[i].playerId = null;
+          }
+        }
+      }
+      next[index].playerId = playerId;
       return next;
     });
   };
@@ -223,8 +254,16 @@ export default function Tactics() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-             <button className="flex-1 lg:flex-none py-3.5 px-6 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white/60 hover:text-white transition-all flex items-center justify-center gap-2">
-                <History className="w-4 h-4" /> History
+             <button 
+                onClick={() => setIsSimulating(!isSimulating)}
+                className={cn(
+                  "flex-1 lg:flex-none py-3.5 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2",
+                  isSimulating 
+                    ? "bg-amber-500 text-black shadow-[0_0_20px_rgba(245,158,11,0.4)]" 
+                    : "bg-white/5 border border-white/10 text-white/60 hover:text-white"
+                )}
+             >
+                <Activity className="w-4 h-4" /> {isSimulating ? 'Stop SImulation' : 'Simulate Match'}
              </button>
              <button 
                 onClick={autoSave}
@@ -267,6 +306,13 @@ export default function Tactics() {
                 <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 40px, #fff 40px, #fff 80px)' }} />
                 <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
                 
+                {/* Zone Lines */}
+                <div className="absolute top-1/3 left-[4%] right-[4%] h-[1px] bg-white/10 mix-blend-overlay border-none border-t border-dashed" />
+                <div className="absolute top-2/3 left-[4%] right-[4%] h-[1px] bg-white/10 mix-blend-overlay border-none border-t border-dashed" />
+                <div className="absolute top-[16.5%] left-[2%] text-[8px] font-black uppercase text-white/10 tracking-[0.4em] rotate-[-90deg] origin-left mix-blend-overlay">Attack</div>
+                <div className="absolute top-[50%] left-[2%] text-[8px] font-black uppercase text-white/10 tracking-[0.4em] rotate-[-90deg] origin-left mix-blend-overlay -translate-y-1/2">Midfield</div>
+                <div className="absolute top-[83.5%] left-[2%] text-[8px] font-black uppercase text-white/10 tracking-[0.4em] rotate-[-90deg] origin-left mix-blend-overlay">Defense</div>
+                
                 {/* Field Markings */}
                 <div className="absolute inset-x-[4%] inset-y-[3%] border-[3px] border-white/15" />
                 <div className="absolute left-[4%] right-[4%] top-1/2 h-0 border-t-[3px] border-white/15 -translate-y-1/2" />
@@ -299,20 +345,29 @@ export default function Tactics() {
                 {/* Player Drag Layer */}
                 <div className="absolute inset-0 p-[4%] z-20 pointer-events-none">
                   <AnimatePresence mode="popLayout">
-                    {positions.map((pos, i) => (
-                      <PlayerIcon 
-                        key={`${boardMode}-${i}`}
-                        idx={i}
-                        x={pos.x}
-                        y={pos.y}
-                        isGK={i === 0}
-                        active={selectedIdx === i}
-                        onSelect={() => setSelectedIdx(i)}
-                        onUpdate={(nx, ny) => updatePosition(i, nx, ny)}
-                        disabled={activeTool !== 'cursor'}
-                        boardRef={boardRef}
-                      />
-                    ))}
+                    {positions.map((pos, i) => {
+                      const assignedPlayer = pos.playerId ? players?.find((p: any) => p.id === pos.playerId) : null;
+                      return (
+                        <PlayerIcon 
+                          key={`${boardMode}-${i}`}
+                          idx={i}
+                          x={pos.x}
+                          y={pos.y}
+                          role={pos.role}
+                          isGK={i === 0 || pos.role === 'GK'}
+                          active={selectedIdx === i}
+                          onSelect={() => setSelectedIdx(i)}
+                          onUpdate={(nx, ny) => updatePosition(i, nx, ny)}
+                          onAssign={(pid) => assignPlayer(i, pid)}
+                          playerId={pos.playerId}
+                          player={assignedPlayer}
+                          disabled={activeTool !== 'cursor'}
+                          boardRef={boardRef}
+                          showNames={showNames}
+                          isSimulating={isSimulating}
+                        />
+                      );
+                    })}
                   </AnimatePresence>
                 </div>
 
@@ -331,6 +386,8 @@ export default function Tactics() {
                  <ToolBtn icon={ArrowRight} active={activeTool === 'arrow'} onClick={() => setActiveTool('arrow')} label="PASS" />
                  <ToolBtn icon={Circle} active={activeTool === 'circle'} onClick={() => setActiveTool('circle')} label="ZONE" />
                  <ToolBtn icon={Eraser} active={activeTool === 'eraser'} onClick={() => setActiveTool('eraser')} label="ERASE" />
+                 <div className="w-px h-8 bg-white/10 mx-1 hidden sm:block" />
+                 <ToolBtn icon={Type} active={showNames} onClick={() => setShowNames(!showNames)} label="NAMES" className={showNames ? "text-[var(--color-primary)]" : ""} />
                  <div className="w-px h-8 bg-white/10 mx-1 hidden sm:block" />
                  <div className="hidden sm:flex flex-col items-center gap-1 ml-2">
                     <div className="flex gap-1">
@@ -370,15 +427,15 @@ export default function Tactics() {
           <div className="xl:col-span-4 space-y-6">
             
             {/* SETUP PANEL */}
-            <div className="glass-card p-8 rounded-[3rem] border border-white/5 bg-surface/30 space-y-8">
+            <div className="glass-card p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-white/5 bg-surface/30 space-y-6 md:space-y-8">
                <div className="flex items-center gap-3">
                   <div className="p-3 bg-white/5 rounded-2xl"><Settings className="w-5 h-5 text-[var(--color-primary)]" /></div>
-                  <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Game Configuration</h3>
+                  <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">FORMASI PEMAIN</h3>
                </div>
 
                <div className="space-y-6">
                  <div>
-                    <label className="text-[10px] font-black text-white/30 mb-4 block uppercase tracking-[0.3em]">Field Scale</label>
+                    <label className="text-[10px] font-black text-white/30 mb-4 block uppercase tracking-[0.3em]">Mode Lapangan</label>
                     <div className="grid grid-cols-3 gap-3">
                        {FIELD_MODES.map(m => (
                          <button 
@@ -399,23 +456,22 @@ export default function Tactics() {
 
                  <div>
                     <div className="flex items-center justify-between mb-4">
-                       <label className="text-[10px] font-black text-white/30 block uppercase tracking-[0.3em]">Smart Formation</label>
-                       <span className="px-2 py-0.5 rounded-lg bg-white/5 text-[8px] font-black text-white/20 uppercase tracking-widest">PRO ENGINE</span>
+                       <label className="text-[10px] font-black text-white/30 block uppercase tracking-[0.3em]">PILIH FORMASI</label>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-2 gap-3">
                        {FORMATIONS[boardMode].map(f => (
                          <button 
                            key={f.id} 
                            onClick={() => setFormation(f)}
                            className={cn(
-                             "py-5 px-1 rounded-2xl border transition-all duration-300 relative group overflow-hidden", 
+                             "py-4 px-1 rounded-xl border transition-all duration-300 relative group overflow-hidden", 
                              formation.id === f.id 
                                 ? "bg-white text-black border-transparent shadow-xl" 
                                 : "bg-black/40 border-white/5 text-white/40 hover:bg-white/10"
                            )}
                          >
-                           <span className="text-sm font-black tracking-tighter uppercase">{f.name}</span>
-                           {formation.id === f.id && <div className="absolute top-1 right-2 w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />}
+                           <span className="text-xs font-black tracking-tighter uppercase">{f.name}</span>
+                           {formation.id === f.id && <div className="absolute top-1 right-2 w-1 h-1 bg-green-500 rounded-full animate-pulse" />}
                          </button>
                        ))}
                     </div>
@@ -423,56 +479,51 @@ export default function Tactics() {
                </div>
             </div>
 
-            {/* STRATEGY BLOCKS */}
-            <div className="glass-card p-8 rounded-[3rem] border border-white/5 bg-surface/30 space-y-8">
+            {/* PLAYER POOL */}
+            <div className="glass-card p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-white/5 bg-surface/30 space-y-6 flex flex-col h-[500px]">
                <div className="flex items-center gap-3">
-                  <div className="p-3 bg-white/5 rounded-2xl"><Target className="w-5 h-5 text-[var(--color-primary)]" /></div>
-                  <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Strategy Presets</h3>
+                  <div className="p-3 bg-white/5 rounded-2xl"><Shield className="w-5 h-5 text-[var(--color-primary)]" /></div>
+                  <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Skuad Pemain</h3>
                </div>
-
-               <div className="grid grid-cols-2 gap-3">
-                 {STRATEGY_PLANS.map(plan => {
-                   const PlanIcon = plan.icon;
-                   const isActive = strategy === plan.id;
+               <div className="flex-1 overflow-y-auto pr-2 space-y-2 custom-scrollbar">
+                 {players?.length === 0 ? (
+                   <p className="text-white/40 text-xs text-center py-10">Belum ada pemain di database. Tambahkan di menu Players.</p>
+                 ) : players?.map((p: any) => {
+                   const isAssigned = positions.some((pos: any) => pos.playerId === p.id);
                    return (
-                     <button 
-                       key={plan.id}
-                       onClick={() => setStrategy(plan.id)}
-                       className={cn(
-                         "relative p-6 rounded-[2.5rem] border transition-all duration-500 flex flex-col items-center justify-center gap-4 h-36 overflow-hidden group",
-                         isActive 
-                           ? "border-transparent text-white" 
-                           : "bg-black/40 border-white/5 text-white/20 hover:text-white/40"
-                       )}
+                     <div key={p.id} draggable onDragStart={(e) => {
+                         e.dataTransfer.setData('playerId', p.id);
+                       }}
+                       className={cn("p-3 rounded-2xl flex items-center justify-between gap-3 border transition-colors", isAssigned ? "bg-white/5 border-white/10 opacity-50" : "bg-black/40 border-white/5 hover:border-[var(--color-primary)]/50 cursor-grab active:cursor-grabbing")}
                      >
-                       {isActive && (
-                         <motion.div 
-                           layoutId="active-stra-bg" 
-                           className={cn("absolute inset-0 bg-gradient-to-br z-0", plan.color)} 
-                         />
-                       )}
-                       <div className="relative z-10 p-4 bg-black/20 rounded-2xl group-hover:scale-110 transition-transform">
-                         <PlanIcon className="w-7 h-7" />
+                       <div className="flex items-center gap-3">
+                         {p.photo || p.photourl ? (
+                           <img src={p.photo || p.photourl} className="w-8 h-8 rounded-full border border-white/10 object-cover" />
+                         ) : (
+                           <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold text-white/40">
+                             {p.jersey || '-'}
+                           </div>
+                         )}
+                         <div className="text-left">
+                           <div className="text-xs font-bold text-white">{p.name}</div>
+                           <div className="text-[9px] text-white/40 uppercase tracking-widest">{p.position || 'Unknown'} - #{p.jersey || '?'}</div>
+                         </div>
                        </div>
-                       <span className="relative z-10 text-[9px] font-black uppercase tracking-[0.2em] text-center w-full">{plan.name}</span>
-                       <div className={cn(
-                         "absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none",
-                         isActive ? "hidden" : "block"
-                       )} />
-                     </button>
+                       <div className="flex items-center gap-2">
+                         {selectedIdx !== null && !isAssigned && (
+                            <button 
+                               onClick={() => { assignPlayer(selectedIdx, p.id); setSelectedIdx(null); }}
+                               className="px-3 py-1.5 bg-[var(--color-primary)] text-black text-[9px] uppercase tracking-widest font-black rounded-lg hover:scale-105 active:scale-95 transition-all"
+                            >
+                               Assign
+                            </button>
+                         )}
+                         {isAssigned && <Check className="w-4 h-4 text-green-500" />}
+                       </div>
+                     </div>
                    );
                  })}
                </div>
-            </div>
-
-            {/* QUICK ACTIONS */}
-            <div className="grid grid-cols-2 gap-3">
-               <button className="flex items-center justify-center gap-3 p-5 rounded-3xl bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition-all text-[10px] font-black uppercase tracking-widest">
-                  <Share2 className="w-4 h-4" /> Share link
-               </button>
-               <button className="flex items-center justify-center gap-3 p-5 rounded-3xl bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition-all text-[10px] font-black uppercase tracking-widest">
-                  <Download className="w-4 h-4" /> Export image
-               </button>
             </div>
 
           </div>
@@ -503,12 +554,15 @@ function ToolBtn({ icon: Icon, active, onClick, label, className }: any) {
 }
 
 interface PlayerProps {
-  idx: number; x: number; y: number; isGK: boolean; active: boolean; 
+  idx: number; x: number; y: number; role?: string; isGK: boolean; active: boolean; 
   onSelect: () => void; onUpdate: (nx: number, ny: number) => void;
   disabled: boolean; boardRef: React.RefObject<HTMLDivElement>;
+  playerId?: string | null; player?: any; onAssign: (playerId: string | null) => void;
+  showNames?: boolean;
+  isSimulating?: boolean;
 }
 
-const PlayerIcon: React.FC<PlayerProps> = ({ idx, x, y, isGK, active, onSelect, onUpdate, disabled, boardRef }) => {
+const PlayerIcon: React.FC<PlayerProps> = ({ idx, x, y, role, isGK, active, onSelect, onUpdate, disabled, boardRef, playerId, player, onAssign, showNames = true, isSimulating }) => {
   const [localPos, setLocalPos] = useState({ x, y });
   const [isDragging, setIsDragging] = useState(false);
 
@@ -565,30 +619,69 @@ const PlayerIcon: React.FC<PlayerProps> = ({ idx, x, y, isGK, active, onSelect, 
         touchAction: 'none'
       }}
       className={cn(
-        "absolute transition-none",
+        "absolute transition-none flex flex-col items-center gap-1",
         !disabled ? "pointer-events-auto" : "pointer-events-none",
         isDragging && "z-50"
       )}
+      onDragOver={(e) => {
+        if (!disabled) e.preventDefault(); // allow drop
+      }}
+      onDrop={(e) => {
+        if (disabled) return;
+        e.preventDefault();
+        const droppedPlayerId = e.dataTransfer.getData('playerId');
+        if (droppedPlayerId) {
+          onAssign(droppedPlayerId);
+        }
+      }}
     >
       <motion.div
         onPointerDown={handlePointerDown}
         whileHover={!disabled ? { scale: 1.1 } : {}}
         animate={{ 
           scale: isDragging ? 1.3 : 1,
-          filter: isDragging ? "drop-shadow(0 20px 30px rgba(0,0,0,0.4))" : "drop-shadow(0 10px 20px rgba(0,0,0,0.3))"
+          filter: isDragging ? "drop-shadow(0 20px 30px rgba(0,0,0,0.4))" : "drop-shadow(0 10px 20px rgba(0,0,0,0.3))",
+          x: isSimulating ? [0, isGK ? 2 : Math.random() * 8 + 4, isGK ? -2 : -(Math.random() * 8 + 4), 0] : 0,
+          y: isSimulating ? [0, isGK ? 1 : Math.random() * 5 + 2, isGK ? -1 : -(Math.random() * 5 + 2), 0] : 0,
+        }}
+        transition={{
+          x: isSimulating ? { repeat: Infinity, duration: 4 + Math.random() * 2, ease: "easeInOut" } : undefined,
+          y: isSimulating ? { repeat: Infinity, duration: 3 + Math.random() * 2, ease: "easeInOut" } : undefined,
         }}
         className={cn(
-          "w-12 h-12 md:w-14 md:h-14 rounded-full border-[3px] flex flex-col items-center justify-center font-display font-black text-sm",
+          "relative w-12 h-12 md:w-14 md:h-14 rounded-full border-[3px] flex flex-col items-center justify-center font-display font-black text-sm transition-colors",
           !disabled ? (isDragging ? "cursor-grabbing" : "cursor-grab") : "cursor-default",
-          isGK 
-            ? "bg-amber-400 text-black border-amber-500/50" 
-            : "bg-[var(--color-primary)] text-black border-white/20",
+          playerId 
+            ? (role === 'GK' ? "bg-amber-400 text-black border-amber-500/50" : "bg-[var(--color-primary)] text-black border-white/20 shadow-[0_0_15px_rgba(250,204,21,0.5)]") 
+            : "bg-black/50 text-white border-white/20 border-dashed backdrop-blur-sm",
           active ? "ring-[5px] ring-white/30" : "hover:ring-4 hover:ring-white/10"
         )}
       >
-        <span className="text-[10px] opacity-70 mb-[-2px]">{isGK ? 'GK' : idx + 1}</span>
-        <div className="absolute inset-0 rounded-full border border-white/20 mix-blend-overlay" />
+        {player && (player.photo || player.photourl) ? (
+           <img src={player.photo || player.photourl} className="absolute inset-0 w-full h-full object-cover rounded-full opacity-50" />
+        ) : null}
+        
+        <span className="relative z-10 text-[10px] sm:text-xs">
+          {player ? (player.jersey || '#') : (role || (isGK ? 'GK' : idx + 1))}
+        </span>
+        
+        {playerId && (
+          <button 
+            onClick={(e) => { e.stopPropagation(); onAssign(null); }}
+            className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center pointer-events-auto opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <X className="w-2.5 h-2.5" />
+          </button>
+        )}
+        
+        <div className="absolute inset-0 rounded-full border border-white/20 mix-blend-overlay pointer-events-none" />
       </motion.div>
+      
+      {showNames && (
+        <div className="bg-black/80 px-2 py-0.5 rounded-md border border-white/10 backdrop-blur-md z-10 mt-1 shadow-lg max-w-[80px] text-center truncate pointer-events-none">
+           <span className="text-[9px] font-black text-white">{player ? player.name : (role || 'Role')}</span>
+        </div>
+      )}
       
       {/* Real-time Indicator */}
       <AnimatePresence>
@@ -597,7 +690,7 @@ const PlayerIcon: React.FC<PlayerProps> = ({ idx, x, y, isGK, active, onSelect, 
              initial={{ opacity: 0, scale: 0 }}
              animate={{ opacity: 1, scale: 1 }}
              exit={{ opacity: 0, scale: 0 }}
-             className="absolute top-[-25px] left-1/2 -translate-x-1/2 bg-black text-white text-[8px] font-black px-2 py-0.5 rounded-full whitespace-nowrap"
+             className="absolute top-[-30px] left-1/2 -translate-x-1/2 bg-black text-white text-[8px] font-black px-2 py-0.5 rounded-full whitespace-nowrap z-20 shadow-lg"
            >
              {Math.round(localPos.x)}%, {Math.round(localPos.y)}%
            </motion.div>

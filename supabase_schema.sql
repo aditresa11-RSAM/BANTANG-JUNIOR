@@ -328,6 +328,13 @@ CREATE TABLE IF NOT EXISTS public.programs (
   image TEXT,
   videotext TEXT,
   type TEXT,
+  totalplayers TEXT,
+  kurikulumtext TEXT,
+  materitext TEXT,
+  jadwaltext TEXT,
+  statistiktext TEXT,
+  progresstext TEXT,
+  absensitext TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 

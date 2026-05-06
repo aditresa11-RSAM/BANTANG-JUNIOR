@@ -61,7 +61,7 @@ export default function ProgramDetail() {
                 "inline-block px-3 py-1 text-xs font-black rounded-full uppercase tracking-widest mb-4 shadow-lg",
                 program.type === 'main' ? "bg-[var(--color-primary)] text-black" : "bg-purple-500 text-white"
               )}>
-                {program.ageRange}
+                {program.ageRange || program.agerange}
               </span>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-black tracking-tight text-white mb-2 leading-none">
                 {program.title}
@@ -124,13 +124,13 @@ export default function ProgramDetail() {
               transition={{ duration: 0.3 }}
             >
               {activeTab === 'overview' && <OverviewTab program={program} />}
-              {activeTab === 'kurikulum' && <DynamicTab title="Kurikulum Academy" desc="Struktur materi dan silabus yang digunakan dalam program ini." icon={FileText} content={program.kurikulumText} />}
-              {activeTab === 'materi' && <DynamicTab title="Materi Latihan" desc="Integrasi dengan sistem library latihan dan drill." icon={Play} content={program.materiText} />}
-              {activeTab === 'jadwal' && <DynamicTab title="Jadwal Program" desc="Integrasi dengan kalender jadwal latihan akademi." icon={Calendar} content={program.jadwalText} />}
-              {activeTab === 'statistik' && <DynamicTab title="Statistik & Data" desc="Ranking, performa rata-rata, dan statistik keseluruhan program." icon={TrendingUp} content={program.statistikText} />}
-              {activeTab === 'video' && <DynamicTab title="Highlight & Video" desc="Kumpulan video materi dan highlight pertandingan program." icon={Video} content={program.videoText} />}
-              {activeTab === 'progress' && <DynamicTab title="Progress Pemain" desc="Grafik performa dan radar chart perkembangan." icon={Target} content={program.progressText} />}
-              {activeTab === 'absensi' && <DynamicTab title="Data Kehadiran" desc="Integrasi dengan sistem absensi pintar." icon={ClipboardCheck} content={program.absensiText} />}
+              {activeTab === 'kurikulum' && <DynamicTab title="Kurikulum Academy" desc="Struktur materi dan silabus yang digunakan dalam program ini." icon={FileText} content={program.kurikulumText || program.kurikulumtext} />}
+              {activeTab === 'materi' && <DynamicTab title="Materi Latihan" desc="Integrasi dengan sistem library latihan dan drill." icon={Play} content={program.materiText || program.materitext} />}
+              {activeTab === 'jadwal' && <DynamicTab title="Jadwal Program" desc="Integrasi dengan kalender jadwal latihan akademi." icon={Calendar} content={program.jadwalText || program.jadwaltext} />}
+              {activeTab === 'statistik' && <DynamicTab title="Statistik & Data" desc="Ranking, performa rata-rata, dan statistik keseluruhan program." icon={TrendingUp} content={program.statistikText || program.statistiktext} />}
+              {activeTab === 'video' && <DynamicTab title="Highlight & Video" desc="Kumpulan video materi dan highlight pertandingan program." icon={Video} content={program.videoText || program.videotext} />}
+              {activeTab === 'progress' && <DynamicTab title="Progress Pemain" desc="Grafik performa dan radar chart perkembangan." icon={Target} content={program.progressText || program.progresstext} />}
+              {activeTab === 'absensi' && <DynamicTab title="Data Kehadiran" desc="Integrasi dengan sistem absensi pintar." icon={ClipboardCheck} content={program.absensiText || program.absensitext} />}
             </motion.div>
           </AnimatePresence>
         </div>
@@ -152,15 +152,15 @@ function OverviewTab({ program }: { program: any }) {
             Tentang Program
           </h3>
           <p className="text-sm text-white/70 leading-relaxed whitespace-pre-wrap">
-            {program.descriptionDetail || program.description || 'Program ini disusun dengan pendekatan modern dan kurikulum yang terstruktur untuk memastikan setiap pemain mendapatkan materi yang sesuai dengan tingkatan usia dan kemampuannya. Evaluasi dilakukan secara berkala menggunakan data riil (data-driven tracking) untuk memantau perkembangan fisik, teknik, taktikal, dan mental.'}
+            {program.descriptionDetail || program.descriptiondetail || program.description || 'Program ini disusun dengan pendekatan modern dan kurikulum yang terstruktur untuk memastikan setiap pemain mendapatkan materi yang sesuai dengan tingkatan usia dan kemampuannya. Evaluasi dilakukan secara berkala menggunakan data riil (data-driven tracking) untuk memantau perkembangan fisik, teknik, taktikal, dan mental.'}
           </p>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: 'Target Umur', value: program.ageRange, icon: Users },
-            { label: 'Sesi / Minggu', value: program.sessionsPerWeek || '3 Sesi', icon: Calendar },
-            { label: 'Total Pemain', value: program.totalPlayers || '45 Aktif', icon: ShieldCheck },
+            { label: 'Target Umur', value: program.ageRange || program.agerange, icon: Users },
+            { label: 'Sesi / Minggu', value: program.sessionsPerWeek || program.sessionsperweek || '3 Sesi', icon: Calendar },
+            { label: 'Total Pemain', value: program.totalPlayers || program.totalplayers || '45 Aktif', icon: ShieldCheck },
             { label: 'Pelatih', value: program.coach || 'Tim Pelatih', icon: Trophy }
           ].map((stat, i) => (
             <div key={i} className="bg-white/5 border border-white/5 rounded-2xl p-4 flex flex-col justify-between">

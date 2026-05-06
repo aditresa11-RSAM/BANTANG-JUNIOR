@@ -181,7 +181,7 @@ export default function LandingPage() {
                     <img src={program.image || null} alt={program.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#0c162d] via-black/20 to-transparent" />
                     <span className="absolute top-4 left-4 text-[10px] font-black bg-[var(--color-primary)] text-black px-3 py-1 rounded-full uppercase tracking-widest shadow-lg">
-                      {program.ageRange}
+                      {program.ageRange || program.agerange}
                     </span>
                   </div>
                   <div className="p-6 relative">
