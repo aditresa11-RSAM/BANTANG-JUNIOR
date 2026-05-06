@@ -77,6 +77,7 @@ export default function Tactics() {
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showPlayerSelect, setShowPlayerSelect] = useState<number | null>(null);
+  const [isSquadOpen, setIsSquadOpen] = useState(false);
 
   const [showNames, setShowNames] = useState(true);
   const [isSimulating, setIsSimulating] = useState(false);
@@ -276,25 +277,25 @@ export default function Tactics() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-10">
+        <div className="flex flex-col xl:flex-row gap-6 w-full max-w-[1600px] mx-auto pb-20 px-4 sm:px-6 lg:px-8 mt-4 animate-in fade-in duration-1000">
           
-          {/* PITCH AREA - LEFT */}
-          <div className={cn("xl:col-span-8 flex flex-col items-center", isFullscreen ? "" : "relative")}>
+          {/* MAIN FIELD - FLEX 1 */}
+          <div className={cn("flex-1 flex flex-col items-center", isFullscreen ? "" : "relative")}>
             <div className={cn(
-               "group/board perspective-1000",
-               isFullscreen ? "fixed inset-0 z-[100] bg-[var(--color-surface)] flex flex-col items-center justify-center p-4 pb-28 md:p-10 md:pb-32" : "relative w-full max-w-[650px] aspect-[2/3]"
-            )}>
+               "group/board perspective-1000 w-full",
+               isFullscreen ? "fixed inset-0 z-[100] bg-[var(--color-surface)] flex flex-col items-center justify-center p-4 pb-28 md:p-10 md:pb-32" : "relative max-w-[800px] mx-auto"
+            )} style={isFullscreen ? {} : { paddingBottom: '100px' }}>
               
               {/* FIELD CONTAINER */}
               <motion.div 
                 ref={boardRef}
-                initial={{ rotateX: 20 }}
-                animate={{ rotateX: 0 }}
-                transition={{ duration: 1.5, ease: "easeOut" }}
-                style={isFullscreen ? { aspectRatio: '2/3', maxWidth: '100%', maxHeight: '85vh' } : {}}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5 }}
+                style={isFullscreen ? { aspectRatio: '2/3', maxWidth: '100%', maxHeight: '85vh' } : { aspectRatio: '3/4' }}
                 className={cn(
-                  "bg-[#123e20] relative overflow-hidden touch-none select-none ring-1 ring-white/10 w-full",
-                  isFullscreen ? "h-auto border-[6px] md:border-[12px] border-white/5 rounded-[2.5rem] md:rounded-[3.5rem] shadow-2xl" : "h-full border-[12px] border-white/5 rounded-[3.5rem] shadow-[0_100px_150px_rgba(0,0,0,0.7)]",
+                  "bg-[#0e2a16] relative overflow-hidden touch-none select-none ring-1 ring-white/10 w-full rounded-[2rem] md:rounded-[3rem] shadow-2xl mx-auto",
+                  isFullscreen ? "h-auto border-[6px] md:border-[12px] border-white/5" : "border-[8px] md:border-[12px] border-white/5",
                   activeTool !== 'cursor' ? 'cursor-crosshair' : 'cursor-default'
                 )}
                 onPointerDown={handlePointerDown}
@@ -379,7 +380,7 @@ export default function Tactics() {
               </motion.div>
 
               {/* FLOATING GLASS TOOLBAR */}
-              <div className={cn("absolute left-1/2 -translate-x-1/2 w-max max-w-[95vw] md:max-w-none bg-surface/40 backdrop-blur-3xl border border-white/10 p-2 sm:p-2.5 rounded-[1.5rem] sm:rounded-[2.5rem] shadow-[0_25px_50px_rgba(0,0,0,0.5)] z-50 flex flex-wrap sm:flex-nowrap items-center justify-center gap-1 sm:gap-2 ring-1 ring-white/5", isFullscreen ? "bottom-4 md:bottom-8 lg:bottom-12" : "-bottom-20 sm:-bottom-8")}>
+              <div className={cn("absolute left-1/2 -translate-x-1/2 w-max max-w-[95vw] md:max-w-none bg-black/60 backdrop-blur-xl border border-white/10 p-2 sm:p-2.5 rounded-[1.5rem] shadow-[0_25px_50px_rgba(0,0,0,0.5)] z-50 flex flex-wrap sm:flex-nowrap items-center justify-center gap-1 sm:gap-2 ring-1 ring-white/5", isFullscreen ? "bottom-4 md:bottom-8 lg:bottom-12" : "bottom-6")}>
                  <ToolBtn icon={MousePointer} active={activeTool === 'cursor'} onClick={() => setActiveTool('cursor')} label="MOVE" />
                  <div className="w-px h-8 bg-white/10 mx-1" />
                  <ToolBtn icon={PenTool} active={activeTool === 'pen'} onClick={() => setActiveTool('pen')} label="DRAW" />
@@ -423,11 +424,28 @@ export default function Tactics() {
             </div>
           </div>
 
+          <button 
+             onClick={() => setIsSquadOpen(!isSquadOpen)}
+             className="xl:hidden fixed bottom-24 right-4 z-[60] w-12 h-12 bg-[var(--color-primary)] text-black rounded-full flex items-center justify-center shadow-2xl"
+          >
+             <Shield className="w-5 h-5" />
+          </button>
+
           {/* SIDEBAR CONTROLS - RIGHT */}
-          <div className="xl:col-span-4 space-y-6">
+          <div className={cn(
+             "w-full xl:w-[360px] shrink-0 space-y-6 xl:sticky xl:top-24 h-max transition-all duration-300 z-50",
+             isSquadOpen 
+               ? "fixed inset-x-0 bottom-0 top-[20%] bg-black/90 backdrop-blur-3xl p-6 rounded-t-[3rem] overflow-y-auto border-t border-white/10" 
+               : "hidden xl:block"
+          )}>
+            {isSquadOpen && (
+               <div className="flex justify-center mb-4 xl:hidden">
+                  <div className="w-12 h-1.5 bg-white/20 rounded-full" onClick={() => setIsSquadOpen(false)} />
+               </div>
+            )}
             
             {/* SETUP PANEL */}
-            <div className="glass-card p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-white/5 bg-surface/30 space-y-6 md:space-y-8">
+            <div className="glass-card p-6 md:p-8 rounded-[2rem] border border-white/5 bg-surface/30 space-y-6">
                <div className="flex items-center gap-3">
                   <div className="p-3 bg-white/5 rounded-2xl"><Settings className="w-5 h-5 text-[var(--color-primary)]" /></div>
                   <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">FORMASI PEMAIN</h3>
@@ -480,7 +498,7 @@ export default function Tactics() {
             </div>
 
             {/* PLAYER POOL */}
-            <div className="glass-card p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-white/5 bg-surface/30 space-y-6 flex flex-col h-[500px]">
+            <div className="glass-card p-4 md:p-6 rounded-[2rem] border border-white/5 bg-surface/30 space-y-4 flex flex-col xl:h-[calc(100vh-450px)] min-h-[400px]">
                <div className="flex items-center gap-3">
                   <div className="p-3 bg-white/5 rounded-2xl"><Shield className="w-5 h-5 text-[var(--color-primary)]" /></div>
                   <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Skuad Pemain</h3>
@@ -535,21 +553,27 @@ export default function Tactics() {
 
 // --- SUBCOMPONENTS ---
 
-function ToolBtn({ icon: Icon, active, onClick, label, className }: any) {
+function ToolBtn({ icon: Icon, active, onClick, tooltip, label, className }: any) {
   return (
-    <button 
-      onClick={onClick}
-      className={cn(
-        "p-2 sm:p-4 rounded-[1rem] sm:rounded-[1.75rem] flex flex-col items-center justify-center gap-0.5 sm:gap-2 transition-all duration-300 min-w-[38px] sm:min-w-[70px] shrink-0",
-        active 
-          ? "bg-white text-black shadow-2xl scale-110" 
-          : "hover:bg-white/10 text-white/40 hover:text-white",
-        className
+    <div className="relative group">
+      <button 
+        onClick={onClick}
+        className={cn(
+          "w-10 h-10 rounded-xl flex flex-col items-center justify-center gap-0.5 sm:gap-2 transition-all duration-300 shrink-0",
+          active 
+            ? "bg-[var(--color-primary)] text-black shadow-lg scale-110" 
+            : "hover:bg-white/10 text-white/40 hover:text-white",
+          className
+        )}
+      >
+        <Icon className="w-5 h-5 shrink-0" />
+      </button>
+      {(tooltip || label) && (
+        <span className="absolute -top-10 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur text-white text-[10px] uppercase font-black tracking-widest px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50 ring-1 ring-white/10 shadow-xl">
+          {tooltip || label}
+        </span>
       )}
-    >
-      <Icon className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
-      {label && <span className="text-[7px] sm:text-[8px] font-black uppercase tracking-[0.1em] sm:tracking-[0.2em]">{label}</span>}
-    </button>
+    </div>
   );
 }
 
