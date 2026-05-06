@@ -87,9 +87,18 @@ export default function Tactics() {
 
   // Sync positions when formation changes
   useEffect(() => {
-    // Reset positions but keep previously assigned players if they fit?
-    // For simplicity, we just keep the positions and map over them.
-    setPositions(formation.pos.map((p: any) => ({...p, playerId: null})));
+    setPositions(prev => {
+      // Map over the new formation positions
+      return formation.pos.map((p: any, i: number) => {
+        // Find if we had a player at this index previously
+        const prevPlayerId = prev[i]?.playerId;
+        // Or if we specifically matched by role?
+        return {
+          ...p,
+          playerId: prevPlayerId || null
+        };
+      });
+    });
     setPaths([]);
   }, [formation]);
 
@@ -283,8 +292,8 @@ export default function Tactics() {
           <div className={cn("flex-1 flex flex-col items-center", isFullscreen ? "" : "relative")}>
             <div className={cn(
                "group/board perspective-1000 w-full",
-               isFullscreen ? "fixed inset-0 z-[100] bg-[var(--color-surface)] flex flex-col items-center justify-center p-4 pb-28 md:p-10 md:pb-32" : "relative max-w-[800px] mx-auto"
-            )} style={isFullscreen ? {} : { paddingBottom: '100px' }}>
+               isFullscreen ? "fixed inset-0 z-[100] bg-[var(--color-surface)] flex flex-col items-center justify-center p-4 pb-28 md:p-10 md:pb-32" : "relative max-w-[800px] mx-auto pb-32"
+            )}>
               
               {/* FIELD CONTAINER */}
               <motion.div 
@@ -379,8 +388,50 @@ export default function Tactics() {
                 <div className="absolute bottom-[3%] right-[4%] w-4 h-4 border-r-2 border-b-2 border-white/20" />
               </motion.div>
 
+              {/* FORMATION DROPDOWNS (Below Field) */}
+              {!isFullscreen && (
+                <div className="w-full flex items-center justify-center gap-3 z-40 mt-6 md:mt-8">
+                  <div className="bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl p-1.5 flex items-center gap-2 shadow-xl">
+                    <div className="relative">
+                      <select 
+                        value={boardMode} 
+                        onChange={(e) => {
+                          const m = e.target.value as any;
+                          setBoardMode(m); 
+                          setFormation(FORMATIONS[m][0]); 
+                        }}
+                        className="bg-black/80 hover:bg-black border border-white/5 text-white rounded-xl pl-4 pr-10 py-2.5 text-[10px] sm:text-xs font-black uppercase tracking-widest focus:outline-none focus:border-[var(--color-primary)] appearance-none cursor-pointer transition-colors"
+                      >
+                        {FIELD_MODES.map(m => (
+                          <option key={m.id} value={m.id}>{m.name}</option>
+                        ))}
+                      </select>
+                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
+                    </div>
+
+                    <div className="w-px h-6 bg-white/10" />
+
+                    <div className="relative">
+                      <select 
+                        value={formation.id} 
+                        onChange={(e) => {
+                          const f = FORMATIONS[boardMode].find(x => x.id === e.target.value);
+                          if (f) setFormation(f);
+                        }}
+                        className="bg-black/80 hover:bg-black border border-white/5 text-[var(--color-primary)] rounded-xl pl-4 pr-10 py-2.5 text-[10px] sm:text-xs font-black uppercase tracking-widest focus:outline-none focus:border-[var(--color-primary)] appearance-none cursor-pointer transition-colors"
+                      >
+                        {FORMATIONS[boardMode].map(f => (
+                          <option key={f.id} value={f.id}>{f.name}</option>
+                        ))}
+                      </select>
+                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-primary)]/50 pointer-events-none" />
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* FLOATING GLASS TOOLBAR */}
-              <div className={cn("absolute left-1/2 -translate-x-1/2 w-max max-w-[95vw] md:max-w-none bg-black/60 backdrop-blur-xl border border-white/10 p-2 sm:p-2.5 rounded-[1.5rem] shadow-[0_25px_50px_rgba(0,0,0,0.5)] z-50 flex flex-wrap sm:flex-nowrap items-center justify-center gap-1 sm:gap-2 ring-1 ring-white/5", isFullscreen ? "bottom-4 md:bottom-8 lg:bottom-12" : "bottom-6")}>
+              <div className={cn("absolute left-1/2 -translate-x-1/2 w-max max-w-[95vw] md:max-w-none bg-black/60 backdrop-blur-xl border border-white/10 p-2 sm:p-2.5 rounded-[1.5rem] shadow-[0_25px_50px_rgba(0,0,0,0.5)] z-50 flex flex-wrap sm:flex-nowrap items-center justify-center gap-1 sm:gap-2 ring-1 ring-white/5", isFullscreen ? "bottom-4 md:bottom-8 lg:bottom-12" : "bottom-2")}>
                  <ToolBtn icon={MousePointer} active={activeTool === 'cursor'} onClick={() => setActiveTool('cursor')} label="MOVE" />
                  <div className="w-px h-8 bg-white/10 mx-1" />
                  <ToolBtn icon={PenTool} active={activeTool === 'pen'} onClick={() => setActiveTool('pen')} label="DRAW" />
@@ -433,73 +484,21 @@ export default function Tactics() {
 
           {/* SIDEBAR CONTROLS - RIGHT */}
           <div className={cn(
-             "w-full xl:w-[360px] shrink-0 space-y-6 xl:sticky xl:top-24 h-max transition-all duration-300 z-50",
+             "w-full xl:w-[320px] shrink-0 space-y-6 xl:sticky xl:top-24 h-max transition-all duration-300 z-[110] xl:z-50",
              isSquadOpen 
-               ? "fixed inset-x-0 bottom-0 top-[20%] bg-black/90 backdrop-blur-3xl p-6 rounded-t-[3rem] overflow-y-auto border-t border-white/10" 
+               ? "fixed inset-0 sm:inset-x-0 sm:bottom-0 sm:top-[20%] bg-black/95 backdrop-blur-3xl p-6 sm:rounded-t-[3rem] overflow-y-auto border-t border-white/10" 
                : "hidden xl:block"
           )}>
             {isSquadOpen && (
-               <div className="flex justify-center mb-4 xl:hidden">
-                  <div className="w-12 h-1.5 bg-white/20 rounded-full" onClick={() => setIsSquadOpen(false)} />
+               <div className="flex items-center justify-between xl:hidden mb-6">
+                 <h3 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2"><Shield className="w-5 h-5 text-[var(--color-primary)]" /> Skuad Pemain</h3>
+                 <button onClick={() => setIsSquadOpen(false)} className="p-2 bg-white/10 rounded-full text-white"><X className="w-5 h-5" /></button>
                </div>
             )}
             
-            {/* SETUP PANEL */}
-            <div className="glass-card p-6 md:p-8 rounded-[2rem] border border-white/5 bg-surface/30 space-y-6">
-               <div className="flex items-center gap-3">
-                  <div className="p-3 bg-white/5 rounded-2xl"><Settings className="w-5 h-5 text-[var(--color-primary)]" /></div>
-                  <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">FORMASI PEMAIN</h3>
-               </div>
-
-               <div className="space-y-6">
-                 <div>
-                    <label className="text-[10px] font-black text-white/30 mb-4 block uppercase tracking-[0.3em]">Mode Lapangan</label>
-                    <div className="grid grid-cols-3 gap-3">
-                       {FIELD_MODES.map(m => (
-                         <button 
-                           key={m.id} 
-                           onClick={() => { setBoardMode(m.id); setFormation(FORMATIONS[m.id][0]); }}
-                           className={cn(
-                             "py-4 px-1 rounded-2xl border transition-all duration-300 flex flex-col items-center gap-1", 
-                             boardMode === m.id 
-                                ? "bg-[var(--color-primary)] border-transparent text-black shadow-lg shadow-[var(--color-primary)]/20" 
-                                : "bg-black/40 border-white/5 text-white/30 hover:bg-white/10"
-                           )}
-                         >
-                           <span className="text-[10px] font-black uppercase tracking-widest">{m.name}</span>
-                         </button>
-                       ))}
-                    </div>
-                 </div>
-
-                 <div>
-                    <div className="flex items-center justify-between mb-4">
-                       <label className="text-[10px] font-black text-white/30 block uppercase tracking-[0.3em]">PILIH FORMASI</label>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-2 gap-3">
-                       {FORMATIONS[boardMode].map(f => (
-                         <button 
-                           key={f.id} 
-                           onClick={() => setFormation(f)}
-                           className={cn(
-                             "py-4 px-1 rounded-xl border transition-all duration-300 relative group overflow-hidden", 
-                             formation.id === f.id 
-                                ? "bg-white text-black border-transparent shadow-xl" 
-                                : "bg-black/40 border-white/5 text-white/40 hover:bg-white/10"
-                           )}
-                         >
-                           <span className="text-xs font-black tracking-tighter uppercase">{f.name}</span>
-                           {formation.id === f.id && <div className="absolute top-1 right-2 w-1 h-1 bg-green-500 rounded-full animate-pulse" />}
-                         </button>
-                       ))}
-                    </div>
-                 </div>
-               </div>
-            </div>
-
             {/* PLAYER POOL */}
-            <div className="glass-card p-4 md:p-6 rounded-[2rem] border border-white/5 bg-surface/30 space-y-4 flex flex-col xl:h-[calc(100vh-450px)] min-h-[400px]">
-               <div className="flex items-center gap-3">
+            <div className="glass-card p-4 md:p-6 rounded-[2rem] border border-white/5 bg-surface/30 space-y-4 flex flex-col xl:h-[calc(100vh-200px)] min-h-[400px]">
+               <div className="hidden xl:flex items-center gap-3">
                   <div className="p-3 bg-white/5 rounded-2xl"><Shield className="w-5 h-5 text-[var(--color-primary)]" /></div>
                   <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Skuad Pemain</h3>
                </div>
@@ -643,7 +642,8 @@ const PlayerIcon: React.FC<PlayerProps> = ({ idx, x, y, role, isGK, active, onSe
         touchAction: 'none'
       }}
       className={cn(
-        "absolute transition-none flex flex-col items-center gap-1",
+        "absolute flex flex-col items-center gap-1",
+        isDragging ? "transition-none" : "transition-all duration-500 ease-out",
         !disabled ? "pointer-events-auto" : "pointer-events-none",
         isDragging && "z-50"
       )}
