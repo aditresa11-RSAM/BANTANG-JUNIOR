@@ -213,7 +213,7 @@ export default function Dashboard() {
               </div>
               <div className="relative z-10">
                  <h2 className="text-3xl sm:text-4xl font-display font-black text-white tracking-tight group-hover:text-blue-400 transition-colors">{stats.totalPlayers}</h2>
-                 <p className="text-[10px] sm:text-xs text-emerald-400 font-bold mt-1 flex items-center gap-1 truncate"><ArrowUpRight className="w-3 h-3 shrink-0"/> Active Roster</p>
+                 <p className="text-[10px] sm:text-xs text-emerald-400 font-bold mt-1 flex items-center gap-1 truncate"><ArrowUpRight className="w-3 h-3 shrink-0"/> Pemain Aktif</p>
               </div>
            </div>
 

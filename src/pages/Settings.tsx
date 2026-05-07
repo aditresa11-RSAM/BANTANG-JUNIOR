@@ -106,7 +106,7 @@ export default function Settings() {
       let totalUpdated = 0;
       
       // 1. Sync standalone settings first
-      setSyncStatus('Memeriksa logo & background akademi...');
+      setSyncStatus('Memeriksa logo & background SSB...');
       const settingsKeys = [
         { key: 'ssb_logo_url', setter: setLogoUrl, localSetter: setLocalLogoUrl },
         { key: 'ssb_hero_bg_url', setter: setHeroBgUrl, localSetter: setLocalHeroBgUrl }
@@ -974,7 +974,7 @@ WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboar
               <SettingsIcon className="w-8 h-8 text-[var(--color-primary)]" />
               PENGATURAN APLIKASI
             </h1>
-            <p className="text-white/40 text-sm mt-2">Atur identitas akademi dan tampilan aplikasi</p>
+            <p className="text-white/40 text-sm mt-2">Atur identitas Sekolah Sepak Bola dan tampilan aplikasi</p>
           </div>
           <div className="flex items-center gap-3">
              <button 
@@ -1087,13 +1087,13 @@ WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboar
           {/* Identitas Aplikasi */}
           <div className="space-y-6">
              <h3 className="text-xs font-black uppercase text-[var(--color-primary)] tracking-[0.3em] flex items-center gap-3">
-                <Palette className="w-4 h-4" /> IDENTITAS AKADEMI <div className="h-px flex-1 bg-gradient-to-r from-[var(--color-primary)]/20 to-transparent" />
+                <Palette className="w-4 h-4" /> IDENTITAS SEKOLAH SEPAK BOLA <div className="h-px flex-1 bg-gradient-to-r from-[var(--color-primary)]/20 to-transparent" />
              </h3>
 
              <div className="glass-card p-6 space-y-6">
                 {/* Nama Aplikasi */}
                 <div className="space-y-2">
-                   <label className="text-xs font-bold text-white/40 uppercase tracking-widest pl-1">Nama Akademi</label>
+                   <label className="text-xs font-bold text-white/40 uppercase tracking-widest pl-1">Nama SSB</label>
                    <input
                      type="text"
                      value={localAppName}
@@ -1105,7 +1105,7 @@ WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboar
 
                 {/* Logo Upload */}
                 <div className="space-y-3">
-                   <label className="text-xs font-bold text-white/40 uppercase tracking-widest pl-1">Logo Akademi</label>
+                   <label className="text-xs font-bold text-white/40 uppercase tracking-widest pl-1">Logo SSB</label>
                    
                    <div className="flex items-center gap-4">
                      <div className="w-20 h-20 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden relative">

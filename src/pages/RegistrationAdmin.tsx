@@ -40,11 +40,15 @@ export default function RegistrationAdmin() {
         name: regFullName,
         photo: reg.photoUrl || reg.photourl || '',
         category: reg.ageCategory || reg.agecategory || '',
-        position: reg.position || '',
+        position: reg.position_main || reg.position || '',
+        position_detail: reg.position_detail || '',
         height: parseInt(reg.height || 0) || 0,
         weight: parseInt(reg.weight || 0) || 0,
         overall: 50, // default
         status: 'Active',
+        kk_url: reg.kk_url || '',
+        akta_url: reg.akta_url || '',
+        kia_url: reg.kia_url || ''
       });
       // Mark as accepted
       updateItem(reg.id, { status: 'Diterima' });

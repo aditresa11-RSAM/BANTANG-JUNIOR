@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { ChevronLeft, Edit2, CheckCircle2, TrendingUp, Activity, Upload, Trash2, Loader2 } from 'lucide-react';
+import { ChevronLeft, Edit2, CheckCircle2, TrendingUp, Activity, Upload, Trash2, Loader2, FileText, Download, Eye, Image as ImageIcon } from 'lucide-react';
 import Layout from '../components/ui/Layout';
 import { useCMSData } from '../lib/store';
 import { cn } from '../lib/utils';
-import { uploadFile } from '../lib/supabase';
+import { uploadFile, uploadRawFile } from '../lib/supabase';
 import { 
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer,
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip
@@ -54,6 +54,7 @@ export default function PlayerProfile() {
   });
   const [gkStatId, setGkStatId] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadingDoc, setUploadingDoc] = useState({ kk: false, akta: false, kia: false });
 
   useEffect(() => {
     const found = players.find((p: any) => p.id === id);
@@ -225,6 +226,29 @@ export default function PlayerProfile() {
       } finally {
         setIsUploading(false);
       }
+    }
+  };
+
+  const handleDocUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'kk' | 'akta' | 'kia') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (file.size > 2 * 1024 * 1024) {
+      alert('Ukuran file maksimal 2MB');
+      return;
+    }
+
+    setUploadingDoc(p => ({ ...p, [type]: true }));
+    try {
+      const url = await uploadRawFile(file, 'player-documents');
+      if (url) {
+        setFormData((p: any) => ({ ...p, [`${type}_url`]: url }));
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Gagal mengupload file');
+    } finally {
+      setUploadingDoc(p => ({ ...p, [type]: false }));
     }
   };
 
@@ -573,6 +597,88 @@ export default function PlayerProfile() {
                    "{formData.notes || "Pemain memiliki visi bermain yang sangat baik, perlu peningkatan di sektor power shooting dan defense tracking. Berpotensi menembus skuad inti bulan depan jika konsisten."}"
                  </p>
               )}
+           </div>
+        </div>
+
+        {/* DOKUMEN RESMI SECTION */}
+        <div className="mt-6 bg-[#0c162d] border border-white/10 shadow-2xl rounded-[2.5rem] p-8">
+           <h3 className="text-2xl font-display font-black text-white uppercase tracking-tight mb-8 flex items-center gap-3">
+              <FileText className="w-6 h-6 text-orange-400" /> Dokumen Resmi
+           </h3>
+           
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[
+                 { id: 'kk', title: 'Kartu Keluarga', url: formData.kk_url, icon: ImageIcon, color: 'text-orange-400', required: true },
+                 { id: 'akta', title: 'Akta Kelahiran', url: formData.akta_url, icon: FileText, color: 'text-blue-400', required: true },
+                 { id: 'kia', title: 'Identitas Anak (KIA)', url: formData.kia_url, icon: ImageIcon, color: 'text-emerald-400', required: false }
+              ].map((doc, i) => (
+                 <div key={i} className="bg-[#080d19] border border-white/5 rounded-2xl p-5 flex flex-col relative overflow-hidden group">
+                    <div className="flex items-start justify-between mb-4">
+                       <div className="flex items-center gap-2">
+                          <doc.icon className={`w-5 h-5 ${doc.color}`} />
+                          <h4 className="text-sm font-bold text-white tracking-tight">{doc.title}</h4>
+                       </div>
+                       {doc.required ? (
+                          <span className="text-[8px] font-black uppercase tracking-widest bg-red-500/20 text-red-400 px-2 py-0.5 rounded">Wajib</span>
+                       ) : (
+                          <span className="text-[8px] font-black uppercase tracking-widest bg-white/10 text-white/50 px-2 py-0.5 rounded">Ops</span>
+                       )}
+                    </div>
+                    
+                     <div className="flex-1 flex flex-col items-center justify-center bg-black/40 rounded-xl border border-white/5 p-4 mb-4 relative overflow-hidden">
+                        {uploadingDoc[doc.id as keyof typeof uploadingDoc] ? (
+                           <div className="text-center z-10 relative">
+                              <Loader2 className="w-8 h-8 animate-spin text-orange-400 mx-auto mb-2" />
+                              <span className="text-xs font-bold text-orange-400">Uploading...</span>
+                           </div>
+                        ) : doc.url ? (
+                           <div className="text-center z-10 relative">
+                              <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
+                              <span className="text-xs font-bold text-emerald-400">File Tersedia</span>
+                           </div>
+                        ) : (
+                           <div className="text-center z-10 relative">
+                              <span className="text-2xl mb-2 block opacity-50">📂</span>
+                              <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Tidak tersedia</span>
+                           </div>
+                        )}
+                        
+                        {isEditing && (
+                           <label className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer z-20">
+                             <Upload className="w-6 h-6 text-white mb-2" />
+                             <span className="text-[9px] font-bold text-white uppercase tracking-widest">Klik Upload</span>
+                             <input type="file" className="hidden" accept=".jpg,.jpeg,.png,.pdf" onChange={(e) => handleDocUpload(e, doc.id as any)} />
+                           </label>
+                        )}
+                     </div>
+                    
+                    <div className="flex gap-2">
+                       <button 
+                         onClick={() => doc.url ? window.open(doc.url, '_blank') : null}
+                         disabled={!doc.url}
+                         className={cn(
+                           "flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all",
+                           doc.url ? "bg-white/10 text-white hover:bg-white border border-white/10 hover:text-black" : "bg-white/5 text-white/30 cursor-not-allowed"
+                         )}
+                       >
+                         <Eye className="w-3 h-3" /> Lihat
+                       </button>
+                       <a 
+                         href={doc.url || '#'}
+                         target="_blank"
+                         rel="noopener noreferrer"
+                         download={doc.title.replace(/\s+/g, '_')}
+                         className={cn(
+                           "w-12 h-[34px] rounded-xl border flex items-center justify-center shrink-0 transition-all", // Made smaller height
+                           doc.url ? "border-white/10 bg-white/5 hover:bg-blue-500 hover:text-white hover:border-blue-500" : "border-transparent bg-white/5 text-white/30 cursor-not-allowed"
+                         )}
+                         onClick={(e) => !doc.url && e.preventDefault()}
+                       >
+                         <Download className="w-4 h-4" />
+                       </a>
+                    </div>
+                 </div>
+              ))}
            </div>
         </div>
 

@@ -15,6 +15,7 @@ export default function Layout({ children }: LayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
 
   const menuItems = [
     { name: 'Dashboard', path: '/dashboard', icon: Home },
@@ -44,7 +45,10 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen flex text-white overflow-hidden">
       {/* Sidebar Desktop */}
-      <aside className="hidden lg:flex flex-col w-72 bg-[var(--color-navy-dark)] border-r border-white/5 h-screen sticky top-0">
+      <aside className={cn(
+        "hidden lg:flex flex-col bg-[var(--color-navy-dark)] border-r border-white/5 h-screen sticky top-0 transition-[width,opacity,padding] duration-300 overflow-hidden",
+        isDesktopSidebarOpen ? "w-72 opacity-100" : "w-0 opacity-0 border-r-0"
+      )}>
         <div className="pt-10 pb-6 px-8 shrink-0 flex flex-col items-center">
           <Link 
             to="/dashboard"
@@ -139,11 +143,20 @@ export default function Layout({ children }: LayoutProps) {
             </Link>
           </div>
 
-          <div className="hidden md:flex flex-col items-end justify-center bg-white/5 px-4 py-1.5 rounded-xl border border-white/10 w-fit">
-            <span className="text-[10px] font-bold text-[var(--color-primary)] uppercase tracking-widest leading-none mb-1">
-              {new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date())}
-            </span>
-            <RealTimeClock />
+          <div className="hidden md:flex items-center gap-4">
+            <button 
+              onClick={() => setIsDesktopSidebarOpen(prev => !prev)} 
+              className="hidden lg:flex p-2 hover:bg-white/5 rounded-xl transition-colors"
+              title="Toggle Sidebar"
+            >
+              <Menu className="w-6 h-6 text-white/60 hover:text-white" />
+            </button>
+            <div className="flex flex-col items-end justify-center bg-white/5 px-4 py-1.5 rounded-xl border border-white/10 w-fit">
+              <span className="text-[10px] font-bold text-[var(--color-primary)] uppercase tracking-widest leading-none mb-1">
+                {new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date())}
+              </span>
+              <RealTimeClock />
+            </div>
           </div>
 
           <div className="flex items-center gap-4">

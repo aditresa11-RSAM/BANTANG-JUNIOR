@@ -1,12 +1,20 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronRight, ChevronLeft, Upload, CheckCircle2, User, Phone, MapPin, Calendar, Clock, Trophy } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Upload, CheckCircle2, User, Phone, MapPin, Calendar, Clock, Trophy, FileText, Image as ImageIcon, Check } from 'lucide-react';
 import { differenceInYears } from 'date-fns';
 import { useCMSData } from '../lib/store';
+import { uploadRawFile } from '../lib/supabase';
+
+const POSITIONS = {
+  'Goalkeeper': [],
+  'Defender': ['Center Back', 'Full Back', 'Wing Back', 'Sweeper'],
+  'Midfielder': ['Defensive Midfielder', 'Central Midfielder', 'Attacking Midfielder', 'Winger'],
+  'Forward': ['Forward Wingers', 'Second Striker', 'Striker']
+};
 
 export default function RegistrationPublic() {
   const [step, setStep] = useState(1);
-  const totalSteps = 4;
+  const totalSteps = 5;
   
   const [formData, setFormData] = useState({
     fullName: '',
@@ -15,7 +23,8 @@ export default function RegistrationPublic() {
     gender: 'Laki-laki',
     height: '',
     weight: '',
-    position: 'Midfielder',
+    position_main: 'Midfielder',
+    position_detail: 'Central Midfielder',
     previousSSB: 'Tidak',
     previousSSBName: '',
     
@@ -28,13 +37,42 @@ export default function RegistrationPublic() {
     location: 'Lapangan Tenjojaya',
     
     photoUrl: '',
-    documentUrl: ''
+    documentUrl: '',
+    kk_url: '',
+    akta_url: '',
+    kia_url: ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   
   const { addItems } = useCMSData('registrations', []);
+
+  const [uploading, setUploading] = useState({ kk: false, akta: false, kia: false });
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'kk' | 'akta' | 'kia') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Check size max 2MB
+    if (file.size > 2 * 1024 * 1024) {
+      alert('Ukuran file maksimal 2MB');
+      return;
+    }
+
+    setUploading(p => ({ ...p, [type]: true }));
+    try {
+      const url = await uploadRawFile(file, 'player-documents');
+      if (url) {
+        setFormData(p => ({ ...p, [`${type}_url`]: url }));
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Gagal mengupload file');
+    } finally {
+      setUploading(p => ({ ...p, [type]: false }));
+    }
+  };
 
   // Auto calculate age and category
   const handleDateChange = (e: any) => {
@@ -140,7 +178,7 @@ export default function RegistrationPublic() {
             SSB BANTANG JUNIOR
           </h1>
           <p className="text-sm md:text-base text-white/60 max-w-2xl mx-auto mb-6 font-medium leading-relaxed">
-            "Melahirkan pemain, membentuk karakter, menginspirasi prestasi." Bergabunglah bersama akademi sepakbola modern untuk anak usia <span className="text-white font-bold px-2 py-1 bg-white/10 rounded-md">6 - 17 Tahun</span>
+            "Melahirkan pemain, membentuk karakter, menginspirasi prestasi." Bergabunglah bersama sekolah sepakbola modern untuk anak usia <span className="text-white font-bold px-2 py-1 bg-white/10 rounded-md">6 - 17 Tahun</span>
           </p>
         </div>
       </div>
@@ -154,19 +192,19 @@ export default function RegistrationPublic() {
              <div className="absolute left-6 right-6 top-1/2 h-0.5 bg-white/5 -z-10 -translate-y-1/2 rounded-full" />
              <div className="absolute left-6 top-1/2 h-0.5 bg-gradient-to-r from-blue-600 to-blue-400 -z-10 -translate-y-1/2 transition-all duration-700 ease-out rounded-full" style={{ width: `calc(${((step-1)/(totalSteps-1))*100}% - 3rem)` }} />
              
-             {[1,2,3,4].map(s => (
+             {[1,2,3,4,5].map(s => (
                <div key={s} className="flex flex-col items-center gap-3">
-                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-sm transition-all duration-500 shadow-xl ${step >= s ? 'bg-blue-500 text-white shadow-[0_0_20px_rgba(59,130,246,0.3)] scale-110' : 'bg-[#1a233a] text-white/30 border border-white/5'}`}>
+                 <div className={`w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center font-black text-sm transition-all duration-500 shadow-xl ${step >= s ? 'bg-blue-500 text-white shadow-[0_0_20px_rgba(59,130,246,0.3)] scale-110' : 'bg-[#1a233a] text-white/30 border border-white/5'}`}>
                    {s}
                  </div>
-                 <span className={`text-[9px] uppercase tracking-[0.2em] hidden md:block transition-colors duration-500 ${step >= s ? 'text-blue-400 font-bold' : 'text-white/20'}`}>
-                   {s === 1 ? 'Data Diri' : s === 2 ? 'Data Wali' : s === 3 ? 'Program' : 'Review'}
+                 <span className={`text-[8px] md:text-[9px] uppercase tracking-[0.2em] hidden md:block transition-colors duration-500 w-16 text-center ${step >= s ? 'text-blue-400 font-bold' : 'text-white/20'}`}>
+                   {s === 1 ? 'Data Diri' : s === 2 ? 'Posisi' : s === 3 ? 'Wali' : s === 4 ? 'Dokumen' : 'Review'}
                  </span>
                </div>
              ))}
           </div>
 
-          <form onSubmit={step === 4 ? handleSubmit : (e) => { e.preventDefault(); nextStep(); }}>
+          <form onSubmit={step === 5 ? handleSubmit : (e) => { e.preventDefault(); nextStep(); }}>
             <AnimatePresence mode="wait">
               
               {/* STEP 1: DATA PRIBADI */}
@@ -212,18 +250,6 @@ export default function RegistrationPublic() {
                         <input required value={formData.weight} onChange={e => setFormData({...formData, weight: e.target.value})} type="number" className="w-full bg-[#080d19] border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-blue-500 transition-all shadow-inner text-center font-mono" placeholder="45" />
                       </div>
                     </div>
-                    <div className="md:col-span-2 mt-2">
-                       <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3">Posisi Utama</label>
-                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                         {['GK', 'Defender', 'Midfielder', 'Forward'].map(pos => (
-                           <button type="button" key={pos} onClick={() => setFormData({...formData, position: pos})}
-                             className={`p-4 rounded-2xl border text-xs font-black uppercase tracking-widest transition-all duration-300 ${formData.position === pos ? 'bg-blue-500/10 border-blue-500 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.2)] scale-[1.02]' : 'bg-[#080d19] border-white/5 text-white/40 hover:bg-white/5 hover:text-white/60'}`}
-                           >
-                              {pos}
-                           </button>
-                         ))}
-                       </div>
-                    </div>
                     <div className="md:col-span-2 mt-4 pt-4 border-t border-white/5">
                         <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3">Pernah Masuk SSB Sebelumnya?</label>
                         <div className="grid grid-cols-2 gap-3 mb-4">
@@ -246,48 +272,82 @@ export default function RegistrationPublic() {
                 </motion.div>
               )}
 
-              {/* STEP 2: DATA WALI */}
+              {/* STEP 2: POSISI PEMAIN */}
               {step === 2 && (
                 <motion.div key="step2" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }} transition={{ duration: 0.3 }}>
                   <div className="flex items-center gap-3 mb-8 pb-4 border-b border-white/5">
                     <div className="p-3 bg-fuchsia-500/10 rounded-xl">
-                      <Phone className="w-5 h-5 text-fuchsia-400" />
+                      <Trophy className="w-5 h-5 text-fuchsia-400" />
                     </div>
                     <div>
-                      <h2 className="text-xl font-display font-black uppercase tracking-tight text-white mb-1">Data Wali</h2>
-                      <h3 className="text-xs font-bold text-white/40 uppercase tracking-widest">Informasi kontak orang tua/wali</h3>
+                      <h2 className="text-xl font-display font-black uppercase tracking-tight text-white mb-1">Posisi Pemain</h2>
+                      <h3 className="text-xs font-bold text-white/40 uppercase tracking-widest">Tentukan posisi utama dan spesifik</h3>
                     </div>
                   </div>
-                  <div className="space-y-5">
+                  <div className="space-y-6">
                     <div>
-                      <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2">Nama Orang Tua / Wali</label>
-                      <input required value={formData.parentName} onChange={e => setFormData({...formData, parentName: e.target.value})} type="text" className="w-full bg-[#080d19] border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-fuchsia-500 transition-all shadow-inner" placeholder="Nama ayah/ibu/wali" />
+                       <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3">Posisi Utama</label>
+                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                         {Object.keys(POSITIONS).map(pos => (
+                           <button type="button" key={pos} onClick={() => setFormData({...formData, position_main: pos, position_detail: POSITIONS[pos as keyof typeof POSITIONS][0] || pos})}
+                             className={`p-4 rounded-2xl border text-xs font-black uppercase tracking-widest transition-all duration-300 ${formData.position_main === pos ? 'bg-fuchsia-500/10 border-fuchsia-500 text-fuchsia-400 shadow-[0_0_15px_rgba(217,70,239,0.2)] scale-[1.02]' : 'bg-[#080d19] border-white/5 text-white/40 hover:bg-white/5 hover:text-white/60'}`}
+                           >
+                              {pos}
+                           </button>
+                         ))}
+                       </div>
                     </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2">Nomor WhatsApp Aktif</label>
-                      <input required value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} type="tel" className="w-full bg-[#080d19] border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-fuchsia-500 transition-all font-mono shadow-inner" placeholder="0812xxxxxxxx" />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2">Alamat Lengkap</label>
-                      <textarea required value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} rows={4} className="w-full bg-[#080d19] border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-fuchsia-500 transition-all resize-none shadow-inner" placeholder="Alamat domisili saat ini..." />
-                    </div>
+                    
+                    {formData.position_main !== 'Goalkeeper' && (
+                      <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                        <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3">Sub Posisi ({formData.position_main})</label>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                          {POSITIONS[formData.position_main as keyof typeof POSITIONS].map(sub => (
+                            <button type="button" key={sub} onClick={() => setFormData({...formData, position_detail: sub})}
+                               className={`p-4 rounded-2xl border text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${formData.position_detail === sub ? 'bg-fuchsia-500/10 border-fuchsia-500 text-fuchsia-400 shadow-[0_0_15px_rgba(217,70,239,0.2)] scale-[1.02]' : 'bg-[#080d19] border-white/5 text-white/40 hover:bg-white/5 hover:text-white/60'}`}
+                             >
+                                {sub}
+                             </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               )}
 
-              {/* STEP 3: AKADEMI */}
+              {/* STEP 3: DATA WALI & PROGRAM */}
               {step === 3 && (
                 <motion.div key="step3" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }} transition={{ duration: 0.3 }}>
                   <div className="flex items-center gap-3 mb-8 pb-4 border-b border-white/5">
                     <div className="p-3 bg-emerald-500/10 rounded-xl">
-                      <Calendar className="w-5 h-5 text-emerald-400" />
+                      <Phone className="w-5 h-5 text-emerald-400" />
                     </div>
                     <div>
-                      <h2 className="text-xl font-display font-black uppercase tracking-tight text-white mb-1">Akademi</h2>
-                      <h3 className="text-xs font-bold text-white/40 uppercase tracking-widest">Pemilihan program dan jadwal</h3>
+                      <h2 className="text-xl font-display font-black uppercase tracking-tight text-white mb-1">Data Wali & Program</h2>
+                      <h3 className="text-xs font-bold text-white/40 uppercase tracking-widest">Informasi kontak dan pilihan jadwal</h3>
                     </div>
                   </div>
+                  <div className="space-y-5 mb-8 pb-8 border-b border-white/5">
+                    <h3 className="text-[10px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-2"><User className="w-3 h-3"/> Data Wali</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2">Nama Orang Tua / Wali</label>
+                        <input required value={formData.parentName} onChange={e => setFormData({...formData, parentName: e.target.value})} type="text" className="w-full bg-[#080d19] border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-emerald-500 transition-all shadow-inner" placeholder="Nama ayah/ibu/wali" />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2">Nomor WhatsApp Aktif</label>
+                        <input required value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} type="tel" className="w-full bg-[#080d19] border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-emerald-500 transition-all font-mono shadow-inner" placeholder="0812xxxxxxxx" />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2">Alamat Lengkap</label>
+                        <textarea required value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} rows={3} className="w-full bg-[#080d19] border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-emerald-500 transition-all resize-none shadow-inner" placeholder="Alamat domisili saat ini..." />
+                      </div>
+                    </div>
+                  </div>
+                  
                   <div className="space-y-8">
+                    <h3 className="text-[10px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-2"><Calendar className="w-3 h-3"/> Program Sekolah Sepak Bola</h3>
                     <div>
                        <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3">Kategori Kelompok Umur (Auto)</label>
                        <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-6 flex items-center justify-between shadow-inner">
@@ -338,8 +398,119 @@ export default function RegistrationPublic() {
                 </motion.div>
               )}
 
-              {/* STEP 4: REVIEW */}
+              {/* STEP 4: DOKUMEN PENDUKUNG */}
               {step === 4 && (
+                <motion.div key="step4" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }} transition={{ duration: 0.3 }}>
+                  <div className="flex items-center gap-3 mb-8 pb-4 border-b border-white/5">
+                    <div className="p-3 bg-orange-500/10 rounded-xl">
+                      <FileText className="w-5 h-5 text-orange-400" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-display font-black uppercase tracking-tight text-white mb-1">Dokumen Pendukung</h2>
+                      <h3 className="text-xs font-bold text-white/40 uppercase tracking-widest">Upload Kartu Keluarga, Akta, dll (Max 2MB)</h3>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-6">
+                    {/* Kartu Keluarga */}
+                    <div className="bg-[#080d19] rounded-2xl p-5 border border-white/10 relative overflow-hidden group">
+                      <div className="flex justify-between items-start mb-3">
+                         <div>
+                            <h4 className="text-sm font-bold text-white flex items-center gap-2"><ImageIcon className="w-4 h-4 text-orange-400"/> Kartu Keluarga (KK) <span className="text-[9px] font-black bg-red-500/20 text-red-400 px-2 py-0.5 rounded uppercase tracking-widest">Wajib</span></h4>
+                            <p className="text-[10px] text-white/40 mt-1 uppercase tracking-widest">Format: JPG / PNG / PDF</p>
+                         </div>
+                      </div>
+                      
+                      <label className="relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer bg-white/[0.02] border-white/10 hover:border-orange-500/50 hover:bg-orange-500/5 transition-all">
+                        {uploading.kk ? (
+                           <div className="flex flex-col items-center gap-2">
+                             <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"/>
+                             <span className="text-xs font-bold text-orange-400">Uploading...</span>
+                           </div>
+                        ) : formData.kk_url ? (
+                           <div className="flex flex-col items-center gap-2 text-emerald-400">
+                             <Check className="w-6 h-6" />
+                             <span className="text-xs font-bold">File Tersimpan</span>
+                             <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Klik untuk mengubah file</span>
+                           </div>
+                        ) : (
+                           <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                             <Upload className="w-6 h-6 mb-2 text-white/30" />
+                             <p className="text-xs text-white/60"><span className="font-bold">Klik untuk browse</span> atau tarik file</p>
+                           </div>
+                        )}
+                        <input type="file" className="hidden" accept=".jpg,.jpeg,.png,.pdf" onChange={(e) => handleFileUpload(e, 'kk')} />
+                      </label>
+                    </div>
+
+                    {/* Akta Kelahiran */}
+                    <div className="bg-[#080d19] rounded-2xl p-5 border border-white/10 relative overflow-hidden group">
+                      <div className="flex justify-between items-start mb-3">
+                         <div>
+                            <h4 className="text-sm font-bold text-white flex items-center gap-2"><FileText className="w-4 h-4 text-orange-400"/> Akta Kelahiran <span className="text-[9px] font-black bg-red-500/20 text-red-400 px-2 py-0.5 rounded uppercase tracking-widest">Wajib</span></h4>
+                            <p className="text-[10px] text-white/40 mt-1 uppercase tracking-widest">Format: JPG / PNG / PDF</p>
+                         </div>
+                      </div>
+                      
+                      <label className="relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer bg-white/[0.02] border-white/10 hover:border-orange-500/50 hover:bg-orange-500/5 transition-all">
+                        {uploading.akta ? (
+                           <div className="flex flex-col items-center gap-2">
+                             <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"/>
+                             <span className="text-xs font-bold text-orange-400">Uploading...</span>
+                           </div>
+                        ) : formData.akta_url ? (
+                           <div className="flex flex-col items-center gap-2 text-emerald-400">
+                             <Check className="w-6 h-6" />
+                             <span className="text-xs font-bold">File Tersimpan</span>
+                             <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Klik untuk mengubah file</span>
+                           </div>
+                        ) : (
+                           <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                             <Upload className="w-6 h-6 mb-2 text-white/30" />
+                             <p className="text-xs text-white/60"><span className="font-bold">Klik untuk browse</span> atau tarik file</p>
+                           </div>
+                        )}
+                        <input type="file" className="hidden" accept=".jpg,.jpeg,.png,.pdf" onChange={(e) => handleFileUpload(e, 'akta')} />
+                      </label>
+                    </div>
+
+                    {/* KIA (Opsional) */}
+                    <div className="bg-[#080d19] rounded-2xl p-5 border border-white/10 relative overflow-hidden group">
+                      <div className="flex justify-between items-start mb-3">
+                         <div>
+                            <h4 className="text-sm font-bold text-white flex items-center gap-2"><ImageIcon className="w-4 h-4 text-orange-400"/> Identitas Anak (KIA) <span className="text-[9px] font-black bg-white/10 text-white/50 px-2 py-0.5 rounded uppercase tracking-widest">Opsional</span></h4>
+                            <p className="text-[10px] text-white/40 mt-1 uppercase tracking-widest">Format: JPG / PNG / PDF</p>
+                         </div>
+                      </div>
+                      
+                      <label className="relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer bg-white/[0.02] border-white/10 hover:border-orange-500/50 hover:bg-orange-500/5 transition-all">
+                        {uploading.kia ? (
+                           <div className="flex flex-col items-center gap-2">
+                             <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"/>
+                             <span className="text-xs font-bold text-orange-400">Uploading...</span>
+                           </div>
+                        ) : formData.kia_url ? (
+                           <div className="flex flex-col items-center gap-2 text-emerald-400">
+                             <Check className="w-6 h-6" />
+                             <span className="text-xs font-bold">File Tersimpan</span>
+                             <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Klik untuk mengubah file</span>
+                           </div>
+                        ) : (
+                           <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                             <Upload className="w-6 h-6 mb-2 text-white/30" />
+                             <p className="text-xs text-white/60"><span className="font-bold">Klik untuk browse</span> atau tarik file</p>
+                           </div>
+                        )}
+                        <input type="file" className="hidden" accept=".jpg,.jpeg,.png,.pdf" onChange={(e) => handleFileUpload(e, 'kia')} />
+                      </label>
+                    </div>
+
+                  </div>
+                </motion.div>
+              )}
+
+              {/* STEP 5: REVIEW */}
+              {step === 5 && (
                 <motion.div key="step4" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }} transition={{ duration: 0.3 }}>
                   <div className="flex items-center gap-3 mb-8 pb-4 border-b border-white/5">
                     <div className="p-3 bg-[#fdc700]/10 rounded-xl">
@@ -359,7 +530,7 @@ export default function RegistrationPublic() {
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div><p className="text-white/30 text-[9px] uppercase font-bold tracking-wider mb-1">Nama Lengkap</p><p className="font-bold text-sm tracking-tight">{formData.fullName || '-'}</p></div>
-                        <div><p className="text-white/30 text-[9px] uppercase font-bold tracking-wider mb-1">Kategori (Posisi)</p><p className="font-bold text-sm tracking-tight">{formData.ageCategory || '-'} • {formData.position}</p></div>
+                        <div><p className="text-white/30 text-[9px] uppercase font-bold tracking-wider mb-1">Kategori (Posisi)</p><p className="font-bold text-sm tracking-tight">{formData.ageCategory || '-'} • {formData.position_main} ({formData.position_detail})</p></div>
                         <div><p className="text-white/30 text-[9px] uppercase font-bold tracking-wider mb-1">Riwayat SSB</p><p className="font-bold text-sm tracking-tight">{formData.previousSSB === 'Ya' ? formData.previousSSBName : 'Tidak Pernah'}</p></div>
                         <div className="col-span-2"><p className="text-white/30 text-[9px] uppercase font-bold tracking-wider mb-1">Tempat, Tanggal Lahir</p><p className="font-bold text-sm tracking-tight">{formData.birthPlace || '-'}, {formData.birthDate ? new Date(formData.birthDate).toLocaleDateString('id-ID') : '-'}</p></div>
                       </div>
@@ -368,7 +539,7 @@ export default function RegistrationPublic() {
                     <div className="bg-[#080d19] rounded-2xl p-6 border border-white/5 hover:border-white/10 transition-colors">
                       <div className="flex items-center justify-between mb-4 pb-2 border-b border-white/5">
                         <h3 className="text-[10px] font-black text-fuchsia-400 uppercase tracking-widest flex items-center gap-2"><Phone className="w-3 h-3"/> Data Wali</h3>
-                        <button type="button" onClick={() => setStep(2)} className="text-[10px] uppercase font-bold text-white/30 hover:text-white">Edit</button>
+                        <button type="button" onClick={() => setStep(3)} className="text-[10px] uppercase font-bold text-white/30 hover:text-white">Edit</button>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div><p className="text-white/30 text-[9px] uppercase font-bold tracking-wider mb-1">Nama Wali</p><p className="font-bold text-sm tracking-tight">{formData.parentName || '-'}</p></div>
@@ -378,7 +549,7 @@ export default function RegistrationPublic() {
                     
                     <div className="bg-[#080d19] rounded-2xl p-6 border border-white/5 hover:border-white/10 transition-colors">
                       <div className="flex items-center justify-between mb-4 pb-2 border-b border-white/5">
-                         <h3 className="text-[10px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-2"><Calendar className="w-3 h-3"/> Program Akademi</h3>
+                         <h3 className="text-[10px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-2"><Calendar className="w-3 h-3"/> Program Sekolah Sepak Bola</h3>
                          <button type="button" onClick={() => setStep(3)} className="text-[10px] uppercase font-bold text-white/30 hover:text-white">Edit</button>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -402,11 +573,11 @@ export default function RegistrationPublic() {
               <button 
                 type="submit" 
                 disabled={isSubmitting}
-                className={`flex-1 sm:flex-none px-8 py-3.5 rounded-xl font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-3 transition-all duration-300 transform hover:translate-y-[-2px] active:translate-y-[0px] ${step === 4 ? 'bg-[#fdc700] text-black shadow-[0_10px_20px_rgba(253,199,0,0.3)] hover:shadow-[0_15px_30px_rgba(253,199,0,0.4)] hover:bg-yellow-400' : 'bg-blue-600 text-white shadow-[0_10px_20px_rgba(37,99,235,0.2)] hover:bg-blue-500 hover:shadow-[0_15px_30px_rgba(37,99,235,0.3)]'}`}
+                className={`flex-1 sm:flex-none px-8 py-3.5 rounded-xl font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-3 transition-all duration-300 transform hover:translate-y-[-2px] active:translate-y-[0px] ${step === 5 ? 'bg-[#fdc700] text-black shadow-[0_10px_20px_rgba(253,199,0,0.3)] hover:shadow-[0_15px_30px_rgba(253,199,0,0.4)] hover:bg-yellow-400' : 'bg-blue-600 text-white shadow-[0_10px_20px_rgba(37,99,235,0.2)] hover:bg-blue-500 hover:shadow-[0_15px_30px_rgba(37,99,235,0.3)]'}`}
               >
-                {step === 4 ? (isSubmitting ? 'MEMPROSES...' : 'DAFTAR SEKARANG') : 'LANJUTKAN'} 
-                {step !== 4 && <ChevronRight className="w-4 h-4" />}
-                {step === 4 && !isSubmitting && <CheckCircle2 className="w-4 h-4" />}
+                {step === 5 ? (isSubmitting ? 'MEMPROSES...' : 'DAFTAR SEKARANG') : 'LANJUTKAN'} 
+                {step !== 5 && <ChevronRight className="w-4 h-4" />}
+                {step === 5 && !isSubmitting && <CheckCircle2 className="w-4 h-4" />}
               </button>
             </div>
           </form>
