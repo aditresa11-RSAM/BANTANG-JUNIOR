@@ -633,6 +633,16 @@ const PlayerIcon: React.FC<PlayerProps> = ({ idx, x, y, role, isGK, active, onSe
     window.addEventListener('pointerup', handlePointerUp);
   };
 
+  const getRoleColor = (r?: string) => {
+    switch (r) {
+      case 'GK': return 'bg-emerald-500 text-black';
+      case 'DEF': return 'bg-blue-500 text-white';
+      case 'MID': return 'bg-purple-500 text-white';
+      case 'FWD': return 'bg-rose-500 text-white';
+      default: return 'bg-gray-500 text-white';
+    }
+  };
+
   return (
     <div
       style={{ 
@@ -642,13 +652,12 @@ const PlayerIcon: React.FC<PlayerProps> = ({ idx, x, y, role, isGK, active, onSe
         touchAction: 'none'
       }}
       className={cn(
-        "absolute flex flex-col items-center gap-1",
-        isDragging ? "transition-none" : "transition-all duration-500 ease-out",
-        !disabled ? "pointer-events-auto" : "pointer-events-none",
-        isDragging && "z-50"
+        "absolute flex flex-col items-center group will-change-transform transform-gpu",
+        isDragging ? "transition-none z-50" : "transition-all duration-300 ease-out z-10",
+        !disabled ? "pointer-events-auto" : "pointer-events-none"
       )}
       onDragOver={(e) => {
-        if (!disabled) e.preventDefault(); // allow drop
+        if (!disabled) e.preventDefault();
       }}
       onDrop={(e) => {
         if (disabled) return;
@@ -661,10 +670,10 @@ const PlayerIcon: React.FC<PlayerProps> = ({ idx, x, y, role, isGK, active, onSe
     >
       <motion.div
         onPointerDown={handlePointerDown}
-        whileHover={!disabled ? { scale: 1.1 } : {}}
+        whileHover={!disabled ? { scale: 1.05 } : {}}
         animate={{ 
-          scale: isDragging ? 1.3 : 1,
-          filter: isDragging ? "drop-shadow(0 20px 30px rgba(0,0,0,0.4))" : "drop-shadow(0 10px 20px rgba(0,0,0,0.3))",
+          scale: isDragging ? 1.2 : 1,
+          filter: isDragging ? "drop-shadow(0 15px 25px rgba(0,0,0,0.5))" : "drop-shadow(0 4px 6px rgba(0,0,0,0.3))",
           x: isSimulating ? [0, isGK ? 2 : Math.random() * 8 + 4, isGK ? -2 : -(Math.random() * 8 + 4), 0] : 0,
           y: isSimulating ? [0, isGK ? 1 : Math.random() * 5 + 2, isGK ? -1 : -(Math.random() * 5 + 2), 0] : 0,
         }}
@@ -673,37 +682,46 @@ const PlayerIcon: React.FC<PlayerProps> = ({ idx, x, y, role, isGK, active, onSe
           y: isSimulating ? { repeat: Infinity, duration: 3 + Math.random() * 2, ease: "easeInOut" } : undefined,
         }}
         className={cn(
-          "relative w-12 h-12 md:w-14 md:h-14 rounded-full border-[3px] flex flex-col items-center justify-center font-display font-black text-sm transition-colors",
+          "relative w-9 h-9 md:w-12 md:h-12 rounded-full border-[2px] md:border-[3px] flex flex-col items-center justify-center font-display font-bold text-xs bg-[#0a0f1c] transition-colors",
           !disabled ? (isDragging ? "cursor-grabbing" : "cursor-grab") : "cursor-default",
-          playerId 
-            ? (role === 'GK' ? "bg-amber-400 text-black border-amber-500/50" : "bg-[var(--color-primary)] text-black border-white/20 shadow-[0_0_15px_rgba(250,204,21,0.5)]") 
-            : "bg-black/50 text-white border-white/20 border-dashed backdrop-blur-sm",
-          active ? "ring-[5px] ring-white/30" : "hover:ring-4 hover:ring-white/10"
+          playerId ? "border-white/70" : "border-white/20 border-dashed backdrop-blur-sm text-white/50",
+          active && "ring-[2px] md:ring-[3px] ring-blue-400 ring-offset-2 ring-offset-transparent"
         )}
       >
         {player && (player.photo || player.photourl) ? (
-           <img src={player.photo || player.photourl} className="absolute inset-0 w-full h-full object-cover rounded-full opacity-50" />
-        ) : null}
+           <img src={player.photo || player.photourl} className="absolute inset-0 w-full h-full object-cover object-center rounded-full" draggable={false} />
+        ) : (
+           <span className="relative z-10 text-[9px] md:text-[10px] opacity-70">
+             {!playerId && (role || (isGK ? 'GK' : idx + 1))}
+           </span>
+        )}
         
-        <span className="relative z-10 text-[10px] sm:text-xs">
-          {player ? (player.jersey || '#') : (role || (isGK ? 'GK' : idx + 1))}
-        </span>
-        
+        {playerId && (
+          <div className="absolute -top-[2px] -right-[2px] md:-top-1 md:-right-1 min-w-[14px] h-[14px] md:min-w-[16px] md:h-[16px] bg-black/90 backdrop-blur-sm text-white text-[7px] md:text-[8px] font-bold rounded-full flex items-center justify-center border border-white/20 px-1 z-20 shadow-md">
+            {player?.jersey || '?'}
+          </div>
+        )}
+
         {playerId && (
           <button 
             onClick={(e) => { e.stopPropagation(); onAssign(null); }}
-            className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center pointer-events-auto opacity-0 group-hover:opacity-100 transition-opacity"
+            className="absolute -bottom-1 -left-1 w-4 h-4 bg-red-600/90 text-white rounded-full flex items-center justify-center pointer-events-auto opacity-0 group-hover:opacity-100 transition-opacity z-30"
           >
             <X className="w-2.5 h-2.5" />
           </button>
         )}
-        
-        <div className="absolute inset-0 rounded-full border border-white/20 mix-blend-overlay pointer-events-none" />
       </motion.div>
       
       {showNames && (
-        <div className="bg-black/80 px-2 py-0.5 rounded-md border border-white/10 backdrop-blur-md z-10 mt-1 shadow-lg max-w-[80px] text-center truncate pointer-events-none">
-           <span className="text-[9px] font-black text-white">{player ? player.name : (role || 'Role')}</span>
+        <div className="absolute top-[calc(100%+4px)] md:top-[calc(100%+8px)] bg-black/80 px-1.5 py-0.5 md:px-2 md:py-1 rounded-lg border border-white/10 backdrop-blur-md shadow-xl pointer-events-none z-20 flex flex-col items-center min-w-[50px] max-w-[70px] md:min-w-[60px] md:max-w-[85px] group-hover:scale-105 group-hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] transition-all">
+           <span className="text-[7px] md:text-[8px] font-semibold text-white/90 leading-[1.1] text-center line-clamp-2 drop-shadow-sm w-full break-words">
+             {player ? player.name : (role || 'Role')}
+           </span>
+           {player && (
+             <span className={cn("text-[6px] md:text-[7px] font-bold mt-1 px-1.5 py-[1px] md:py-[2px] rounded-sm uppercase tracking-widest leading-none", getRoleColor(role))}>
+               {role || 'Pos'}
+             </span>
+           )}
         </div>
       )}
       
@@ -711,10 +729,10 @@ const PlayerIcon: React.FC<PlayerProps> = ({ idx, x, y, role, isGK, active, onSe
       <AnimatePresence>
         {active && !disabled && (
            <motion.div 
-             initial={{ opacity: 0, scale: 0 }}
-             animate={{ opacity: 1, scale: 1 }}
-             exit={{ opacity: 0, scale: 0 }}
-             className="absolute top-[-30px] left-1/2 -translate-x-1/2 bg-black text-white text-[8px] font-black px-2 py-0.5 rounded-full whitespace-nowrap z-20 shadow-lg"
+             initial={{ opacity: 0, y: 5 }}
+             animate={{ opacity: 1, y: 0 }}
+             exit={{ opacity: 0, y: 5 }}
+             className="absolute bottom-[calc(100%+4px)] md:bottom-[calc(100%+8px)] bg-blue-500/90 text-white text-[7px] md:text-[8px] font-bold px-1.5 py-0.5 rounded-md whitespace-nowrap z-20 shadow-lg backdrop-blur-sm pointer-events-none"
            >
              {Math.round(localPos.x)}%, {Math.round(localPos.y)}%
            </motion.div>
