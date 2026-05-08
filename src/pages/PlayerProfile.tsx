@@ -600,6 +600,81 @@ export default function PlayerProfile() {
            </div>
         </div>
 
+        {/* DATA KESEHATAN SECTION */}
+        <div className="mt-6 bg-gradient-to-br from-rose-950/20 to-rose-900/10 border border-rose-500/20 shadow-[0_0_30px_rgba(244,63,94,0.05)] rounded-[2.5rem] p-8">
+           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 pb-4 border-b border-rose-500/20 gap-4">
+             <h3 className="text-2xl font-display font-black text-white uppercase tracking-tight flex items-center gap-3">
+                <Activity className="w-6 h-6 text-rose-400" /> Data Kesehatan
+             </h3>
+             {formData.has_medical_history ? (
+               <div className="bg-rose-500/20 text-rose-400 border border-rose-500/30 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(244,63,94,0.3)]">
+                 Ada Riwayat Penyakit
+               </div>
+             ) : (
+               <div className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(52,211,153,0.1)]">
+                 Sehat / Tidak Ada Riwayat
+               </div>
+             )}
+           </div>
+
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+             <div className="bg-black/60 p-5 rounded-2xl border border-white/5 relative overflow-hidden group hover:border-rose-500/30 transition-colors">
+                <p className="text-[10px] uppercase font-black text-rose-300/60 tracking-[0.2em] mb-2 px-1 relative z-10">Jenis Penyakit</p>
+                <div className="text-sm font-medium text-white relative z-10 leading-relaxed">
+                   {isEditing ? (
+                     <textarea className="w-full bg-black/40 border-b border-rose-500/50 p-2 text-white focus:outline-none focus:border-rose-400 resize-none min-h-[60px]" value={formData.medical_history || ''} onChange={e => setFormData({...formData, medical_history: e.target.value})} placeholder="Asma, dll..." />
+                   ) : (
+                     formData.medical_history || <span className="text-white/30 italic">Tidak ada keterangan</span>
+                   )}
+                </div>
+             </div>
+             
+             <div className="bg-black/60 p-5 rounded-2xl border border-white/5 relative overflow-hidden group hover:border-orange-500/30 transition-colors">
+                <p className="text-[10px] uppercase font-black text-orange-300/60 tracking-[0.2em] mb-2 px-1 relative z-10">Riwayat Cedera</p>
+                <div className="text-sm font-medium text-white relative z-10 leading-relaxed">
+                   {isEditing ? (
+                     <textarea className="w-full bg-black/40 border-b border-orange-500/50 p-2 text-white focus:outline-none focus:border-orange-400 resize-none min-h-[60px]" value={formData.injury_history || ''} onChange={e => setFormData({...formData, injury_history: e.target.value})} placeholder="Cedera lutut..." />
+                   ) : (
+                     formData.injury_history || <span className="text-white/30 italic">Nihil</span>
+                   )}
+                </div>
+             </div>
+
+             <div className="bg-black/60 p-5 rounded-2xl border border-white/5 relative overflow-hidden group hover:border-blue-500/30 transition-colors">
+                <p className="text-[10px] uppercase font-black text-blue-300/60 tracking-[0.2em] mb-2 px-1 relative z-10">Riwayat Alergi</p>
+                <div className="text-sm font-medium text-white relative z-10 leading-relaxed">
+                   {isEditing ? (
+                     <textarea className="w-full bg-black/40 border-b border-blue-500/50 p-2 text-white focus:outline-none focus:border-blue-400 resize-none min-h-[60px]" value={formData.allergy_history || ''} onChange={e => setFormData({...formData, allergy_history: e.target.value})} placeholder="Alergi debu..." />
+                   ) : (
+                     formData.allergy_history || <span className="text-white/30 italic">Nihil</span>
+                   )}
+                </div>
+             </div>
+
+             <div className="bg-black/60 p-5 rounded-2xl border border-white/5 relative overflow-hidden group hover:border-emerald-500/30 transition-colors">
+                <p className="text-[10px] uppercase font-black text-emerald-300/60 tracking-[0.2em] mb-2 px-1 relative z-10">Konsumsi Obat</p>
+                <div className="text-sm font-medium text-white relative z-10 leading-relaxed">
+                   {isEditing ? (
+                     <textarea className="w-full bg-black/40 border-b border-emerald-500/50 p-2 text-white focus:outline-none focus:border-emerald-400 resize-none min-h-[60px]" value={formData.medication_notes || ''} onChange={e => setFormData({...formData, medication_notes: e.target.value})} placeholder="Catatan obat..." />
+                   ) : (
+                     formData.medication_notes || <span className="text-white/30 italic">Nihil</span>
+                   )}
+                </div>
+             </div>
+             
+             <div className="md:col-span-2 lg:col-span-4 bg-black/60 p-5 rounded-2xl border border-white/5 relative overflow-hidden group hover:border-purple-500/30 transition-colors">
+               <p className="text-[10px] uppercase font-black text-purple-300/60 tracking-[0.2em] mb-2 px-1 relative z-10">Catatan Tambahan Pelatih</p>
+               <div className="text-sm font-medium text-white relative z-10 leading-relaxed">
+                  {isEditing ? (
+                    <textarea className="w-full bg-black/40 border-b border-purple-500/50 p-2 text-white focus:outline-none focus:border-purple-400 resize-none min-h-[60px]" value={formData.health_notes || ''} onChange={e => setFormData({...formData, health_notes: e.target.value})} placeholder="Catatan khusus terkait kesehatan siswa saat berlatih..." />
+                  ) : (
+                    formData.health_notes || <span className="text-white/30 italic">Tidak ada catatan ekstra</span>
+                  )}
+               </div>
+             </div>
+           </div>
+        </div>
+
         {/* DOKUMEN RESMI SECTION */}
         <div className="mt-6 bg-[#0c162d] border border-white/10 shadow-2xl rounded-[2.5rem] p-8">
            <h3 className="text-2xl font-display font-black text-white uppercase tracking-tight mb-8 flex items-center gap-3">

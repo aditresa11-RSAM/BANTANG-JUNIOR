@@ -48,7 +48,13 @@ export default function RegistrationAdmin() {
         status: 'Active',
         kk_url: reg.kk_url || '',
         akta_url: reg.akta_url || '',
-        kia_url: reg.kia_url || ''
+        kia_url: reg.kia_url || '',
+        has_medical_history: reg.has_medical_history || reg.has_medical_history === 'Ya',
+        medical_history: reg.medical_history || '',
+        allergy_history: reg.allergy_history || '',
+        injury_history: reg.injury_history || '',
+        medication_notes: reg.medication_notes || '',
+        health_notes: reg.health_notes || ''
       });
       // Mark as accepted
       updateItem(reg.id, { status: 'Diterima' });

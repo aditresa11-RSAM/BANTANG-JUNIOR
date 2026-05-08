@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronRight, ChevronLeft, Upload, CheckCircle2, User, Phone, MapPin, Calendar, Clock, Trophy, FileText, Image as ImageIcon, Check } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Upload, CheckCircle2, User, Phone, MapPin, Calendar, Clock, Trophy, FileText, Image as ImageIcon, Check, Activity } from 'lucide-react';
 import { differenceInYears } from 'date-fns';
 import { useCMSData } from '../lib/store';
 import { uploadRawFile } from '../lib/supabase';
@@ -35,6 +35,13 @@ export default function RegistrationPublic() {
     ageCategory: '', // will be auto calculated
     schedule: 'Minggu (07.00 - 10.00)',
     location: 'Lapangan Tenjojaya',
+
+    has_medical_history: 'Tidak',
+    medical_history: '',
+    allergy_history: '',
+    injury_history: '',
+    medication_notes: '',
+    health_notes: '',
     
     photoUrl: '',
     documentUrl: '',
@@ -104,6 +111,7 @@ export default function RegistrationPublic() {
       const registrationId = `SSB-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`;
       const savedData = {
         ...formData,
+        has_medical_history: formData.has_medical_history === 'Ya',
         registrationId,
         status: 'Belum Bayar',
         registrationDate: new Date().toISOString()
@@ -394,6 +402,60 @@ export default function RegistrationPublic() {
                          ))}
                        </div>
                     </div>
+
+                    {/* MEDICAL HISTORY SECTION */}
+                    <div className="mt-12 pt-8 border-t border-white/5 space-y-8">
+                       <div>
+                         <h3 className="text-[10px] font-black text-rose-400 uppercase tracking-widest flex items-center gap-2 mb-2"><Activity className="w-3 h-3"/> Riwayat Kesehatan Siswa</h3>
+                         <p className="text-[11px] text-rose-200/60 bg-rose-500/10 p-3 rounded-xl border border-rose-500/20">Data kesehatan membantu pelatih menjaga keamanan latihan dan mengatur pola fisik siswa.</p>
+                       </div>
+                       
+                       <div>
+                         <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3">Apakah siswa memiliki riwayat penyakit?</label>
+                         <div className="grid grid-cols-2 gap-3 mb-4">
+                           {['Ya', 'Tidak'].map(opt => (
+                             <button type="button" key={opt} onClick={() => setFormData({...formData, has_medical_history: opt})}
+                               className={`p-4 rounded-2xl border text-xs font-black uppercase tracking-widest transition-all duration-300 ${formData.has_medical_history === opt && opt === 'Ya' ? 'bg-rose-500/10 border-rose-500 text-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.2)] scale-[1.02]' : formData.has_medical_history === opt && opt === 'Tidak' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.2)] scale-[1.02]' : 'bg-[#080d19] border-white/5 text-white/40 hover:bg-white/5 hover:text-white/60'}`}
+                             >
+                                {opt}
+                             </button>
+                           ))}
+                         </div>
+
+                         <AnimatePresence>
+                           {formData.has_medical_history === 'Ya' && (
+                             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
+                               <div className="space-y-4 pt-4 border-t border-white/5">
+                                 <div>
+                                    <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2">Jenis Penyakit *</label>
+                                    <textarea required value={formData.medical_history} onChange={e => setFormData({...formData, medical_history: e.target.value})} rows={2} className="w-full bg-[#080d19] border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-rose-500 transition-all resize-none shadow-inner" placeholder="Contoh: Asma, Epilepsi..." />
+                                 </div>
+                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                   <div>
+                                      <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2">Riwayat Alergi</label>
+                                      <textarea value={formData.allergy_history} onChange={e => setFormData({...formData, allergy_history: e.target.value})} rows={2} className="w-full bg-[#080d19] border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-rose-500 transition-all resize-none shadow-inner" placeholder="Contoh: Alergi debu, dingin..." />
+                                   </div>
+                                   <div>
+                                      <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2">Riwayat Cedera Olahraga</label>
+                                      <textarea value={formData.injury_history} onChange={e => setFormData({...formData, injury_history: e.target.value})} rows={2} className="w-full bg-[#080d19] border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-rose-500 transition-all resize-none shadow-inner" placeholder="Contoh: Cedera lutut kanan, ankle..." />
+                                   </div>
+                                 </div>
+                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                   <div>
+                                      <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2">Sedang Konsumsi Obat?</label>
+                                      <textarea value={formData.medication_notes} onChange={e => setFormData({...formData, medication_notes: e.target.value})} rows={2} className="w-full bg-[#080d19] border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-rose-500 transition-all resize-none shadow-inner" placeholder="Catat detail obat jika ada..." />
+                                   </div>
+                                   <div>
+                                      <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2">Catatan Kesehatan Tambahan</label>
+                                      <textarea value={formData.health_notes} onChange={e => setFormData({...formData, health_notes: e.target.value})} rows={2} className="w-full bg-[#080d19] border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-rose-500 transition-all resize-none shadow-inner" placeholder="Info lain terkait kondisi fisik..." />
+                                   </div>
+                                 </div>
+                               </div>
+                             </motion.div>
+                           )}
+                         </AnimatePresence>
+                       </div>
+                    </div>
                   </div>
                 </motion.div>
               )}
@@ -556,6 +618,28 @@ export default function RegistrationPublic() {
                         <div><p className="text-white/30 text-[9px] uppercase font-bold tracking-wider mb-1">Jadwal</p><p className="font-bold text-sm tracking-tight">{formData.schedule}</p></div>
                         <div><p className="text-white/30 text-[9px] uppercase font-bold tracking-wider mb-1">Lokasi Latihan</p><p className="font-bold text-sm tracking-tight">{formData.location}</p></div>
                       </div>
+                    </div>
+
+                    <div className="bg-[#080d19] rounded-2xl p-6 border border-white/5 hover:border-white/10 transition-colors">
+                      <div className="flex items-center justify-between mb-4 pb-2 border-b border-white/5">
+                         <h3 className="text-[10px] font-black text-rose-400 uppercase tracking-widest flex items-center gap-2"><Activity className="w-3 h-3"/> Riwayat Kesehatan</h3>
+                         <button type="button" onClick={() => setStep(3)} className="text-[10px] uppercase font-bold text-white/30 hover:text-white">Edit</button>
+                      </div>
+                      {formData.has_medical_history === 'Ya' ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div><p className="text-white/30 text-[9px] uppercase font-bold tracking-wider mb-1">Status Riwayat Penyakit</p><span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-sm bg-rose-500/10 text-rose-400 border border-rose-500/20 text-xs font-black uppercase tracking-widest">Ada Riwayat</span></div>
+                          <div><p className="text-white/30 text-[9px] uppercase font-bold tracking-wider mb-1">Jenis Penyakit</p><p className="font-bold text-sm tracking-tight">{formData.medical_history || '-'}</p></div>
+                          {formData.allergy_history && <div><p className="text-white/30 text-[9px] uppercase font-bold tracking-wider mb-1">Riwayat Alergi</p><p className="font-bold text-sm tracking-tight">{formData.allergy_history}</p></div>}
+                          {formData.injury_history && <div><p className="text-white/30 text-[9px] uppercase font-bold tracking-wider mb-1">Riwayat Cedera Olahraga</p><p className="font-bold text-sm tracking-tight">{formData.injury_history}</p></div>}
+                          {formData.medication_notes && <div><p className="text-white/30 text-[9px] uppercase font-bold tracking-wider mb-1">Konsumsi Obat</p><p className="font-bold text-sm tracking-tight">{formData.medication_notes}</p></div>}
+                          {formData.health_notes && <div><p className="text-white/30 text-[9px] uppercase font-bold tracking-wider mb-1">Catatan Tambahan</p><p className="font-bold text-sm tracking-tight">{formData.health_notes}</p></div>}
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="text-white/30 text-[9px] uppercase font-bold tracking-wider mb-1">Status Riwayat Penyakit</p>
+                          <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-sm bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-black uppercase tracking-widest">Tidak Ada Riwayat</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </motion.div>

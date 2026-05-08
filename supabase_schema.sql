@@ -34,6 +34,12 @@ CREATE TABLE IF NOT EXISTS public.players (
   dominantfoot TEXT,
   parent_id TEXT,
   skillset JSONB,
+  has_medical_history BOOLEAN DEFAULT false,
+  medical_history TEXT,
+  allergy_history TEXT,
+  injury_history TEXT,
+  medication_notes TEXT,
+  health_notes TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
