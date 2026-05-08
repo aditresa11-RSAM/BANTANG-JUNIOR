@@ -233,8 +233,8 @@ export default function PlayerProfile() {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    if (file.size > 2 * 1024 * 1024) {
-      alert('Ukuran file maksimal 2MB');
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Ukuran file maksimal 5MB');
       return;
     }
 
@@ -722,7 +722,7 @@ export default function PlayerProfile() {
                            <label className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer z-20">
                              <Upload className="w-6 h-6 text-white mb-2" />
                              <span className="text-[9px] font-bold text-white uppercase tracking-widest">Klik Upload</span>
-                             <input type="file" className="hidden" accept=".jpg,.jpeg,.png,.pdf" onChange={(e) => handleDocUpload(e, doc.id as any)} />
+                             <input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept=".jpg,.jpeg,.png,.pdf,application/pdf,image/jpeg,image/png" onChange={(e) => handleDocUpload(e, doc.id as any)} />
                            </label>
                         )}
                      </div>
