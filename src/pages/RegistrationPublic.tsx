@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ChevronRight, ChevronLeft, Upload, CheckCircle2, User, Phone, MapPin, Calendar, Clock, Trophy, FileText, Image as ImageIcon, Check } from 'lucide-react';
 import { differenceInYears } from 'date-fns';
