@@ -40,6 +40,9 @@ CREATE TABLE IF NOT EXISTS public.players (
   injury_history TEXT,
   medication_notes TEXT,
   health_notes TEXT,
+  kk_url TEXT,
+  akta_url TEXT,
+  kia_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 

@@ -36,9 +36,23 @@ export function useCMSData<T extends { id: string }>(collectionName: string, ini
               .order('created_at', { ascending: false });
 
             if (!error && supaData) {
-              setData(supaData as T[]);
+              const enrichedData = supaData.map(item => {
+                if (collectionName === 'players' && item.skillset && typeof item.skillset === 'object') {
+                  // Merge skillset properties back up to the main object
+                  // Ensure we don't overwrite true root properties
+                  const enriched = { ...item };
+                  Object.keys(item.skillset).forEach(k => {
+                    if (!(k in enriched) || enriched[k] === undefined || enriched[k] === null) {
+                      enriched[k] = item.skillset[k];
+                    }
+                  });
+                  return enriched;
+                }
+                return item;
+              });
+              setData(enrichedData as T[]);
               try {
-                localStorage.setItem(`cms_${collectionName}`, JSON.stringify(supaData));
+                localStorage.setItem(`cms_${collectionName}`, JSON.stringify(enrichedData));
               } catch (e) {
                 console.warn('Failed to cache Supabase data locally');
               }
@@ -116,6 +130,10 @@ export function useCMSData<T extends { id: string }>(collectionName: string, ini
               const missingColumn = match[1].toLowerCase();
               console.warn(`[Auto-Fix] Removing missing column '${missingColumn}' and retrying insert...`);
               if (payload.hasOwnProperty(missingColumn)) {
+                if (collectionName === 'players' && missingColumn !== 'skillset') {
+                  payload.skillset = payload.skillset || {};
+                  payload.skillset[missingColumn] = payload[missingColumn];
+                }
                 delete payload[missingColumn];
                 if (Object.keys(payload).length === 0) break;
                 continue;
@@ -171,6 +189,10 @@ export function useCMSData<T extends { id: string }>(collectionName: string, ini
               const missingColumn = match[1].toLowerCase();
               console.warn(`[Auto-Fix] Removing missing column '${missingColumn}' and retrying update...`);
               if (payload.hasOwnProperty(missingColumn)) {
+                if (collectionName === 'players' && missingColumn !== 'skillset') {
+                  payload.skillset = payload.skillset || {};
+                  payload.skillset[missingColumn] = payload[missingColumn];
+                }
                 delete payload[missingColumn];
                 if (Object.keys(payload).length === 0) break;
                 continue;
