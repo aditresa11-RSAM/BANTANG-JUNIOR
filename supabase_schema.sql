@@ -171,12 +171,15 @@ CREATE TABLE IF NOT EXISTS public.schedules (
 CREATE TABLE IF NOT EXISTS public.financials (
   id TEXT PRIMARY KEY,
   title TEXT,
-  amount TEXT,
+  student_name TEXT,
+  amount NUMERIC,
   type TEXT,
   category TEXT,
   date TEXT,
   status TEXT,
   method TEXT,
+  notes TEXT,
+  proof_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
