@@ -44,41 +44,94 @@ export default function ProgramDetail() {
       <div className="flex flex-col gap-8 pb-32 animate-in fade-in zoom-in duration-1000">
         
         {/* HEADER HERO */}
-        <div className="relative w-full h-[300px] md:h-[400px] rounded-3xl overflow-hidden group">
-          <img src={program.image || null} alt={program.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#080d19] via-[#080d19]/60 to-transparent" />
+        <div className="relative w-full aspect-video md:aspect-video lg:aspect-[21/9] xl:aspect-[3/1] rounded-[24px] overflow-hidden group shadow-[0_15px_50px_-10px_rgba(6,182,212,0.15)] border border-white/10 hover:border-cyan-500/30 transition-all duration-700 bg-[#0a0f1c]">
           
+          {/* Blurred Background Layer for space filling */}
+          <div 
+            className="absolute inset-0 z-0 blur-[40px] opacity-40 scale-110 pointer-events-none" 
+            style={{ backgroundImage: `url(${program.image || null})`, backgroundSize: 'cover', backgroundPosition: 'center' }} 
+          />
+
+          {/* Main Image - Contain on mobile to ensure no cutting, cover on desktop for impact */}
+          <img 
+            src={program.image || null} 
+            alt={program.title} 
+            className="absolute inset-0 w-full h-full object-cover md:object-contain object-top md:object-center z-10 group-hover:scale-[1.02] transition-transform duration-1000" 
+          />
+
+          {/* Gradient Overlay for Text Readability at Bottom - Specific mobile gradient requested */}
+          <div className="absolute inset-0 z-20 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+
           <button 
             onClick={() => navigate(-1)}
-            className="absolute top-6 left-6 w-10 h-10 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center border border-white/10 hover:bg-white/10 transition-colors"
+            className="absolute top-4 left-4 md:top-6 md:left-6 w-9 h-9 md:w-10 md:h-10 z-50 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center border border-white/10 hover:bg-white/20 transition-all hover:scale-105"
           >
-            <ArrowLeft className="w-5 h-5 text-white" />
+            <ArrowLeft className="w-4 h-4 md:w-5 md:h-5 text-white" />
           </button>
 
-          <div className="absolute bottom-8 left-8 right-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div>
-              <span className={cn(
-                "inline-block px-3 py-1 text-xs font-black rounded-full uppercase tracking-widest mb-4 shadow-lg",
-                program.type === 'main' ? "bg-[var(--color-primary)] text-black" : "bg-purple-500 text-white"
-              )}>
-                {program.ageRange || program.agerange}
-              </span>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-black tracking-tight text-white mb-2 leading-none">
-                {program.title}
-              </h1>
-              <p className="text-white/60 max-w-2xl text-sm md:text-base">
-                {program.description}
-              </p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-3 shrink-0">
-              {user?.role === 'admin' && (
-                <button onClick={() => navigate('/programs/manage')} className="bg-purple-600/90 backdrop-blur-md text-white border border-purple-500/50 px-6 py-4 rounded-xl flex items-center justify-center gap-3 font-bold uppercase tracking-widest hover:bg-purple-500 hover:scale-105 active:scale-95 transition-all shadow-lg">
-                  <Edit2 className="w-5 h-5" /> Edit Program
+          {/* Content Layer */}
+          <div className="absolute inset-0 z-30 p-4 md:p-10 lg:p-12 flex flex-col">
+            {/* Spacer to push content to the bottom */}
+            <div className="flex-1" />
+
+            {/* Content Container - Split between left (text) and right (buttons) on mobile? 
+                Actually prompt asks for specific positions.
+            */}
+            <div className="flex flex-row justify-between items-end w-full">
+              {/* Left Side: Badge + Title + Description */}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, delay: 0.1 }}
+                className="max-w-[65%] md:max-w-xl"
+              >
+                <div className="hidden md:block">
+                  <span className={cn(
+                    "inline-block px-3 py-1.5 text-[11px] font-bold rounded-lg uppercase tracking-widest mb-3 backdrop-blur-md border !text-white",
+                    program.type === 'main' 
+                      ? "bg-[var(--color-primary)]/20 border-[var(--color-primary)]/30" 
+                      : "bg-purple-500/20 border-purple-500/30"
+                  )}>
+                    {program.ageRange || program.agerange}
+                  </span>
+                </div>
+                
+                <h1 className="text-[18px] md:text-4xl lg:text-[55px] font-display font-black tracking-tight text-white mb-1.5 md:mb-3 leading-[1.1] md:leading-tight drop-shadow-xl">
+                  {program.title}
+                </h1>
+                
+                <p className="text-[11px] md:text-[25px] text-white/90 md:text-[#fffefe] line-clamp-2 md:line-clamp-3 leading-[1.3] md:leading-relaxed font-normal md:font-bold">
+                  {program.description}
+                </p>
+              </motion.div>
+
+              {/* Right Side: Buttons */}
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, delay: 0.1 }}
+                className="flex flex-col sm:flex-row gap-2 md:gap-3 shrink-0 items-end"
+              >
+                <button 
+                  onClick={() => navigate('/register')} 
+                  className="h-[42px] md:h-auto bg-gradient-to-br from-[#FACC15] to-[#EAB308] text-[#111827] px-[18px] md:px-6 py-2.5 rounded-[14px] md:rounded-[12px] flex items-center justify-center gap-2 text-[13px] md:text-[14px] font-bold uppercase tracking-wider hover:shadow-[0_0_20px_rgba(234,179,8,0.4)] hover:scale-[1.03] active:scale-95 transition-all w-full sm:w-auto border border-yellow-400/50"
+                >
+                  <span className="hidden md:inline">Gabung Program</span>
+                  <span className="md:hidden">Gabung</span>
+                  <ArrowRight className="w-3.5 h-3.5 md:w-4 md:h-4" />
                 </button>
-              )}
-              <button onClick={() => navigate('/register')} className="bg-[var(--color-primary)] text-black px-8 py-4 rounded-xl flex items-center justify-center gap-3 font-bold uppercase tracking-widest hover:bg-[#e5b500] hover:scale-105 active:scale-95 transition-all shadow-[0_4px_20px_rgba(253,199,0,0.3)]">
-                Gabung Program <ArrowRight className="w-5 h-5" />
-              </button>
+
+                {user?.role === 'admin' && (
+                  <button 
+                    onClick={() => navigate('/programs/manage')} 
+                    className="h-[42px] md:h-auto bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] text-white border border-blue-400/30 px-[18px] md:px-5 py-2.5 rounded-[14px] md:rounded-[12px] flex items-center justify-center gap-2 text-[13px] md:text-[13px] font-bold uppercase tracking-wider hover:shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:scale-[1.03] active:scale-95 transition-all w-full sm:w-auto"
+                  >
+                    <Edit2 className="w-3.5 h-3.5 md:w-4 md:h-4" /> 
+                    <span className="hidden md:inline">Edit Program</span>
+                    <span className="md:hidden">Edit</span>
+                  </button>
+                )}
+              </motion.div>
             </div>
           </div>
         </div>

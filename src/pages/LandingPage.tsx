@@ -17,19 +17,64 @@ import {
 } from 'lucide-react';
 
 import { useAuth, useSettings } from '../App';
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { academyPrograms } from '../data/programs';
 import { useCMSData } from '../lib/store';
 import { Edit2 } from 'lucide-react';
+import ReactPlayer from 'react-player';
+import type { HeroManagement } from './ManageHero';
+
+function SafeVideo({ src, autoPlay, className }: { src: string, autoPlay?: boolean, className?: string }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    if (autoPlay && videoRef.current) {
+      const playPromise = videoRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          // Ignore safely
+        });
+      }
+    }
+  }, [src, autoPlay]);
+
+  if (hasError) {
+    return (
+      <img 
+        src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=2693"
+        alt="Fallback background"
+        className={className}
+      />
+    );
+  }
+
+  return <video ref={videoRef} src={src} className={className} muted loop playsInline onError={() => setHasError(true)} />;
+}
 
 export default function LandingPage() {
   const { appName, logoUrl, heroBgUrl } = useSettings();
   const { user } = useAuth();
   const { data: programs, isLoading } = useCMSData('programs', academyPrograms);
+  const { data: heroSlidersData } = useCMSData<HeroManagement>('hero_management', []);
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const navigate = useNavigate();
+
+  // Process sliders
+  const activeSliders = (heroSlidersData || [])
+    .filter(s => s.is_active)
+    .sort((a, b) => a.order_index - b.order_index);
 
   // Fallback to initial data if empty
   const activePrograms = (programs && programs.length > 0) ? programs : academyPrograms;
+
+  useEffect(() => {
+    if (activeSliders.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentSlideIndex(prev => (prev + 1) % activeSliders.length);
+    }, 6000); // 6 second slides
+    return () => clearInterval(interval);
+  }, [activeSliders.length]);
 
   useEffect(() => {
     if (user) return;
@@ -76,53 +121,140 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
-        {/* Animated Background Assets */}
-        <div className="absolute inset-0 z-0">
-          <img 
-            src={heroBgUrl || "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=2693"} 
-            alt="Football Stadium" 
-            className="w-full h-full object-cover opacity-100 object-top transition-opacity duration-700"
-          />
+        {/* Animated Background Assets - Sliders or Fallback */}
+        <div className="absolute inset-0 z-0 bg-[#0a0f1c]">
+          {activeSliders.length > 0 ? (
+            activeSliders.map((slider, index) => (
+              <div 
+                key={slider.id} 
+                className={`absolute inset-0 transition-opacity duration-1000 ${index === currentSlideIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+              >
+                {/* Media Renderer */}
+                {slider.hero_type === 'image' && (
+                  <img 
+                    src={slider.image_url} 
+                    alt={slider.title} 
+                    className="w-full h-full object-cover object-center scale-105 animate-[slowZoom_20s_ease-in-out_infinite]"
+                    onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=2693" }}
+                  />
+                )}
+                {slider.hero_type === 'youtube' && (
+                  <div className="absolute top-1/2 left-1/2 w-[300vw] h-[300vh] lg:w-[150vw] lg:h-[150vh] -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                    <ReactPlayer
+                      url={slider.youtube_url} width="100%" height="100%"
+                      playing={true} muted loop playsinline
+                      config={{ youtube: { playerVars: { disablekb: 1, rel: 0, showinfo: 0, modestbranding: 1, iv_load_policy: 3 } } }}
+                    />
+                  </div>
+                )}
+                {slider.hero_type === 'video' && (
+                  <SafeVideo 
+                    src={slider.video_url} 
+                    className="w-full h-full object-cover" 
+                    autoPlay={true} 
+                  />
+                )}
+                {slider.hero_type === 'gdrive' && (
+                  <div className="absolute top-1/2 left-1/2 w-[300vw] h-[300vh] lg:w-[150vw] lg:h-[150vh] -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                    <iframe src={slider.gdrive_url} className="w-full h-full border-0" allow="autoplay" allowFullScreen />
+                  </div>
+                )}
+
+                {/* Overlay */}
+                <div 
+                  className="absolute inset-0" 
+                  style={{
+                    background: `linear-gradient(to top, ${slider.overlay_color}${Math.floor((slider.overlay_opacity || 60) * 2.55).toString(16).padStart(2, '0')}, transparent), 
+                                 radial-gradient(circle at center, transparent 0%, ${slider.overlay_color}${Math.floor((slider.overlay_opacity || 60) * 1.5).toString(16).padStart(2, '0')} 100%)`
+                  }}
+                />
+              </div>
+            ))
+          ) : (
+            <>
+              <img 
+                src={heroBgUrl || "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=2693"} 
+                alt="Football Stadium" 
+                className="w-full h-full object-cover opacity-100 object-top"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#0a0f1c]/90 via-[#0a0f1c]/60 to-transparent" />
+            </>
+          )}
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 relative z-10 w-full">
+        <div className="max-w-7xl mx-auto px-6 relative z-20 w-full mb-20 lg:mb-0">
           <div className="max-w-3xl">
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-            >
-              <h1 className="text-6xl md:text-[5.5rem] font-display font-bold leading-[0.9] mb-8 tracking-tighter">
-                BANGUN BINTANG <br /> 
-                <span className="text-[var(--color-primary)] text-glow">MASA DEPAN</span>
-              </h1>
-              <p className="text-sm text-white mb-10 leading-relaxed font-light max-w-2xl">
-                Program pembinaan sepak bola modern berbasis data, disiplin, dan performa tingkat nasional 
-                <br className="hidden md:block" />
-                Kami melatih teknik, fisik, dan mental calon atlet profesional
-              </p>
-              
-              <div className="flex flex-col sm:flex-row items-center gap-4">
-                <button 
-                  onClick={() => navigate('/login')}
-                  className="glow-button w-full sm:w-[260px] flex items-center justify-center gap-3 transition-all duration-300 hover:scale-105 active:scale-95 py-4 text-base"
-                >
-                  Masuk
-                  <motion.div
-                    animate={{ x: [0, 5, 0] }}
-                    transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
-                  >
-                    <ArrowRight className="w-5 h-5" />
-                  </motion.div>
-                </button>
-                <button 
-                  onClick={() => navigate('/register-player')}
-                  className="w-full sm:w-[260px] bg-[#0c162d]/50 backdrop-blur-md border border-white/10 hover:bg-white/10 text-white font-bold tracking-widest uppercase transition-all duration-300 hover:scale-105 active:scale-95 py-4 text-sm rounded-2xl flex items-center justify-center gap-2 shadow-lg hover:border-white/20"
-                >
-                  Daftar Siswa Baru
-                </button>
+            {activeSliders.length > 0 ? (
+              <div className={`flex flex-col justify-center
+                ${activeSliders[currentSlideIndex]?.text_position === 'left' ? 'items-start text-left' : 
+                  activeSliders[currentSlideIndex]?.text_position === 'right' ? 'items-end text-right' : 'items-center text-center mx-auto'}`}
+              >
+                <div key={currentSlideIndex} className="animate-in fade-in slide-in-from-bottom-8 duration-700">
+                  <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-[5.5rem] font-display font-black leading-[1] mb-4 sm:mb-8 tracking-tighter drop-shadow-xl text-white uppercase" dangerouslySetInnerHTML={{ __html: activeSliders[currentSlideIndex]?.title?.replace(/\n/g, '<br />') || '' }} />
+                  <p className="text-[15px] text-white/90 mb-8 sm:mb-10 leading-relaxed font-normal ml-0 max-w-2xl drop-shadow-md">
+                    {activeSliders[currentSlideIndex]?.subtitle}
+                  </p>
+                  
+                  <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+                    <button 
+                      onClick={() => navigate('/login')}
+                      className="glow-button w-full sm:w-[260px] flex items-center justify-center gap-3 transition-all duration-300 hover:scale-105 active:scale-95 py-4 text-base"
+                    >
+                      Masuk
+                      <motion.div
+                        animate={{ x: [0, 5, 0] }}
+                        transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                      >
+                        <ArrowRight className="w-5 h-5" />
+                      </motion.div>
+                    </button>
+                    <button 
+                      onClick={() => navigate('/register-player')}
+                      className="w-full sm:w-[260px] bg-[#0c162d]/50 backdrop-blur-md border border-white/10 hover:bg-white/10 text-white font-bold tracking-widest uppercase transition-all duration-300 hover:scale-105 active:scale-95 py-4 text-sm rounded-2xl flex items-center justify-center gap-2 shadow-lg hover:border-white/20"
+                    >
+                      Daftar Siswa Baru
+                    </button>
+                  </div>
+                </div>
               </div>
-            </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8 }}
+              >
+                <h1 className="text-6xl md:text-[5.5rem] font-display font-bold leading-[0.9] mb-8 tracking-tighter">
+                  BANGUN BINTANG <br /> 
+                  <span className="text-[var(--color-primary)] text-glow">MASA DEPAN</span>
+                </h1>
+                <p className="text-sm text-white mb-10 leading-relaxed font-light max-w-2xl">
+                  Program pembinaan sepak bola modern berbasis data, disiplin, dan performa tingkat nasional 
+                  <br className="hidden md:block" />
+                  Kami melatih teknik, fisik, dan mental calon atlet profesional
+                </p>
+                
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  <button 
+                    onClick={() => navigate('/login')}
+                    className="glow-button w-full sm:w-[260px] flex items-center justify-center gap-3 transition-all duration-300 hover:scale-105 active:scale-95 py-4 text-base"
+                  >
+                    Masuk
+                    <motion.div
+                      animate={{ x: [0, 5, 0] }}
+                      transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                    >
+                      <ArrowRight className="w-5 h-5" />
+                    </motion.div>
+                  </button>
+                  <button 
+                    onClick={() => navigate('/register-player')}
+                    className="w-full sm:w-[260px] bg-[#0c162d]/50 backdrop-blur-md border border-white/10 hover:bg-white/10 text-white font-bold tracking-widest uppercase transition-all duration-300 hover:scale-105 active:scale-95 py-4 text-sm rounded-2xl flex items-center justify-center gap-2 shadow-lg hover:border-white/20"
+                  >
+                    Daftar Siswa Baru
+                  </button>
+                </div>
+              </motion.div>
+            )}
           </div>
         </div>
 

@@ -33,6 +33,7 @@ export default function Layout({ children }: LayoutProps) {
     { name: 'Pengumuman', path: '/announcements', icon: Megaphone },
     { name: 'Keuangan', path: '/financials', icon: CreditCard, adminOnly: true },
     { name: 'Galeri', path: '/gallery', icon: ImageIcon },
+    { name: 'Hero Section', path: '/manage-hero', icon: ImageIcon, adminOnly: true },
     { name: 'Pengaturan', path: '/settings', icon: Settings, adminOnly: true },
   ].filter(item => !(item.adminOnly && user?.role !== 'admin'));
 

@@ -36,6 +36,7 @@ import RegistrationPublic from './pages/RegistrationPublic';
 import Register from './pages/Register';
 import RegistrationAdmin from './pages/RegistrationAdmin';
 import ProgramDetail from './pages/ProgramDetail';
+import ManageHero from './pages/ManageHero';
 import ManagePrograms from './pages/ManagePrograms';
 
 // Auth context
@@ -298,6 +299,7 @@ export default function App() {
               <Route path="/gallery" element={user ? <Gallery /> : <Navigate to="/" />} />
               <Route path="/announcements" element={user ? <Announcements /> : <Navigate to="/" />} />
               <Route path="/programs/manage" element={user ? <ManagePrograms /> : <Navigate to="/" />} />
+              <Route path="/manage-hero" element={user ? <ManageHero /> : <Navigate to="/" />} />
               <Route path="/settings" element={user ? <Settings /> : <Navigate to="/" />} />
               <Route path="/ai-coach" element={user ? <AICoach /> : <Navigate to="/" />} />
             </Routes>

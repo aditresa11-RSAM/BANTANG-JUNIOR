@@ -275,7 +275,7 @@ export default function Dashboard() {
         </div>
 
         {/* MIDDLE SECTION (Full Width Slider) */}
-        <div className="bg-[#0c162d]/60 border border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col h-[400px] md:h-[520px] relative">
+        <div className="bg-[#0c162d]/60 border border-white/5 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col h-[220px] sm:h-[260px] md:h-[520px] aspect-video md:aspect-auto relative">
            <div className="flex-1 w-full h-full relative">
              {sliders.length > 0 ? (
                <Swiper
@@ -298,29 +298,43 @@ export default function Dashboard() {
                           <>
                             <iframe src={getEmbedUrl(slider.video_url)} className="absolute inset-0 w-full h-full scale-[1.05] pointer-events-none" allow="autoplay; muted" />
                             {/* Minimal dark overlay to ensure text is readable */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
                           </>
                         ) : (
                           <>
-                            <img src={slider.img || null} alt="" className="absolute inset-0 w-full h-full object-cover scale-[1.02]" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-[#0c162d] via-black/20 to-transparent" />
+                            <img src={slider.img || null} alt="" className="absolute inset-0 w-full h-full object-cover object-top md:object-center md:scale-[1.02]" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
                           </>
                         )}
-                     </div>
+                      </div>
 
-                     {/* Minimal Text Overlay at bottom */}
-                     <div className="absolute bottom-0 left-0 right-0 p-8 pt-24 z-10 flex justify-between items-end">
-                        <div className="max-w-2xl">
-                           <h3 className="text-2xl md:text-4xl font-display font-black text-white uppercase tracking-tight text-shadow-sm mb-2">{slider.title}</h3>
-                           <p className="text-sm md:text-base font-medium text-white/70 line-clamp-2 md:line-clamp-none">{slider.subtitle} • {slider.description}</p>
-                        </div>
-                        
-                        {/* Admin Controls */}
-                        <div className="flex gap-2">
-                          <button onClick={(e) => { e.stopPropagation(); handleOpenSliderEdit(slider); }} className="w-10 h-10 rounded-xl bg-black/50 backdrop-blur-md border border-white/10 text-white/50 hover:text-white flex items-center justify-center transition-all"><Edit2 className="w-4 h-4" /></button>
-                          <button onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ isOpen: true, id: slider.id }); }} className="w-10 h-10 rounded-xl bg-red-500/20 backdrop-blur-md border border-white/10 text-red-400 hover:text-red-500 hover:bg-red-500/30 flex items-center justify-center transition-all"><Trash2 className="w-4 h-4" /></button>
-                        </div>
-                     </div>
+                      {/* Minimal Text Overlay at bottom */}
+                      <div className="absolute inset-0 p-[14px] md:p-8 z-10 flex justify-between items-end gap-3">
+                         <div className="max-w-[60%] md:max-w-2xl">
+                            <h3 className="text-[16px] md:text-4xl font-display font-black text-white uppercase tracking-tight text-shadow-sm leading-[1.1] md:mb-2 line-clamp-2">
+                              {slider.title}
+                            </h3>
+                            <p className="text-[11px] md:text-base font-medium text-white/90 md:text-white/70 line-clamp-2 md:line-clamp-none leading-tight md:leading-relaxed">
+                              {slider.subtitle} • {slider.description}
+                            </p>
+                         </div>
+                         
+                         {/* Admin Controls */}
+                         <div className="flex gap-2 shrink-0">
+                           <button 
+                             onClick={(e) => { e.stopPropagation(); handleOpenSliderEdit(slider); }} 
+                             className="w-[38px] h-[38px] md:w-10 md:h-10 rounded-xl bg-black/40 backdrop-blur-md border border-white/10 text-white/50 hover:text-white flex items-center justify-center transition-all"
+                           >
+                             <Edit2 className="w-4 h-4" />
+                           </button>
+                           <button 
+                             onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ isOpen: true, id: slider.id }); }} 
+                             className="w-[38px] h-[38px] md:w-10 md:h-10 rounded-xl bg-red-500/10 backdrop-blur-md border border-white/10 text-red-500/50 hover:text-red-500 hover:bg-red-500/20 flex items-center justify-center transition-all"
+                           >
+                             <Trash2 className="w-4 h-4" />
+                           </button>
+                         </div>
+                      </div>
                    </SwiperSlide>
                  ))}
                </Swiper>
@@ -348,44 +362,53 @@ export default function Dashboard() {
               </button>
            </div>
 
-           <div className="grid grid-cols-1 gap-4 xl:gap-6">
+           <div className="grid grid-cols-1 gap-3 md:gap-4 xl:gap-6">
               {stats.topPlayers.length > 0 ? stats.topPlayers.map((player: any, idx: number) => (
                 <div 
                   key={player.id} 
                   className={cn(
-                    "relative group cursor-pointer p-1 rounded-[2rem] transition-all duration-500",
-                    idx === 0 ? "bg-gradient-to-br from-[#fdc700]/20 via-[#fdc700]/5 to-transparent" : "bg-white/[0.02]"
+                    "relative group cursor-pointer p-0.5 md:p-1 rounded-[1.5rem] md:rounded-[2rem] transition-all duration-500",
+                    idx === 0 ? "bg-gradient-to-br from-[#fdc700]/20 via-[#fdc700]/5 to-transparent shadow-[0_0_20px_rgba(253,199,0,0.05)]" : "bg-white/[0.02]"
                   )} 
                   onClick={() => navigate(`/players/${player.id}`)}
                 >
                    <div className={cn(
-                     "relative flex items-center gap-4 p-5 rounded-[1.9rem] border transition-all duration-500 bg-[#0c162d]/90",
+                     "relative flex items-center gap-[12px] md:gap-4 p-[14px] md:p-5 rounded-[1.4rem] md:rounded-[1.9rem] border transition-all duration-500 bg-[#0c162d]/90 backdrop-blur-md",
                      idx === 0 ? "border-[#fdc700]/30 shadow-[0_0_30px_rgba(253,199,0,0.1)]" : "border-white/5 hover:border-white/10"
                    )}>
                       {/* Rank badge */}
                       <div className={cn(
-                        "absolute -top-2 -left-2 w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black z-20 shadow-lg",
+                        "absolute -top-1 -left-1 md:-top-2 md:-left-2 w-6 h-6 md:w-7 md:h-7 rounded-lg flex items-center justify-center text-[9px] md:text-[10px] font-black z-20 shadow-lg",
                         idx === 0 ? "bg-[#fdc700] text-black" : idx === 1 ? "bg-slate-300 text-slate-800" : "bg-orange-400 text-orange-950"
                       )}>
                         #{idx + 1}
                       </div>
 
-                      <div className="w-16 h-16 rounded-2xl overflow-hidden shrink-0 border border-white/10 group-hover:scale-105 transition-transform duration-500">
+                      <div className="w-[72px] h-[72px] md:w-16 md:h-16 rounded-[16px] md:rounded-2xl overflow-hidden shrink-0 border border-white/10 group-hover:scale-105 transition-transform duration-500 shadow-xl">
                          <img src={player.photo || 'https://via.placeholder.com/150'} alt={player.name} className="w-full h-full object-cover" />
                       </div>
                       <div className="flex-1 min-w-0">
-                         <h4 className={cn("text-lg font-display font-black truncate tracking-tight uppercase", idx === 0 ? "text-[#fdc700]" : "text-white")}>
+                         <h4 className={cn("text-[16px] md:text-lg font-display font-black truncate tracking-tight uppercase", idx === 0 ? "text-[#fdc700]" : "text-white")}>
                            {player.name}
                          </h4>
-                         <p className="text-[10px] text-white/40 uppercase tracking-widest font-black mt-1 flex items-center gap-2">
-                           {player.category} <span className="w-1 h-1 rounded-full bg-white/20" /> {player.position}
-                         </p>
+                         <div className="flex flex-col md:flex-row md:items-center gap-0.5 md:gap-2 mt-0.5 md:mt-1">
+                           <span className="text-[11px] md:text-[10px] text-white/80 md:text-white/40 uppercase tracking-widest font-bold md:font-black whitespace-nowrap">
+                             {player.category}
+                           </span>
+                           <span className="hidden md:block w-1 h-1 rounded-full bg-white/20" />
+                           <span className="text-[11px] md:text-[10px] text-white/60 md:text-white/40 uppercase tracking-widest font-bold md:font-black whitespace-nowrap">
+                             {player.position}
+                           </span>
+                         </div>
                       </div>
-                      <div className="shrink-0 text-right bg-white/5 px-3 py-2 rounded-xl border border-white/5">
-                         <span className={cn("text-2xl font-display font-black leading-none", idx === 0 ? "text-[#fdc700]" : "text-white/80")}>
+                      <div className={cn(
+                        "w-[72px] h-[72px] md:w-auto shrink-0 flex flex-col items-center justify-center md:block text-center md:text-right px-1 md:px-3 py-1 md:py-2 rounded-xl border transition-all",
+                        idx === 0 ? "bg-[#fdc700]/10 border-[#fdc700]/20 shadow-[0_0_15px_rgba(253,199,0,0.1)]" : "bg-white/5 border-white/5"
+                      )}>
+                         <span className={cn("text-[28px] md:text-2xl font-display font-black leading-none", idx === 0 ? "text-[#fdc700] drop-shadow-[0_0_8px_rgba(253,199,0,0.5)]" : "text-white/80")}>
                            {player.overall || 0}
                          </span>
-                         <span className="block text-[8px] text-white/30 uppercase font-black tracking-widest mt-1">OVR</span>
+                         <span className="block text-[8px] text-white/30 uppercase font-black tracking-widest mt-0.5">OVR</span>
                       </div>
                    </div>
                 </div>
@@ -404,7 +427,7 @@ export default function Dashboard() {
            <div className="bg-[#0c162d]/80 backdrop-blur-xl border border-white/5 rounded-[2.5rem] p-7 shadow-xl hover:border-blue-500/20 transition-all flex flex-col">
               <div className="flex items-center gap-3 mb-6">
                   <div className="w-2 h-2 rounded-full bg-blue-500" />
-                  <h3 className="text-sm font-black uppercase tracking-widest text-white">Distribusi Kelas Umur</h3>
+                  <h3 className="text-sm font-black uppercase tracking-widest text-[#f2ce1a]">Distribusi Kelas Umur</h3>
               </div>
               <div className="flex-1 flex flex-col md:flex-row items-center gap-8">
                  <div className="w-[200px] h-[200px] relative shrink-0 min-w-0 min-h-0">

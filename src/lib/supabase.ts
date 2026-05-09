@@ -142,12 +142,12 @@ export async function uploadRawFile(file: File, bucket: string = 'videos'): Prom
       const fileExt = file.name.split('.').pop() || 'mp4';
       const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
       const { data, error } = await supabase.storage.from(bucket).upload(fileName, file);
-      if (!error) {
-        const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(fileName);
-        return publicUrl;
-      }
-    } catch (e) {
+      if (error) throw error;
+      const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(fileName);
+      return publicUrl;
+    } catch (e: any) {
       console.error('Raw upload error:', e);
+      throw new Error(`Gagal upload ke Supabase (${bucket}): ${e.message}`);
     }
   }
   return URL.createObjectURL(file); // Fallback to blob URL for session persistence

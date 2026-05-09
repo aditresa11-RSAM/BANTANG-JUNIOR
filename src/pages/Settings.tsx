@@ -35,7 +35,7 @@ export default function Settings() {
   const clearImageCache = () => {
     if (window.confirm("Peringatan: Ini akan menghapus data gambar lokal (base64) yang belum tersimpan di Cloud. Gunakan ini jika Anda mendapat error 'Quota Exceeded'. Data teks (nama, skor, dll) akan tetap aman. Lanjutkan?")) {
       const tables = [
-        'players', 'dashboard_sliders', 'coaches', 
+        'players', 'dashboard_sliders', 'hero_management', 'coaches', 
         'upcoming_matches', 'match_results', 'gallery', 
         'financials', 'schedules', 'scouting', 'medicals',
         'training_materials', 'attendance', 'tactics'
@@ -96,7 +96,7 @@ export default function Settings() {
     setSyncStatus('Menganalisa data gambar lokal...');
 
     const tables = [
-      'players', 'dashboard_sliders', 'coaches', 
+      'players', 'dashboard_sliders', 'hero_management', 'coaches', 
       'upcoming_matches', 'match_results', 'gallery', 
       'financials', 'schedules', 'scouting', 'medicals',
       'training_materials', 'attendance', 'tactics'
@@ -465,6 +465,27 @@ CREATE TABLE IF NOT EXISTS settings (
     app_name TEXT,
     logo_url TEXT,
     hero_bg_url TEXT,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS hero_management (
+    id TEXT PRIMARY KEY,
+    title TEXT,
+    subtitle TEXT,
+    hero_type TEXT DEFAULT 'image',
+    image_url TEXT,
+    video_url TEXT,
+    youtube_url TEXT,
+    gdrive_url TEXT,
+    thumbnail_url TEXT,
+    cta_primary_text TEXT,
+    cta_primary_link TEXT,
+    overlay_color TEXT DEFAULT '#000000',
+    overlay_opacity NUMERIC DEFAULT 60,
+    text_position TEXT DEFAULT 'center',
+    is_active BOOLEAN DEFAULT true,
+    order_index NUMERIC DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -852,7 +873,8 @@ VALUES
   ('matches', 'matches', true),
   ('match-videos', 'match-videos', true),
   ('materials', 'materials', true),
-  ('player-documents', 'player-documents', true)
+  ('player-documents', 'player-documents', true),
+  ('hero-media', 'hero-media', true)
 ON CONFLICT (id) DO UPDATE SET public = true;
 
 -- Grant access policies to storage for public buckets
@@ -867,8 +889,8 @@ DROP POLICY IF EXISTS "Permissive Upload" ON storage.objects;
 -- Create a single permissive policy for the MVP
 CREATE POLICY "Allow All Storage" ON storage.objects 
 FOR ALL TO anon, authenticated, public 
-USING (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'match-videos', 'materials', 'player-documents')) 
-WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'match-videos', 'materials', 'player-documents'));
+USING (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'match-videos', 'materials', 'player-documents', 'hero-media')) 
+WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'match-videos', 'materials', 'player-documents', 'hero-media'));
   `;
 
   const syncToCloud = async () => {
@@ -877,7 +899,7 @@ WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboar
       setSyncStatus('Menganalisa tabel data lokal...');
       
       const tables = [
-        'players', 'dashboard_sliders', 'coaches', 
+        'players', 'dashboard_sliders', 'hero_management', 'coaches', 
         'upcoming_matches', 'match_results', 'gallery', 
         'financials', 'training_schedule', 'match_analysis', 'scouting', 'medicals',
         'training_materials', 'announcements', 'attendance', 'tactics', 'match_highlights',
@@ -886,6 +908,7 @@ WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboar
       
       const allowedColumns: Record<string, string[]> = {
         players: ['id', 'name', 'overall', 'category', 'position', 'photo', 'photourl', 'dribbling', 'passing', 'shooting', 'pace', 'strength', 'tactical', 'vision', 'teamwork', 'goals', 'assists', 'appearances', 'attendance', 'age', 'height', 'weight', 'dominantfoot', 'dob', 'stamina', 'jersey', 'status', 'created_at', 'parent_id', 'skillset', 'kk_url', 'akta_url', 'kia_url'],
+        hero_management: ['id', 'title', 'subtitle', 'hero_type', 'image_url', 'video_url', 'youtube_url', 'gdrive_url', 'thumbnail_url', 'cta_primary_text', 'cta_primary_link', 'overlay_color', 'overlay_opacity', 'text_position', 'is_active', 'order_index', 'created_at', 'updated_at'],
         dashboard_sliders: ['id', 'title', 'subtitle', 'description', 'img', 'media_type', 'video_url', 'autoplay', 'loop', 'created_at'],
         coaches: ['id', 'name', 'role', 'experience', 'license', 'photourl', 'photo', 'specialty', 'rating', 'activeteams', 'phone', 'email', 'created_at'],
         upcoming_matches: ['id', 'tournament', 'rival', 'rivallogo', 'date', 'time', 'venue', 'category', 'result', 'created_at'],

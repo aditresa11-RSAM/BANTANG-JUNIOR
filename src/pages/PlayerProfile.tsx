@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { ChevronLeft, Edit2, CheckCircle2, TrendingUp, Activity, Upload, Trash2, Loader2, FileText, Download, Eye, Image as ImageIcon } from 'lucide-react';
+import { ChevronLeft, Edit2, CheckCircle2, TrendingUp, Activity, Upload, Trash2, Loader2, FileText, Download, Eye, Image as ImageIcon, User, Scaling as Ruler, Scale, Footprints, Trophy, Handshake, Calendar } from 'lucide-react';
 import Layout from '../components/ui/Layout';
 import { useCMSData } from '../lib/store';
 import { cn } from '../lib/utils';
@@ -331,23 +331,46 @@ export default function PlayerProfile() {
     }
   };
 
-  const StatBox = ({ label, value, icon: Icon, isEdit, name, type="text" }: any) => (
-    <div className="bg-gradient-to-br from-[#0c1322] to-[#0a0f1c] border border-white/5 rounded-2xl p-5 flex flex-col gap-2 hover:border-blue-500/30 transition-all group shadow-[0_0_20px_rgba(37,99,235,0.05)]">
-      <div className="flex items-center gap-3 text-white/50 mb-1">
-        <Icon className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform" />
-        <span className="text-[10px] uppercase font-black tracking-[0.2em]">{label}</span>
+  const StatBox = ({ label, value, icon: Icon, isEdit, name, type="text", options }: any) => (
+    <div className="group relative backdrop-blur-md bg-white/[0.03] border border-white/10 rounded-[24px] p-6 flex flex-col gap-3 hover:-translate-y-1.5 hover:bg-white/[0.06] hover:border-cyan-500/30 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-300 overflow-hidden shadow-xl">
+      {/* Subtle Accent Glow */}
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+      
+      <div className="flex items-center gap-3">
+        <div className="p-2.5 rounded-xl bg-cyan-500/10 text-cyan-400 group-hover:scale-110 transition-transform">
+          <Icon size={18} strokeWidth={2.5} />
+        </div>
+        <span className="text-[10px] uppercase font-bold text-gray-400 tracking-[0.15em] line-clamp-1">{label}</span>
       </div>
-      {isEdit ? (
-        <input 
-          type={type} 
-          name={name}
-          value={value ?? ''}
-          onChange={(e) => setFormData({...formData, [name]: type === 'number' ? Number(e.target.value) : e.target.value})}
-          className="bg-black/60 border border-white/10 focus:border-blue-500 rounded-xl px-4 py-2 text-white font-black text-2xl w-full focus:outline-none transition-all"
-        />
-      ) : (
-        <span className="text-3xl font-display font-black text-white">{value}</span>
-      )}
+
+      <div className="flex items-baseline gap-1">
+        {isEdit ? (
+          options ? (
+            <select 
+              name={name}
+              value={value ?? ''}
+              onChange={(e) => setFormData({...formData, [name]: e.target.value})}
+              className="bg-white/5 border border-white/50 rounded-xl px-4 py-2 text-white font-black text-2xl w-full focus:outline-none focus:border-cyan-400 transition-all cursor-pointer"
+            >
+              <option value="" disabled>Pilih opsi</option>
+              {options.map((opt: string) => <option key={opt} value={opt} className="bg-[#0a0f1c] text-white">{opt}</option>)}
+            </select>
+          ) : (
+            <input 
+              type="text" 
+              name={name}
+              value={value ?? ''}
+              placeholder="0"
+              onChange={(e) => setFormData({...formData, [name]: e.target.value})}
+              className="bg-white/5 border border-white/10 focus:border-cyan-400 rounded-xl px-4 py-2 text-white font-black text-2xl w-full focus:outline-none transition-all placeholder:text-white/10"
+            />
+          )
+        ) : (
+          <span className="text-3xl font-display font-black text-white group-hover:text-cyan-400 transition-colors">
+            {value || '-'}
+          </span>
+        )}
+      </div>
     </div>
   );
 
@@ -390,19 +413,19 @@ export default function PlayerProfile() {
         </div>
 
         {/* Hero Section */}
-        <div className="relative rounded-3xl overflow-hidden bg-[#111827] border border-white/10 shadow-2xl flex flex-col md:flex-row group">
-           <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,rgba(37,99,235,0.1),transparent_50%)] pointer-events-none" />
+        <div className="relative rounded-[32px] overflow-hidden bg-[#0a0f1c] border border-white/10 shadow-2xl flex flex-col lg:flex-row group transition-all duration-500">
+           <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,rgba(6,182,212,0.1),transparent_50%)] pointer-events-none" />
            
            {/* Big Photo & Basics */}
-           <div className="md:w-[400px] shrink-0 relative p-8 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-white/10 bg-gradient-to-b from-white/5 to-transparent">
-             <div className="w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden border-4 border-white/10 relative shadow-[0_0_50px_rgba(37,99,235,0.2)] mb-6 group-hover:scale-105 transition-transform duration-500">
+           <div className="lg:w-[380px] shrink-0 relative p-10 flex flex-col items-center justify-center bg-gradient-to-b from-white/5 to-transparent">
+             <div className="w-48 h-48 md:w-56 md:h-56 rounded-full overflow-hidden border-4 border-white/10 relative shadow-[0_0_50px_rgba(6,182,212,0.2)] mb-8 group-hover:scale-105 transition-all duration-700">
                <img src={formData.photo || null} alt={formData.name} className="w-full h-full object-cover object-top" />
-               <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[#111827] to-transparent" />
+               <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[#0a0f1c] to-transparent" />
                {isEditing && (
-                 <label className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer text-white">
+                 <label className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer text-white backdrop-blur-sm">
                    {isUploading ? <Loader2 className="w-8 h-8 animate-spin" /> : <>
                      <Upload className="w-8 h-8 mb-2" />
-                     <span className="text-xs font-bold uppercase tracking-widest text-[var(--color-primary)]">Ubah Foto</span>
+                     <span className="text-[10px] font-black uppercase tracking-widest text-cyan-400">Ubah Foto</span>
                      <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={isUploading} />
                    </>}
                  </label>
@@ -413,43 +436,43 @@ export default function PlayerProfile() {
                {isEditing ? (
                  <input 
                     value={formData.name ?? ''} onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className="bg-black/50 border border-[var(--color-primary)]/50 rounded-lg px-3 py-2 text-white font-display font-black text-3xl uppercase tracking-tighter w-full text-center focus:outline-none mb-2"
+                    className="bg-white/5 border border-cyan-500/50 rounded-xl px-4 py-2 text-white font-display font-black text-2xl uppercase tracking-tight w-full text-center focus:outline-none mb-3"
                  />
                ) : (
-                 <h1 className="text-3xl md:text-4xl font-display font-black text-white uppercase tracking-tighter mb-2">{formData.name}</h1>
+                 <h1 className="text-3xl md:text-4xl font-display font-black text-white uppercase tracking-tight mb-3 drop-shadow-2xl">{formData.name}</h1>
                )}
                
                <div className="flex items-center justify-center gap-2">
-                 <span className="px-3 py-1 bg-[var(--color-primary)] text-black font-black text-xs uppercase tracking-widest rounded-lg">{formData.position}</span>
-                 <span className="px-3 py-1 bg-blue-600 text-white font-black text-xs uppercase tracking-widest rounded-lg">{formData.category}</span>
+                 <span className="px-4 py-1.5 bg-cyan-500 text-black font-black text-[10px] uppercase tracking-[0.2em] rounded-full shadow-[0_0_20px_rgba(6,182,212,0.4)]">{formData.position}</span>
+                 <span className="px-4 py-1.5 bg-white/10 text-white/80 font-black text-[10px] uppercase tracking-[0.2em] rounded-full border border-white/10">{formData.category}</span>
                </div>
              </div>
              
               {/* Overall Rating Badge huge */}
               <div className={cn(
-                "absolute top-8 left-8 w-16 h-16 rounded-2xl flex flex-col items-center justify-center shadow-lg border-2 rotate-[-5deg] group-hover:rotate-0 transition-all",
+                "absolute top-10 left-10 w-20 h-20 rounded-[24px] flex flex-col items-center justify-center shadow-2xl border-2 rotate-[-5deg] group-hover:rotate-0 transition-all duration-500 backdrop-blur-xl",
                 isGoalkeeper 
-                  ? "bg-gradient-to-br from-teal-400 to-emerald-600 shadow-[0_0_30px_rgba(16,185,129,0.4)] border-white/20" 
-                  : "bg-gradient-to-br from-yellow-400 to-amber-600 shadow-[0_0_30px_rgba(250,204,21,0.4)] border-white/20"
+                  ? "bg-gradient-to-br from-cyan-400 to-blue-600 border-white/20 shadow-cyan-500/20" 
+                  : "bg-gradient-to-br from-yellow-400 to-amber-600 border-white/20 shadow-amber-500/20"
               )}>
-                 <span className="text-[10px] font-bold uppercase tracking-widest text-[#111827] leading-none mb-1">OVR</span>
-                 <span className="text-2xl font-black text-[#111827] leading-none">{formData.overall}</span>
+                 <span className="text-[10px] font-bold uppercase tracking-widest text-[#0a0f1c] leading-none mb-1">OVR</span>
+                 <span className="text-3xl font-black text-[#0a0f1c] leading-none">{formData.overall}</span>
               </div>
            </div>
 
+           {/* Vertical Divider for Large screens, Horizontal for mobile */}
+           <div className="hidden lg:block w-px h-auto bg-gradient-to-b from-transparent via-white/10 to-transparent self-stretch my-8" />
+           <div className="block lg:hidden w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
            {/* Core Stats & Biodata */}
            <div className="flex-1 p-8 flex flex-col justify-center">
-             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-               <StatBox label="Umur" value={formData.age} icon={Activity} isEdit={isEditing} name="age" type="number" />
-               <StatBox label="Tinggi (cm)" value={formData.height} icon={Activity} isEdit={isEditing} name="height" type="number" />
-               <StatBox label="Berat (kg)" value={formData.weight} icon={Activity} isEdit={isEditing} name="weight" type="number" />
-               <StatBox label="Kaki" value={formData.dominantFoot} icon={Activity} isEdit={isEditing} name="dominantFoot" />
-             </div>
-
-             <div className="grid grid-cols-2 gap-4 relative">
-                <div className="absolute -inset-4 bg-[var(--color-primary)]/5 rounded-2xl blur-xl -z-10" />
-                <StatBox label={isGoalkeeper ? "Saves" : "Goals"} value={formData.goals} icon={TrendingUp} isEdit={isEditing} name="goals" type="number" />
-                <StatBox label={isGoalkeeper ? "Clean Sheets" : "Assists"} value={formData.assists} icon={TrendingUp} isEdit={isEditing} name="assists" type="number" />
+             <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
+               <StatBox label="Umur" value={formData.age} icon={Calendar} isEdit={isEditing} name="age" />
+               <StatBox label="Tinggi (cm)" value={formData.height} icon={Ruler} isEdit={isEditing} name="height" />
+               <StatBox label="Berat (kg)" value={formData.weight} icon={Scale} isEdit={isEditing} name="weight" />
+               <StatBox label="Kaki Dominan" value={formData.dominantFoot} icon={Footprints} isEdit={isEditing} name="dominantFoot" options={["Kanan", "Kiri", "Keduanya"]} />
+               <StatBox label={isGoalkeeper ? "Saves" : "Goals"} value={formData.goals} icon={Trophy} isEdit={isEditing} name="goals" />
+               <StatBox label={isGoalkeeper ? "Clean Sheets" : "Assists"} value={formData.assists} icon={Handshake} isEdit={isEditing} name="assists" />
              </div>
            </div>
         </div>

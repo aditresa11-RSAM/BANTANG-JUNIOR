@@ -130,6 +130,11 @@ export function useCMSData<T extends { id: string }>(collectionName: string, ini
           const { error } = await supabase.from(collectionName).insert([payload]);
           if (!error) break;
           
+          if (error.code === 'PGRST205' || error.message?.includes('schema cache')) {
+            console.warn(`[Pemberitahuan] Tabel '${collectionName}' belum dibuat di Supabase. Data disimpan di Local Storage. Buka menu 'Pengaturan -> Database Cloud' untuk menyinkronkan struktur tabel.`);
+            return; // Ignore gracefully without throwing red errors
+          }
+
           if (error.code === 'PGRST204' || error.code === '42703' || error.message?.includes('does not exist')) {
             const match = error.message && typeof error.message === 'string' ? error.message.match(/Could not find the ['"]([^'"]+)['"]/i) || error.message.match(/column\s+['"]?([^'"\s]+)['"]?\s+of\s+relation/i) : null;
             if (match && match[1]) {
@@ -189,6 +194,10 @@ export function useCMSData<T extends { id: string }>(collectionName: string, ini
           const { error } = await supabase.from(collectionName).update(payload).eq('id', id);
           if (!error) break;
           
+          if (error.code === 'PGRST205' || error.message?.includes('schema cache')) {
+            return; // Ignore gracefully without throwing red errors
+          }
+
           if (error.code === 'PGRST204' || error.code === '42703' || error.message?.includes('does not exist')) {
             const match = error.message && typeof error.message === 'string' ? error.message.match(/Could not find the ['"]([^'"]+)['"]/i) || error.message.match(/column\s+['"]?([^'"\s]+)['"]?\s+of\s+relation/i) : null;
             if (match && match[1]) {
@@ -236,6 +245,7 @@ export function useCMSData<T extends { id: string }>(collectionName: string, ini
     if (checkSupabase()) {
       try {
         const { error } = await supabase.from(collectionName).delete().eq('id', id);
+        if (error && (error.code === 'PGRST205' || error.message?.includes('schema cache'))) return;
         if (error) throw error;
       } catch (err) {
         console.error(`Failed to sync delete from ${collectionName}:`, err);
