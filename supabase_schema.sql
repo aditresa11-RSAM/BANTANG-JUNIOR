@@ -205,7 +205,8 @@ VALUES
   ('coaches', 'coaches', true),
   ('dashboard', 'dashboard', true),
   ('matches', 'matches', true),
-  ('materials', 'materials', true)
+  ('materials', 'materials', true),
+  ('player-documents', 'player-documents', true)
 ON CONFLICT (id) DO UPDATE SET public = true;
 
 -- Grant access policies to storage for public buckets
@@ -221,8 +222,8 @@ DROP POLICY IF EXISTS "Permissive Upload" ON storage.objects;
 -- This allows public/anon access to all buckets listed above
 CREATE POLICY "Allow All Storage" ON storage.objects 
 FOR ALL TO anon, authenticated, public 
-USING (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'materials')) 
-WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'materials'));
+USING (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'materials', 'player-documents')) 
+WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'materials', 'player-documents'));
 */
 
 -- Table: attendance
@@ -314,6 +315,43 @@ CREATE TABLE IF NOT EXISTS public.coach_notes (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
+-- Table: registrations
+CREATE TABLE IF NOT EXISTS public.registrations (
+  id TEXT PRIMARY KEY,
+  fullName TEXT,
+  birthPlace TEXT,
+  birthDate TEXT,
+  gender TEXT,
+  height TEXT,
+  weight TEXT,
+  position_main TEXT,
+  position_detail TEXT,
+  previousSSB TEXT,
+  previousSSBName TEXT,
+  parentName TEXT,
+  phone TEXT,
+  address TEXT,
+  ageCategory TEXT,
+  schedule TEXT,
+  location TEXT,
+  has_medical_history BOOLEAN,
+  medical_history TEXT,
+  allergy_history TEXT,
+  injury_history TEXT,
+  medication_notes TEXT,
+  health_notes TEXT,
+  photoUrl TEXT,
+  documentUrl TEXT,
+  kk_url TEXT,
+  akta_url TEXT,
+  kia_url TEXT,
+  registrationId TEXT,
+  status TEXT,
+  registrationDate TEXT,
+  skillset JSONB,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
 -- Table: match_highlights
 CREATE TABLE IF NOT EXISTS public.match_highlights (
   id TEXT PRIMARY KEY,
@@ -395,7 +433,7 @@ DECLARE
         'dashboard_sliders', 'leaderboard', 'upcoming_matches', 'match_results', 
         'schedules', 'financials', 'settings', 'attendance', 'training_materials', 
         'tactics', 'match_stats', 'player_match_stats', 'coach_notes', 
-        'match_highlights', 'programs', 'announcements', 'goalkeeper_stats'
+        'match_highlights', 'programs', 'announcements', 'goalkeeper_stats', 'registrations'
     ];
 BEGIN
     FOREACH t IN ARRAY tables LOOP
@@ -423,7 +461,8 @@ VALUES
   ('coaches', 'coaches', true),
   ('dashboard', 'dashboard', true),
   ('matches', 'matches', true),
-  ('materials', 'materials', true)
+  ('materials', 'materials', true),
+  ('player-documents', 'player-documents', true)
 ON CONFLICT (id) DO UPDATE SET public = true;
 
 DROP POLICY IF EXISTS "Allow public read access on match-videos" ON storage.objects;

@@ -36,19 +36,25 @@ export function useCMSData<T extends { id: string }>(collectionName: string, ini
               .order('created_at', { ascending: false });
 
             if (!error && supaData) {
+              const localDataRaw = localStorage.getItem(`cms_${collectionName}`);
+              let localData: any[] = [];
+              try { localData = JSON.parse(localDataRaw || '[]'); } catch (e) {}
+
               const enrichedData = supaData.map(item => {
-                if (collectionName === 'players' && item.skillset && typeof item.skillset === 'object') {
+                const localItem = localData.find((l: any) => l.id === item.id) || {};
+                
+                const enriched = { ...localItem, ...item };
+                
+                if ((collectionName === 'players' || collectionName === 'registrations') && item.skillset && typeof item.skillset === 'object') {
                   // Merge skillset properties back up to the main object
                   // Ensure we don't overwrite true root properties
-                  const enriched = { ...item };
                   Object.keys(item.skillset).forEach(k => {
                     if (!(k in enriched) || enriched[k] === undefined || enriched[k] === null) {
                       enriched[k] = item.skillset[k];
                     }
                   });
-                  return enriched;
                 }
-                return item;
+                return enriched;
               });
               setData(enrichedData as T[]);
               try {
@@ -130,7 +136,7 @@ export function useCMSData<T extends { id: string }>(collectionName: string, ini
               const missingColumn = match[1].toLowerCase();
               console.warn(`[Auto-Fix] Removing missing column '${missingColumn}' and retrying insert...`);
               if (payload.hasOwnProperty(missingColumn)) {
-                if (collectionName === 'players' && missingColumn !== 'skillset') {
+                if ((collectionName === 'players' || collectionName === 'registrations') && missingColumn !== 'skillset') {
                   payload.skillset = payload.skillset || {};
                   payload.skillset[missingColumn] = payload[missingColumn];
                 }
@@ -189,7 +195,7 @@ export function useCMSData<T extends { id: string }>(collectionName: string, ini
               const missingColumn = match[1].toLowerCase();
               console.warn(`[Auto-Fix] Removing missing column '${missingColumn}' and retrying update...`);
               if (payload.hasOwnProperty(missingColumn)) {
-                if (collectionName === 'players' && missingColumn !== 'skillset') {
+                if ((collectionName === 'players' || collectionName === 'registrations') && missingColumn !== 'skillset') {
                   payload.skillset = payload.skillset || {};
                   payload.skillset[missingColumn] = payload[missingColumn];
                 }

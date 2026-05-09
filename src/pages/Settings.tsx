@@ -338,6 +338,46 @@ CREATE TABLE IF NOT EXISTS players (
     dominantfoot TEXT, 
     parent_id TEXT,
     skillset JSONB,
+    kk_url TEXT,
+    akta_url TEXT,
+    kia_url TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 2. Create Registrations
+CREATE TABLE IF NOT EXISTS registrations (
+    id TEXT PRIMARY KEY,
+    fullName TEXT,
+    birthPlace TEXT,
+    birthDate TEXT,
+    gender TEXT,
+    height TEXT,
+    weight TEXT,
+    position_main TEXT,
+    position_detail TEXT,
+    previousSSB TEXT,
+    previousSSBName TEXT,
+    parentName TEXT,
+    phone TEXT,
+    address TEXT,
+    ageCategory TEXT,
+    schedule TEXT,
+    location TEXT,
+    has_medical_history BOOLEAN,
+    medical_history TEXT,
+    allergy_history TEXT,
+    injury_history TEXT,
+    medication_notes TEXT,
+    health_notes TEXT,
+    photoUrl TEXT,
+    documentUrl TEXT,
+    kk_url TEXT,
+    akta_url TEXT,
+    kia_url TEXT,
+    registrationId TEXT,
+    status TEXT,
+    registrationDate TEXT,
+    skillset JSONB,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -365,6 +405,17 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='height') THEN ALTER TABLE players ADD COLUMN height NUMERIC; END IF;
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='weight') THEN ALTER TABLE players ADD COLUMN weight NUMERIC; END IF;
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='dominantfoot') THEN ALTER TABLE players ADD COLUMN dominantfoot TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='kk_url') THEN ALTER TABLE players ADD COLUMN kk_url TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='akta_url') THEN ALTER TABLE players ADD COLUMN akta_url TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='players' AND column_name='kia_url') THEN ALTER TABLE players ADD COLUMN kia_url TEXT; END IF;
+
+    -- Registrations
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='registrations' AND column_name='kk_url') THEN ALTER TABLE registrations ADD COLUMN kk_url TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='registrations' AND column_name='akta_url') THEN ALTER TABLE registrations ADD COLUMN akta_url TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='registrations' AND column_name='kia_url') THEN ALTER TABLE registrations ADD COLUMN kia_url TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='registrations' AND column_name='photourl') THEN ALTER TABLE registrations ADD COLUMN photourl TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='registrations' AND column_name='documenturl') THEN ALTER TABLE registrations ADD COLUMN documenturl TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='registrations' AND column_name='skillset') THEN ALTER TABLE registrations ADD COLUMN skillset JSONB; END IF;
 
     -- Upcoming Matches
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='upcoming_matches' AND column_name='result') THEN ALTER TABLE upcoming_matches ADD COLUMN result TEXT; END IF;
@@ -742,6 +793,8 @@ CREATE TABLE IF NOT EXISTS coach_notes (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
+/* Registrations table moved to top */
+
 CREATE TABLE IF NOT EXISTS goalkeeper_stats (
     id TEXT PRIMARY KEY,
     player_id TEXT NOT NULL,
@@ -798,7 +851,8 @@ VALUES
   ('dashboard', 'dashboard', true),
   ('matches', 'matches', true),
   ('match-videos', 'match-videos', true),
-  ('materials', 'materials', true)
+  ('materials', 'materials', true),
+  ('player-documents', 'player-documents', true)
 ON CONFLICT (id) DO UPDATE SET public = true;
 
 -- Grant access policies to storage for public buckets
@@ -813,8 +867,8 @@ DROP POLICY IF EXISTS "Permissive Upload" ON storage.objects;
 -- Create a single permissive policy for the MVP
 CREATE POLICY "Allow All Storage" ON storage.objects 
 FOR ALL TO anon, authenticated, public 
-USING (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'match-videos', 'materials')) 
-WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'match-videos', 'materials'));
+USING (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'match-videos', 'materials', 'player-documents')) 
+WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboard', 'matches', 'match-videos', 'materials', 'player-documents'));
   `;
 
   const syncToCloud = async () => {
@@ -827,11 +881,11 @@ WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboar
         'upcoming_matches', 'match_results', 'gallery', 
         'financials', 'training_schedule', 'match_analysis', 'scouting', 'medicals',
         'training_materials', 'announcements', 'attendance', 'tactics', 'match_highlights',
-        'match_stats', 'player_match_stats', 'coach_notes', 'goalkeeper_stats', 'programs'
+        'match_stats', 'player_match_stats', 'coach_notes', 'goalkeeper_stats', 'programs', 'registrations'
       ];
       
       const allowedColumns: Record<string, string[]> = {
-        players: ['id', 'name', 'overall', 'category', 'position', 'photo', 'photourl', 'dribbling', 'passing', 'shooting', 'pace', 'strength', 'tactical', 'vision', 'teamwork', 'goals', 'assists', 'appearances', 'attendance', 'age', 'height', 'weight', 'dominantfoot', 'dob', 'stamina', 'jersey', 'status', 'created_at', 'parent_id', 'skillset'],
+        players: ['id', 'name', 'overall', 'category', 'position', 'photo', 'photourl', 'dribbling', 'passing', 'shooting', 'pace', 'strength', 'tactical', 'vision', 'teamwork', 'goals', 'assists', 'appearances', 'attendance', 'age', 'height', 'weight', 'dominantfoot', 'dob', 'stamina', 'jersey', 'status', 'created_at', 'parent_id', 'skillset', 'kk_url', 'akta_url', 'kia_url'],
         dashboard_sliders: ['id', 'title', 'subtitle', 'description', 'img', 'media_type', 'video_url', 'autoplay', 'loop', 'created_at'],
         coaches: ['id', 'name', 'role', 'experience', 'license', 'photourl', 'photo', 'specialty', 'rating', 'activeteams', 'phone', 'email', 'created_at'],
         upcoming_matches: ['id', 'tournament', 'rival', 'rivallogo', 'date', 'time', 'venue', 'category', 'result', 'created_at'],
@@ -851,7 +905,8 @@ WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboar
         player_match_stats: ['id', 'match_id', 'name', 'rating', 'goals', 'passing', 'position', 'photo', 'created_at'],
         coach_notes: ['id', 'match_id', 'note', 'created_at'],
         goalkeeper_stats: ['id', 'player_id', 'reflex', 'diving', 'handling', 'positioning', 'instinct', 'distribution', 'kicking', 'throwing', 'reaction_speed', 'agility', 'shot_stopping', 'one_on_one', 'decision_making', 'composure', 'concentration', 'anticipation', 'passing_accuracy', 'jumping_reach', 'strength', 'balance', 'created_at'],
-        programs: ['id', 'title', 'agerange', 'description', 'descriptiondetail', 'targets', 'sessionsperweek', 'durationpersession', 'coach', 'image', 'videotext', 'type', 'totalplayers', 'kurikulumtext', 'materitext', 'jadwaltext', 'statistiktext', 'progresstext', 'absensitext', 'created_at']
+        programs: ['id', 'title', 'agerange', 'description', 'descriptiondetail', 'targets', 'sessionsperweek', 'durationpersession', 'coach', 'image', 'videotext', 'type', 'totalplayers', 'kurikulumtext', 'materitext', 'jadwaltext', 'statistiktext', 'progresstext', 'absensitext', 'created_at'],
+        registrations: ['id', 'fullname', 'birthplace', 'birthdate', 'gender', 'height', 'weight', 'position_main', 'position_detail', 'previousssb', 'previousssbname', 'parentname', 'phone', 'address', 'agecategory', 'schedule', 'location', 'has_medical_history', 'medical_history', 'allergy_history', 'injury_history', 'medication_notes', 'health_notes', 'photourl', 'documenturl', 'kk_url', 'akta_url', 'kia_url', 'registrationid', 'status', 'registrationdate', 'created_at', 'skillset']
       };
       
       try {
@@ -916,18 +971,46 @@ WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboar
                                  return sanitized;
                              });
 
-                             const { error } = await supabase.from(table.trim()).upsert(chunk, { onConflict: 'id' });
-                             if (error) {
-                                if (error.code === 'PGRST125') {
-                                  throw new Error(`URL Supabase salah atau Tabel '${table}' tidak ditemukan. Paste kembali SQL script di bawah.`);
-                                }
-                                if (error.code === 'PGRST204') {
-                                  throw new Error(`Kolom di tabel '${table}' tidak lengkap (PGRST204: ${error.message}). JALANKAN ULANG SQL script di bawah.`);
-                                }
-                                if (error.code === '42501') {
-                                  throw new Error(`Akses ditolak ke '${table}' (RLS Policy 42501). JALANKAN ULANG bagian DISABLE RLS di SQL script.`);
-                                }
-                                throw new Error(`[Supabase Error] ${error.message} (Code: ${error.code})`);
+                             let currentChunk = [...chunk];
+                             let attempt = 0;
+                             
+                             while (attempt < 20) {
+                               attempt++;
+                               const { error } = await supabase.from(table.trim()).upsert(currentChunk, { onConflict: 'id' });
+                               if (!error) break;
+                               
+                               if (error.code === 'PGRST204' || error.code === '42703' || error.message?.includes('does not exist')) {
+                                  const match = error.message && typeof error.message === 'string' ? error.message.match(/Could not find the ['"]([^'"]+)['"]/i) || error.message.match(/column\s+['"]?([^'"\s]+)['"]?\s+of\s+relation/i) : null;
+                                  if (match && match[1]) {
+                                      const missingColumn = match[1].toLowerCase();
+                                      let stripped = false;
+                                      currentChunk = currentChunk.map(item => {
+                                          if (item.hasOwnProperty(missingColumn)) {
+                                              stripped = true;
+                                              const newItem = { ...item };
+                                              if (table === 'players' && missingColumn !== 'skillset') {
+                                                  newItem.skillset = newItem.skillset || {};
+                                                  newItem.skillset[missingColumn] = newItem[missingColumn];
+                                              }
+                                              delete newItem[missingColumn];
+                                              return newItem;
+                                          }
+                                          return item;
+                                      });
+                                      if (stripped) continue;
+                                  }
+                               }
+
+                               if (error.code === 'PGRST125') {
+                                 throw new Error(`URL Supabase salah atau Tabel '${table}' tidak ditemukan. Paste kembali SQL script di bawah.`);
+                               }
+                               if (error.code === 'PGRST204') {
+                                 throw new Error(`Kolom di tabel '${table}' tidak lengkap (PGRST204: ${error.message}). JALANKAN ULANG SQL script di bawah.`);
+                               }
+                               if (error.code === '42501') {
+                                 throw new Error(`Akses ditolak ke '${table}' (RLS Policy 42501). JALANKAN ULANG bagian DISABLE RLS di SQL script.`);
+                               }
+                               throw new Error(`[Supabase Error] ${error.message} (Code: ${error.code})`);
                              }
                           }
                       }

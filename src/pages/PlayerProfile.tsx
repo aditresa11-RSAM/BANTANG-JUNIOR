@@ -56,6 +56,53 @@ export default function PlayerProfile() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadingDoc, setUploadingDoc] = useState({ kk: false, akta: false, kia: false });
 
+  const handleDownload = async (url: string, filename: string) => {
+    if (!url) return;
+    
+    const isSupabase = url.includes('supabase.co/storage/v1/object/public/');
+    
+    if (url.startsWith('data:') || url.startsWith('blob:')) {
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      return;
+    }
+
+    if (isSupabase) {
+      const downloadUrl = `${url}${url.includes('?') ? '&' : '?'}download=${encodeURIComponent(filename)}`;
+      window.open(downloadUrl, '_blank');
+      return;
+    }
+
+    try {
+      const response = await fetch(url, { mode: 'cors' });
+      if (!response.ok) throw new Error('Fetch failed');
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error("Gagal download, fallback ke window.open:", err);
+      const link = document.createElement('a');
+      link.href = url;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      const cleanFilename = filename.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      link.download = cleanFilename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
   useEffect(() => {
     const found = players.find((p: any) => p.id === id);
     if (found && !isEditing) {
@@ -229,6 +276,33 @@ export default function PlayerProfile() {
     }
   };
 
+  const isBlobExpired = (url: string) => {
+    return url && url.startsWith('blob:') && !URL.createObjectURL(new Blob()).includes(url.split(':')[1]);
+  };
+
+  const handleView = (url: string) => {
+    if (!url) return;
+    
+    // Check if it's an expired blob URL
+    if (url.startsWith('blob:')) {
+      // Try to fetch it to see if it's still alive
+      fetch(url)
+        .then(res => {
+          if (res.ok) {
+            window.open(url, '_blank');
+          } else {
+            alert('File ini sudah kadaluarsa (blob session). Silahkan upload ulang dokumen ini.');
+          }
+        })
+        .catch(() => {
+          alert('File ini tidak dapat dibuka atau sudah kadaluarsa. Silahkan upload ulang dokumen ini.');
+        });
+      return;
+    }
+    
+    window.open(url, '_blank');
+  };
+
   const handleDocUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'kk' | 'akta' | 'kia') => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -242,11 +316,16 @@ export default function PlayerProfile() {
     try {
       const url = await uploadRawFile(file, 'player-documents');
       if (url) {
-        setFormData((p: any) => ({ ...p, [`${type}_url`]: url }));
+        const fieldName = `${type}_url`;
+        setFormData((p: any) => ({ ...p, [fieldName]: url }));
+        
+        // If we're not in a state where we'll click "Save" later, we should alert specifically
+        // But since this only happens in isEditing, they should know to click save.
+        console.log(`Uploaded ${type} to ${url}. Don't forget to click Save!`);
       }
     } catch (err) {
       console.error(err);
-      alert('Gagal mengupload file');
+      alert('Gagal mengupload file ke Cloud. Pastikan bucket "player-documents" tersedia di Supabase.');
     } finally {
       setUploadingDoc(p => ({ ...p, [type]: false }));
     }
@@ -729,7 +808,7 @@ export default function PlayerProfile() {
                     
                     <div className="flex gap-2">
                        <button 
-                         onClick={() => doc.url ? window.open(doc.url, '_blank') : null}
+                         onClick={() => doc.url ? handleView(doc.url) : null}
                          disabled={!doc.url}
                          className={cn(
                            "flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all",
@@ -738,19 +817,16 @@ export default function PlayerProfile() {
                        >
                          <Eye className="w-3 h-3" /> Lihat
                        </button>
-                       <a 
-                         href={doc.url || '#'}
-                         target="_blank"
-                         rel="noopener noreferrer"
-                         download={doc.title.replace(/\s+/g, '_')}
+                       <button 
+                         onClick={() => doc.url ? handleDownload(doc.url, `${doc.title.replace(/\s+/g, '_')}_${formData.name.replace(/\s+/g, '_')}`) : null}
+                         disabled={!doc.url}
                          className={cn(
-                           "w-12 h-[34px] rounded-xl border flex items-center justify-center shrink-0 transition-all", // Made smaller height
+                           "w-12 h-[34px] rounded-xl border flex items-center justify-center shrink-0 transition-all",
                            doc.url ? "border-white/10 bg-white/5 hover:bg-blue-500 hover:text-white hover:border-blue-500" : "border-transparent bg-white/5 text-white/30 cursor-not-allowed"
                          )}
-                         onClick={(e) => !doc.url && e.preventDefault()}
                        >
                          <Download className="w-4 h-4" />
-                       </a>
+                       </button>
                     </div>
                  </div>
               ))}
