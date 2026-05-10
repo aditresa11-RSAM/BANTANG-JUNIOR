@@ -473,11 +473,13 @@ CREATE TABLE IF NOT EXISTS hero_management (
     title TEXT,
     subtitle TEXT,
     hero_type TEXT DEFAULT 'image',
+    video_type TEXT,
     image_url TEXT,
     video_url TEXT,
     youtube_url TEXT,
     gdrive_url TEXT,
     thumbnail_url TEXT,
+    storage_path TEXT,
     cta_primary_text TEXT,
     cta_primary_link TEXT,
     overlay_color TEXT DEFAULT '#000000',
@@ -908,7 +910,7 @@ WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboar
       
       const allowedColumns: Record<string, string[]> = {
         players: ['id', 'name', 'overall', 'category', 'position', 'photo', 'photourl', 'dribbling', 'passing', 'shooting', 'pace', 'strength', 'tactical', 'vision', 'teamwork', 'goals', 'assists', 'appearances', 'attendance', 'age', 'height', 'weight', 'dominantfoot', 'dob', 'stamina', 'jersey', 'status', 'created_at', 'parent_id', 'skillset', 'kk_url', 'akta_url', 'kia_url'],
-        hero_management: ['id', 'title', 'subtitle', 'hero_type', 'image_url', 'video_url', 'youtube_url', 'gdrive_url', 'thumbnail_url', 'cta_primary_text', 'cta_primary_link', 'overlay_color', 'overlay_opacity', 'text_position', 'is_active', 'order_index', 'created_at', 'updated_at'],
+        hero_management: ['id', 'title', 'subtitle', 'hero_type', 'video_type', 'image_url', 'video_url', 'youtube_url', 'gdrive_url', 'thumbnail_url', 'storage_path', 'cta_primary_text', 'cta_primary_link', 'overlay_color', 'overlay_opacity', 'text_position', 'is_active', 'order_index', 'created_at', 'updated_at'],
         dashboard_sliders: ['id', 'title', 'subtitle', 'description', 'img', 'media_type', 'video_url', 'autoplay', 'loop', 'created_at'],
         coaches: ['id', 'name', 'role', 'experience', 'license', 'photourl', 'photo', 'specialty', 'rating', 'activeteams', 'phone', 'email', 'created_at'],
         upcoming_matches: ['id', 'tournament', 'rival', 'rivallogo', 'date', 'time', 'venue', 'category', 'result', 'created_at'],
@@ -1024,7 +1026,7 @@ WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboar
                                   }
                                }
 
-                               if (error.code === 'PGRST125') {
+                               if (error.code === 'PGRST125' || error.code === 'PGRST205') {
                                  throw new Error(`URL Supabase salah atau Tabel '${table}' tidak ditemukan. Paste kembali SQL script di bawah.`);
                                }
                                if (error.code === 'PGRST204') {

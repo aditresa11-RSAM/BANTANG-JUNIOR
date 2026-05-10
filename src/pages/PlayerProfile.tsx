@@ -494,7 +494,7 @@ export default function PlayerProfile() {
                     <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                       <RadarChart cx="50%" cy="50%" outerRadius="70%" data={group.data}>
                         <PolarGrid stroke="rgba(255,255,255,0.05)" />
-                        <PolarAngleAxis dataKey="subject" tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 11, fontWeight: '900', textTransform: 'uppercase' }} />
+                        <PolarAngleAxis dataKey="subject" tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 11, fontWeight: '900' }} />
                         <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                         <Radar name={formData.name} dataKey="A" stroke="#10b981" strokeWidth={4} fill="url(#colorGk)" fillOpacity={0.6} />
                         <defs>
@@ -563,7 +563,7 @@ export default function PlayerProfile() {
                   <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                     <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
                       <PolarGrid stroke="rgba(255,255,255,0.05)" />
-                      <PolarAngleAxis dataKey="subject" tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 11, fontWeight: '900', textTransform: 'uppercase' }} />
+                      <PolarAngleAxis dataKey="subject" tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 11, fontWeight: '900' }} />
                       <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                       <Radar name={formData.name} dataKey="A" stroke="#3b82f6" strokeWidth={4} fill="url(#colorUv)" fillOpacity={0.6} />
                       <defs>

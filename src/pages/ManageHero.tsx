@@ -15,11 +15,13 @@ export interface HeroManagement {
   title: string;
   subtitle: string;
   hero_type: 'image' | 'video' | 'youtube' | 'gdrive';
+  video_type?: string;
   image_url: string;
   video_url: string;
   youtube_url: string;
   gdrive_url: string;
   thumbnail_url: string;
+  storage_path?: string;
   cta_primary_text: string;
   cta_primary_link: string;
   overlay_color: string;
@@ -123,13 +125,28 @@ export default function ManageHero() {
 
     let finalData = { ...formData, updated_at: new Date().toISOString() };
     
-    if (finalData.hero_type === 'youtube' && finalData.youtube_url) {
-      finalData.youtube_url = validateYoutubeUrl(finalData.youtube_url);
-    } else if (finalData.hero_type === 'gdrive' && finalData.gdrive_url) {
-      finalData.gdrive_url = validateGdriveUrl(finalData.gdrive_url);
+    // Set video_type for compatibility with request
+    if (finalData.hero_type === 'youtube') {
+      finalData.video_type = 'youtube';
+      finalData.youtube_url = validateYoutubeUrl(finalData.youtube_url || '');
+    } else if (finalData.hero_type === 'gdrive') {
+      finalData.video_type = 'gdrive';
+      finalData.gdrive_url = validateGdriveUrl(finalData.gdrive_url || '');
+    } else if (finalData.hero_type === 'video') {
+      finalData.video_type = 'file';
+    } else {
+      finalData.video_type = 'none';
     }
 
     try {
+      // Logic: Only 1 active hero. If saving as active, deactivate others.
+      if (finalData.is_active) {
+        const otherActives = orderedHeroes.filter(h => h.is_active && h.id !== editingId);
+        for (const h of otherActives) {
+          await updateHero(h.id, { is_active: false });
+        }
+      }
+
       if (editingId) {
         await updateHero(editingId, finalData);
         showToast('Hero berhasil diperbarui');
@@ -164,8 +181,8 @@ export default function ManageHero() {
         }
       };
 
-      if (hero.hero_type === 'image' && hero.image_url) await tryDeleteStorage(hero.image_url, 'dashboard');
-      if (hero.hero_type === 'video' && hero.video_url) await tryDeleteStorage(hero.video_url, 'dashboard');
+      if (hero.hero_type === 'image' && hero.image_url) await tryDeleteStorage(hero.image_url, 'hero-media');
+      if (hero.hero_type === 'video' && hero.video_url) await tryDeleteStorage(hero.video_url, 'hero-media');
 
       // 2. Delete from Database
       await removeHero(hero.id);
@@ -193,13 +210,14 @@ export default function ManageHero() {
     try {
       // simulate progress
       const progressInterval = setInterval(() => setUploadProgress(p => Math.min(p + 15, 90)), 300);
-      const url = await uploadRawFile(file, 'dashboard');
+      const url = await uploadRawFile(file, 'hero-media');
       clearInterval(progressInterval);
       setUploadProgress(100);
       
       if (url) {
-        if (formData.hero_type === 'image') setFormData(prev => ({ ...prev, image_url: url }));
-        if (formData.hero_type === 'video') setFormData(prev => ({ ...prev, video_url: url }));
+        const storagePath = url.includes('supabase.co') ? url.split('/storage/v1/object/public/hero-media/')[1] : '';
+        if (formData.hero_type === 'image') setFormData(prev => ({ ...prev, image_url: url, storage_path: storagePath }));
+        if (formData.hero_type === 'video') setFormData(prev => ({ ...prev, video_url: url, storage_path: storagePath }));
         showToast('File berhasil diupload dan diamankan di Storage');
       }
     } catch (error: any) {
@@ -226,7 +244,15 @@ export default function ManageHero() {
   };
 
   const toggleActive = async (hero: HeroManagement) => {
-    await updateHero(hero.id, { is_active: !hero.is_active });
+    const newState = !hero.is_active;
+    if (newState) {
+      // If setting to active, deactivate others (only 1 active at a time)
+      const actives = orderedHeroes.filter(h => h.is_active && h.id !== hero.id);
+      for (const h of actives) {
+        await updateHero(h.id, { is_active: false });
+      }
+    }
+    await updateHero(hero.id, { is_active: newState });
   };
 
   const renderMiniPreview = (hero: Partial<HeroManagement>) => {
@@ -247,11 +273,22 @@ export default function ManageHero() {
             )}
             {hero.hero_type === 'youtube' && (
               <div className="absolute inset-0 w-full h-[150%] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-                <ReactPlayer
-                  url={url} width="100%" height="100%"
-                  playing muted loop playsinline
-                  config={{ youtube: { playerVars: { disablekb: 1, rel: 0, showinfo: 0, modestbranding: 1 } } }}
-                />
+                {(() => {
+                  const AnyPlayer = ReactPlayer as any;
+                  return (
+                    <AnyPlayer
+                      url={url} width="100%" height="100%"
+                      playing muted loop playsinline
+                      config={{ 
+                        youtube: { 
+                          disablekb: 1, 
+                          rel: 0, 
+                          iv_load_policy: 3
+                        } 
+                      }}
+                    />
+                  );
+                })()}
               </div>
             )}
             {hero.hero_type === 'video' && (
@@ -317,17 +354,22 @@ export default function ManageHero() {
           )}
         </AnimatePresence>
 
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-3xl font-display font-black text-white uppercase tracking-tight flex items-center gap-3">
               <ImageIcon className="w-8 h-8 text-[var(--color-primary)]" />
-              Hero Management
+              Hero Management ⚡
             </h1>
             <p className="text-white/40 text-sm mt-1">Kelola gambar/video background halaman utama landing page terhubung dengan Supabase.</p>
           </div>
-          <button onClick={() => handleOpenModal()} className="px-6 py-3 rounded-xl bg-gradient-to-r from-[var(--color-primary)] to-yellow-500 font-bold text-black flex items-center gap-2 hover:scale-105 transition-transform uppercase tracking-wider text-sm shadow-[0_10px_30px_rgba(234,179,8,0.2)]">
-            <Plus className="w-5 h-5 text-black" /> Tambah Hero
-          </button>
+          <div className="flex items-center gap-3">
+            <button onClick={() => window.location.reload()} className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 transition-all font-bold text-xs uppercase">
+              Refresh Data
+            </button>
+            <button onClick={() => handleOpenModal()} className="px-6 py-3 rounded-xl bg-gradient-to-r from-[var(--color-primary)] to-yellow-500 font-bold text-black flex items-center gap-2 hover:scale-105 transition-transform uppercase tracking-wider text-sm shadow-[0_10px_30px_rgba(234,179,8,0.2)]">
+              <Plus className="w-5 h-5 text-black" /> Tambah Hero
+            </button>
+          </div>
         </div>
 
         {orderedHeroes.length === 0 ? (

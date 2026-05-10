@@ -29,22 +29,26 @@ function SafeVideo({ src, autoPlay, className }: { src: string, autoPlay?: boole
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    if (autoPlay && videoRef.current) {
+    setHasError(false);
+  }, [src]);
+
+  useEffect(() => {
+    if (autoPlay && videoRef.current && !hasError) {
       const playPromise = videoRef.current.play();
       if (playPromise !== undefined) {
         playPromise.catch(() => {
-          // Ignore safely
+          // Auto-play might be blocked by browser
         });
       }
     }
-  }, [src, autoPlay]);
+  }, [src, autoPlay, hasError]);
 
-  if (hasError) {
+  if (hasError || !src) {
     return (
       <img 
         src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=2693"
         alt="Fallback background"
-        className={className}
+        className={`${className} object-cover`}
       />
     );
   }
@@ -60,10 +64,10 @@ export default function LandingPage() {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const navigate = useNavigate();
 
-  // Process sliders
+  // Process sliders: Filter only active and sort by order_index
   const activeSliders = (heroSlidersData || [])
-    .filter(s => s.is_active)
-    .sort((a, b) => a.order_index - b.order_index);
+    .filter(s => s.is_active === true)
+    .sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
 
   // Fallback to initial data if empty
   const activePrograms = (programs && programs.length > 0) ? programs : academyPrograms;
@@ -138,25 +142,41 @@ export default function LandingPage() {
                     onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=2693" }}
                   />
                 )}
-                {slider.hero_type === 'youtube' && (
+                {slider.hero_type === 'youtube' && slider.youtube_url && (
                   <div className="absolute top-1/2 left-1/2 w-[300vw] h-[300vh] lg:w-[150vw] lg:h-[150vh] -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-                    <ReactPlayer
-                      url={slider.youtube_url} width="100%" height="100%"
-                      playing={true} muted loop playsinline
-                      config={{ youtube: { playerVars: { disablekb: 1, rel: 0, showinfo: 0, modestbranding: 1, iv_load_policy: 3 } } }}
-                    />
+                    {(() => {
+                      const Player = ReactPlayer as any;
+                      return (
+                        <Player
+                          url={slider.youtube_url} width="100%" height="100%"
+                          playing={true} muted={true} loop={true} playsinline={true}
+                          config={{ 
+                            youtube: { 
+                              disablekb: 1, 
+                              rel: 0, 
+                              iv_load_policy: 3
+                            } 
+                          }}
+                        />
+                      );
+                    })()}
                   </div>
                 )}
-                {slider.hero_type === 'video' && (
+                {slider.hero_type === 'video' && slider.video_url && (
                   <SafeVideo 
                     src={slider.video_url} 
                     className="w-full h-full object-cover" 
                     autoPlay={true} 
                   />
                 )}
-                {slider.hero_type === 'gdrive' && (
-                  <div className="absolute top-1/2 left-1/2 w-[300vw] h-[300vh] lg:w-[150vw] lg:h-[150vh] -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-                    <iframe src={slider.gdrive_url} className="w-full h-full border-0" allow="autoplay" allowFullScreen />
+                {slider.hero_type === 'gdrive' && slider.gdrive_url && (
+                  <div className="absolute top-1/2 left-1/2 w-[300vw] h-[300vh] lg:w-[120vw] lg:h-[120vh] -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                    <iframe 
+                      src={slider.gdrive_url} 
+                      className="w-full h-full border-0 pointer-events-none" 
+                      allow="autoplay" 
+                      title="Google Drive Video"
+                    />
                   </div>
                 )}
 

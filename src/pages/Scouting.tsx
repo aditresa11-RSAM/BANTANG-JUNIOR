@@ -65,7 +65,7 @@ export default function Scouting() {
               <div className="grid grid-cols-2 gap-4 mb-6">
                  <div>
                    <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold mb-1">Current Team</p>
-                   <p className="text-sm font-medium text-white">{target.currentTeam || target.currentteam}</p>
+                   <p className="text-sm font-medium text-white">{target.currentTeam || (target as any).currentTeam}</p>
                  </div>
                  <div>
                    <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold mb-1">Est. Price</p>
@@ -83,7 +83,7 @@ export default function Scouting() {
                    <span className="text-xs font-bold uppercase tracking-wider text-white/70">{target.status}</span>
                  </div>
                  <div className="flex items-center gap-1 text-[10px] uppercase font-bold text-white/40 bg-white/5 px-2 py-1 rounded-lg">
-                   Match: <span className="text-white">{target.match_rating || target.match}%</span>
+                   Match: <span className="text-white">{target.match_rating || (target as any).match_rating}%</span>
                  </div>
               </div>
 

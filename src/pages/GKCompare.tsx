@@ -161,7 +161,7 @@ export default function PlayerCompare() {
                           </linearGradient>
                        </defs>
                        <PolarGrid stroke="rgba(255,255,255,0.1)" />
-                       <PolarAngleAxis dataKey="subject" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10, fontWeight: 800, textTransform: 'uppercase' }} />
+                       <PolarAngleAxis dataKey="subject" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10, fontWeight: 800 }} />
                        <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                        <Tooltip 
                          contentStyle={{ backgroundColor: '#0B1D3A', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '12px' }}

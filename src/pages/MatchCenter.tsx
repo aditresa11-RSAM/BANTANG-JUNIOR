@@ -166,7 +166,7 @@ export default function MatchCenter() {
 
                    <div className="flex flex-col items-center gap-6 flex-1">
                       <div className="w-32 h-32 md:w-40 md:h-40 flex items-center justify-center shrink-0">
-                         <img src={upcomingMatches[0].rivalLogo || upcomingMatches[0].rivallogo} className="w-full h-full object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.1)] grayscale-0" />
+                         <img src={upcomingMatches[0].rivalLogo || (upcomingMatches[0] as any).rivalLogo} className="w-full h-full object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.1)] grayscale-0" />
                       </div>
                       <div className="text-center w-full px-2 mt-4">
                          <p className="text-xl md:text-3xl font-display font-black tracking-tight uppercase break-words line-clamp-2 leading-tight">{upcomingMatches[0].rival}</p>

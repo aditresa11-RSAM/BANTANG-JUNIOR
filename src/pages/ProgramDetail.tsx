@@ -52,11 +52,11 @@ export default function ProgramDetail() {
             style={{ backgroundImage: `url(${program.image || null})`, backgroundSize: 'cover', backgroundPosition: 'center' }} 
           />
 
-          {/* Main Image - Contain on mobile to ensure no cutting, cover on desktop for impact */}
+          {/* Main Image - Always use object-cover to ensure no empty space */}
           <img 
             src={program.image || null} 
             alt={program.title} 
-            className="absolute inset-0 w-full h-full object-cover md:object-contain object-top md:object-center z-10 group-hover:scale-[1.02] transition-transform duration-1000" 
+            className="absolute inset-0 w-full h-full object-cover object-center z-10 group-hover:scale-[1.02] transition-transform duration-1000" 
           />
 
           {/* Gradient Overlay for Text Readability at Bottom - Specific mobile gradient requested */}
@@ -92,7 +92,7 @@ export default function ProgramDetail() {
                       ? "bg-[var(--color-primary)]/20 border-[var(--color-primary)]/30" 
                       : "bg-purple-500/20 border-purple-500/30"
                   )}>
-                    {program.ageRange || program.agerange}
+                    {(program as any).ageRange || (program as any).agerange}
                   </span>
                 </div>
                 
@@ -177,13 +177,13 @@ export default function ProgramDetail() {
               transition={{ duration: 0.3 }}
             >
               {activeTab === 'overview' && <OverviewTab program={program} />}
-              {activeTab === 'kurikulum' && <DynamicTab title="Kurikulum Academy" desc="Struktur materi dan silabus yang digunakan dalam program ini." icon={FileText} content={program.kurikulumText || program.kurikulumtext} />}
-              {activeTab === 'materi' && <DynamicTab title="Materi Latihan" desc="Integrasi dengan sistem library latihan dan drill." icon={Play} content={program.materiText || program.materitext} />}
-              {activeTab === 'jadwal' && <DynamicTab title="Jadwal Program" desc="Integrasi dengan kalender jadwal latihan akademi." icon={Calendar} content={program.jadwalText || program.jadwaltext} />}
-              {activeTab === 'statistik' && <DynamicTab title="Statistik & Data" desc="Ranking, performa rata-rata, dan statistik keseluruhan program." icon={TrendingUp} content={program.statistikText || program.statistiktext} />}
-              {activeTab === 'video' && <DynamicTab title="Highlight & Video" desc="Kumpulan video materi dan highlight pertandingan program." icon={Video} content={program.videoText || program.videotext} />}
-              {activeTab === 'progress' && <DynamicTab title="Progress Pemain" desc="Grafik performa dan radar chart perkembangan." icon={Target} content={program.progressText || program.progresstext} />}
-              {activeTab === 'absensi' && <DynamicTab title="Data Kehadiran" desc="Integrasi dengan sistem absensi pintar." icon={ClipboardCheck} content={program.absensiText || program.absensitext} />}
+              {activeTab === 'kurikulum' && <DynamicTab title="Kurikulum Academy" desc="Struktur materi dan silabus yang digunakan dalam program ini." icon={FileText} content={(program as any).kurikulumText || (program as any).kurikulumtext} />}
+              {activeTab === 'materi' && <DynamicTab title="Materi Latihan" desc="Integrasi dengan sistem library latihan dan drill." icon={Play} content={(program as any).materiText || (program as any).materitext} />}
+              {activeTab === 'jadwal' && <DynamicTab title="Jadwal Program" desc="Integrasi dengan kalender jadwal latihan akademi." icon={Calendar} content={(program as any).jadwalText || (program as any).jadwaltext} />}
+              {activeTab === 'statistik' && <DynamicTab title="Statistik & Data" desc="Ranking, performa rata-rata, dan statistik keseluruhan program." icon={TrendingUp} content={(program as any).statistikText || (program as any).statistiktext} />}
+              {activeTab === 'video' && <DynamicTab title="Highlight & Video" desc="Kumpulan video materi dan highlight pertandingan program." icon={Video} content={(program as any).videoText || (program as any).videotext} />}
+              {activeTab === 'progress' && <DynamicTab title="Progress Pemain" desc="Grafik performa dan radar chart perkembangan." icon={Target} content={(program as any).progressText || (program as any).progresstext} />}
+              {activeTab === 'absensi' && <DynamicTab title="Data Kehadiran" desc="Integrasi dengan sistem absensi pintar." icon={ClipboardCheck} content={(program as any).absensiText || (program as any).absensitext} />}
             </motion.div>
           </AnimatePresence>
         </div>
