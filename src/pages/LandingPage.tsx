@@ -284,7 +284,7 @@ export default function LandingPage() {
             <div className="flex gap-10">
               <div>
                 <p className="text-sm text-white mb-1">Pemain Aktif</p>
-                <p className="text-3xl font-display font-bold text-center text-[#facc15]">20+</p>
+                <p className="text-3xl font-display font-bold text-center text-[#facc15]">30+</p>
               </div>
               <div>
                 <p className="text-sm text-white mb-1">Pelatih Pro</p>
@@ -292,7 +292,7 @@ export default function LandingPage() {
               </div>
               <div>
                 <p className="text-sm text-white mb-1">Turnamen</p>
-                <p className="text-3xl font-display font-bold text-center text-[#facc15]">15</p>
+                <p className="text-3xl font-display font-bold text-center text-[#facc15]">10+</p>
               </div>
             </div>
           </div>
