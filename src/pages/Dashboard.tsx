@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Users, Activity, Plus, Clock, 
-  Image as ImageIcon, ChevronLeft, ChevronRight, Trash2, Edit2, Save, Loader2, Video, Youtube, PlayCircle, AlertTriangle, Trophy, Star, ArrowUpRight, CheckCircle2
+  Image as ImageIcon, ChevronLeft, ChevronRight, Trash2, Edit2, Save, Loader2, Video, Youtube, PlayCircle, AlertTriangle, Trophy, Star, ArrowUpRight, CheckCircle2, TrendingUp
 } from 'lucide-react';
 import { 
   PieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, CartesianGrid 
@@ -384,31 +384,38 @@ export default function Dashboard() {
                         #{idx + 1}
                       </div>
 
-                      <div className="w-[72px] h-[72px] md:w-16 md:h-16 rounded-[16px] md:rounded-2xl overflow-hidden shrink-0 border border-white/10 group-hover:scale-105 transition-transform duration-500 shadow-xl">
+                      <div className="w-[60px] h-[60px] md:w-16 md:h-16 rounded-2xl overflow-hidden shrink-0 border border-blue-500/30 group-hover:scale-105 group-hover:border-blue-400/50 transition-all duration-500 shadow-[0_0_15px_rgba(59,130,246,0.15)] relative">
+                         <div className="absolute inset-0 ring-1 ring-inset ring-white/10 z-10 rounded-2xl" />
                          <img src={player.photo || 'https://via.placeholder.com/150'} alt={player.name} className="w-full h-full object-cover" />
                       </div>
-                      <div className="flex-1 min-w-0">
-                         <h4 className={cn("text-[16px] md:text-lg font-display font-black truncate tracking-tight uppercase", idx === 0 ? "text-[#fdc700]" : "text-white")}>
+                      
+                      <div className="flex-1 min-w-0 flex flex-col justify-center">
+                         <h4 className={cn("text-base md:text-lg font-display font-black leading-tight uppercase line-clamp-2 break-words", idx === 0 ? "text-[#fdc700]" : "text-white")}>
                            {player.name}
                          </h4>
-                         <div className="flex flex-col md:flex-row md:items-center gap-0.5 md:gap-2 mt-0.5 md:mt-1">
-                           <span className="text-[11px] md:text-[10px] text-white/80 md:text-white/40 uppercase tracking-widest font-bold md:font-black whitespace-nowrap">
-                             {player.category}
-                           </span>
-                           <span className="hidden md:block w-1 h-1 rounded-full bg-white/20" />
-                           <span className="text-[11px] md:text-[10px] text-white/60 md:text-white/40 uppercase tracking-widest font-bold md:font-black whitespace-nowrap">
+                         <div className="flex items-center gap-1 mt-1 text-[10px] md:text-xs">
+                           <span className="text-white/60 uppercase tracking-widest font-bold">
                              {player.position}
                            </span>
+                           <span className="text-white/40">•</span>
+                           <span className="text-white/60 uppercase tracking-widest font-bold">
+                             {player.category}
+                           </span>
+                         </div>
+                         <div className="flex items-center gap-1 mt-1">
+                           <TrendingUp className="w-3 h-3 text-green-500" />
+                           <span className="text-[9px] md:text-[10px] text-green-500 font-bold uppercase tracking-wider">+1 minggu ini</span>
                          </div>
                       </div>
+                      
                       <div className={cn(
-                        "w-[72px] h-[72px] md:w-auto shrink-0 flex flex-col items-center justify-center md:block text-center md:text-right px-1 md:px-3 py-1 md:py-2 rounded-xl border transition-all",
-                        idx === 0 ? "bg-[#fdc700]/10 border-[#fdc700]/20 shadow-[0_0_15px_rgba(253,199,0,0.1)]" : "bg-white/5 border-white/5"
+                        "shrink-0 flex flex-col items-center justify-center text-center px-3 py-2 md:px-4 md:py-2.5 rounded-xl border transition-all",
+                        idx === 0 ? "bg-[#fdc700]/10 border-[#fdc700]/30 shadow-[0_0_20px_rgba(253,199,0,0.15)]" : "bg-white/5 border-white/5"
                       )}>
-                         <span className={cn("text-[28px] md:text-2xl font-display font-black leading-none", idx === 0 ? "text-[#fdc700] drop-shadow-[0_0_8px_rgba(253,199,0,0.5)]" : "text-white/80")}>
+                         <span className={cn("text-2xl md:text-3xl font-display font-black leading-none", idx === 0 ? "text-[#fdc700] drop-shadow-[0_0_10px_rgba(253,199,0,0.5)]" : "text-white")}>
                            {player.overall || 0}
                          </span>
-                         <span className="block text-[8px] text-white/30 uppercase font-black tracking-widest mt-0.5">OVR</span>
+                         <span className="block text-[8px] md:text-[9px] text-white/40 uppercase font-black tracking-widest mt-1">OVR</span>
                       </div>
                    </div>
                 </div>

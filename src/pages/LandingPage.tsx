@@ -180,9 +180,22 @@ export default function LandingPage() {
                   </div>
                 )}
 
-                {/* Desktop Overlay - Removed as requested to keep original colors */}
+                {/* Desktop Overlay */}
+                <div 
+                  className="hidden lg:block absolute inset-0" 
+                  style={{
+                    background: `linear-gradient(to top, ${slider.overlay_color}${Math.floor((slider.overlay_opacity || 60) * 2.55).toString(16).padStart(2, '0')}, transparent), 
+                                 radial-gradient(circle at center, transparent 0%, ${slider.overlay_color}${Math.floor((slider.overlay_opacity || 60) * 1.5).toString(16).padStart(2, '0')} 100%)`
+                  }}
+                />
                 
-                {/* Mobile Cinematic Overlay - Removed as requested to keep original colors */}
+                {/* Mobile Cinematic Overlay */}
+                <div 
+                  className="lg:hidden absolute inset-0"
+                  style={{
+                    background: 'linear-gradient(to top, rgba(10,15,28,0.95) 0%, rgba(10,15,28,0.6) 45%, rgba(234,179,8,0.05) 100%)'
+                  }}
+                />
               </div>
             ))
           ) : (
@@ -192,7 +205,7 @@ export default function LandingPage() {
                 alt="Football Stadium" 
                 className="w-full h-full object-cover opacity-100 object-center lg:object-top"
               />
-              {/* Fallback Overlay Removed to keep original colors */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f1c] via-[#0a0f1c]/70 lg:bg-gradient-to-r lg:from-[#0a0f1c]/90 lg:via-[#0a0f1c]/60 to-transparent" />
             </>
           )}
         </div>
