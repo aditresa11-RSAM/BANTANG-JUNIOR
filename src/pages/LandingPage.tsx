@@ -92,8 +92,8 @@ export default function LandingPage() {
   return (
     <div className="bg-[var(--color-navy-dark)]">
       {/* Navbar */}
-      <nav className="fixed top-0 w-full z-50 border-b border-white/5 bg-black/20 backdrop-blur-lg">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+      <nav className="fixed top-0 w-full z-50 border-b border-white/5 bg-black/20 backdrop-blur-lg h-[70px]">
+        <div className="max-w-7xl mx-auto px-6 h-[72px] flex items-center justify-between">
           <div className="flex items-center gap-3">
             {logoUrl ? (
               <img src={logoUrl} alt="Logo" className="w-12 h-12 object-contain drop-shadow-md" />
@@ -211,7 +211,7 @@ export default function LandingPage() {
               >
                 <div key={currentSlideIndex} className="animate-in fade-in slide-in-from-bottom-8 duration-700">
                   <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-[5.5rem] font-display font-black leading-[1] mb-4 sm:mb-8 tracking-tighter drop-shadow-xl text-white uppercase" dangerouslySetInnerHTML={{ __html: activeSliders[currentSlideIndex]?.title?.replace(/\n/g, '<br />') || '' }} />
-                  <p className="text-[15px] text-white/90 mb-8 sm:mb-10 leading-relaxed font-normal ml-0 max-w-2xl drop-shadow-md">
+                  <p className="text-[19px] text-[#ffffff] italic font-normal mb-8 sm:mb-10 leading-relaxed ml-0 max-w-2xl drop-shadow-md">
                     {activeSliders[currentSlideIndex]?.subtitle}
                   </p>
                   
