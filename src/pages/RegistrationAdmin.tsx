@@ -35,30 +35,58 @@ export default function RegistrationAdmin() {
   const handleApprove = async (reg: any) => {
     const regFullName = reg.fullName || reg.fullname || '';
     if(window.confirm(`Terima pendaftaran ${regFullName} dan masukkan ke daftar pemain?`)) {
-      // Move to players
-      await addPlayer({
-        name: regFullName,
-        photo: reg.photoUrl || reg.photourl || '',
-        category: reg.ageCategory || reg.agecategory || '',
-        position: reg.position_main || reg.position || '',
-        position_detail: reg.position_detail || '',
-        height: parseInt(reg.height || 0) || 0,
-        weight: parseInt(reg.weight || 0) || 0,
-        overall: 50, // default
-        status: 'Active',
-        kk_url: reg.kk_url || '',
-        akta_url: reg.akta_url || '',
-        kia_url: reg.kia_url || '',
-        has_medical_history: reg.has_medical_history || reg.has_medical_history === 'Ya',
-        medical_history: reg.medical_history || '',
-        allergy_history: reg.allergy_history || '',
-        injury_history: reg.injury_history || '',
-        medication_notes: reg.medication_notes || '',
-        health_notes: reg.health_notes || ''
-      });
-      // Mark as accepted
-      updateItem(reg.id, { status: 'Diterima' });
-      alert(`Berhasil! ${regFullName} telah ditambahkan ke database Pemain.`);
+      try {
+        // Extract data with fallback for lowercase keys (Supabase often lowercases columns)
+        const getVal = (primary: string, secondary: string) => reg[primary] !== undefined ? reg[primary] : reg[secondary];
+        
+        // Move to players
+        const newPlayerData = {
+          name: regFullName,
+          photo: getVal('photoUrl', 'photourl') || '',
+          category: getVal('ageCategory', 'agecategory') || 'U12',
+          position: getVal('position_main', 'position_main') || getVal('position', 'position') || 'Midfielder',
+          position_detail: getVal('position_detail', 'position_detail') || '',
+          dob: getVal('birthDate', 'birthdate') || '',
+          birthplace: getVal('birthPlace', 'birthplace') || '',
+          gender: getVal('gender', 'gender') || 'Laki-laki',
+          height: parseInt(getVal('height', 'height') || 0) || 150,
+          weight: parseInt(getVal('weight', 'weight') || 0) || 45,
+          overall: 60, // Better default starting rating
+          dribbling: 60,
+          passing: 60,
+          shooting: 60,
+          stamina: 60,
+          pace: 60,
+          vision: 60,
+          teamwork: 60,
+          tactical: 60,
+          jersey: Math.floor(Math.random() * 99) + 1, // temporary random jersey
+          status: 'Active',
+          kk_url: getVal('kk_url', 'kk_url') || '',
+          akta_url: getVal('akta_url', 'akta_url') || '',
+          kia_url: getVal('kia_url', 'kia_url') || '',
+          parent_name: getVal('parentName', 'parentname') || '',
+          parent_phone: getVal('phone', 'phone') || '',
+          address: getVal('address', 'address') || '',
+          has_medical_history: reg.has_medical_history === true || reg.has_medical_history === 'Ya',
+          medical_history: getVal('medical_history', 'medical_history') || '',
+          allergy_history: getVal('allergy_history', 'allergy_history') || '',
+          injury_history: getVal('injury_history', 'injury_history') || '',
+          medication_notes: getVal('medication_notes', 'medication_notes') || '',
+          health_notes: getVal('health_notes', 'health_notes') || '',
+          registration_id: getVal('registrationId', 'registrationid') || ''
+        };
+
+        await addPlayer(newPlayerData);
+        
+        // Mark as accepted
+        await updateItem(reg.id, { status: 'Diterima' });
+        
+        alert(`Berhasil! ${regFullName} telah ditambahkan ke database Pemain.`);
+      } catch (error) {
+        console.error("Gagal menerima pendaftaran:", error);
+        alert("Terjadi kesalahan saat memproses pendaftaran. Silahkan coba lagi.");
+      }
     }
   };
 
