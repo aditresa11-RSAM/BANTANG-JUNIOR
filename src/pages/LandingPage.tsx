@@ -92,16 +92,16 @@ export default function LandingPage() {
   return (
     <div className="bg-[var(--color-navy-dark)]">
       {/* Navbar */}
-      <nav className="fixed top-0 w-full z-50 border-b border-white/5 bg-black/20 backdrop-blur-lg h-[70px]">
-        <div className="max-w-7xl mx-auto px-6 h-[72px] flex items-center justify-between">
-          <div className="flex items-center gap-3">
+      <nav className="fixed top-0 w-full z-50 border-b border-white/10 bg-[#0a0f1c]/40 backdrop-blur-md lg:bg-black/20 lg:backdrop-blur-lg h-[60px] lg:h-[70px]">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 h-full flex items-center justify-between">
+          <div className="flex items-center gap-2 md:gap-3">
             {logoUrl ? (
-              <img src={logoUrl} alt="Logo" className="w-12 h-12 object-contain drop-shadow-md" />
+              <img src={logoUrl} alt="Logo" className="w-8 h-8 md:w-10 md:h-12 object-contain drop-shadow-md" />
             ) : (
-              <Trophy className="text-[var(--color-primary)] w-10 h-10" />
+              <Trophy className="text-[var(--color-primary)] w-7 h-7 md:w-10 md:h-10" />
             )}
             <div className="flex flex-col">
-              <span className="font-display font-bold text-lg tracking-tighter text-[var(--color-primary)] truncate leading-tight">{appName}</span>
+              <span className="font-display font-bold text-base md:text-lg tracking-tighter text-white drop-shadow-md truncate leading-tight uppercase">{appName}</span>
             </div>
           </div>
           
@@ -124,7 +124,7 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
+      <section className="relative min-h-[100dvh] flex items-end lg:items-center pt-32 pb-32 md:pb-36 lg:pb-0 lg:pt-20 overflow-hidden">
         {/* Animated Background Assets - Sliders or Fallback */}
         <div className="absolute inset-0 z-0 bg-[#0a0f1c]">
           {activeSliders.length > 0 ? (
@@ -138,7 +138,7 @@ export default function LandingPage() {
                   <img 
                     src={slider.image_url} 
                     alt={slider.title} 
-                    className="w-full h-full object-cover object-center scale-105 animate-[slowZoom_20s_ease-in-out_infinite]"
+                    className="w-full h-full object-cover object-center lg:object-top scale-105 animate-[slowZoom_20s_ease-in-out_infinite]"
                     onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=2693" }}
                   />
                 )}
@@ -165,7 +165,7 @@ export default function LandingPage() {
                 {slider.hero_type === 'video' && slider.video_url && (
                   <SafeVideo 
                     src={slider.video_url} 
-                    className="w-full h-full object-cover" 
+                    className="w-full h-full object-cover object-center lg:object-cover" 
                     autoPlay={true} 
                   />
                 )}
@@ -180,14 +180,9 @@ export default function LandingPage() {
                   </div>
                 )}
 
-                {/* Overlay */}
-                <div 
-                  className="absolute inset-0" 
-                  style={{
-                    background: `linear-gradient(to top, ${slider.overlay_color}${Math.floor((slider.overlay_opacity || 60) * 2.55).toString(16).padStart(2, '0')}, transparent), 
-                                 radial-gradient(circle at center, transparent 0%, ${slider.overlay_color}${Math.floor((slider.overlay_opacity || 60) * 1.5).toString(16).padStart(2, '0')} 100%)`
-                  }}
-                />
+                {/* Desktop Overlay - Removed as requested to keep original colors */}
+                
+                {/* Mobile Cinematic Overlay - Removed as requested to keep original colors */}
               </div>
             ))
           ) : (
@@ -195,42 +190,39 @@ export default function LandingPage() {
               <img 
                 src={heroBgUrl || "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=2693"} 
                 alt="Football Stadium" 
-                className="w-full h-full object-cover opacity-100 object-top"
+                className="w-full h-full object-cover opacity-100 object-center lg:object-top"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#0a0f1c]/90 via-[#0a0f1c]/60 to-transparent" />
+              {/* Fallback Overlay Removed to keep original colors */}
             </>
           )}
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 relative z-20 w-full mb-20 lg:mb-0">
+        <div className="max-w-7xl mx-auto px-6 relative z-20 w-full mb-0 lg:mb-0">
           <div className="max-w-3xl">
             {activeSliders.length > 0 ? (
-              <div className={`flex flex-col justify-center
-                ${activeSliders[currentSlideIndex]?.text_position === 'left' ? 'items-start text-left' : 
-                  activeSliders[currentSlideIndex]?.text_position === 'right' ? 'items-end text-right' : 'items-center text-center mx-auto'}`}
-              >
-                <div key={currentSlideIndex} className="animate-in fade-in slide-in-from-bottom-8 duration-700">
-                  <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-[5.5rem] font-display font-black leading-[1] mb-4 sm:mb-8 tracking-tighter drop-shadow-xl text-white uppercase" dangerouslySetInnerHTML={{ __html: activeSliders[currentSlideIndex]?.title?.replace(/\n/g, '<br />') || '' }} />
-                  <p className="text-[19px] text-[#ffffff] italic font-normal mb-8 sm:mb-10 leading-relaxed ml-0 max-w-2xl drop-shadow-md">
+              <div className="w-full flex flex-col items-center lg:items-start text-center lg:text-left mx-auto lg:mx-0">
+                <div key={currentSlideIndex} className="animate-in fade-in slide-in-from-bottom-8 duration-700 w-full flex flex-col items-center lg:block">
+                  <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-[5.5rem] font-display font-black leading-none mb-3 sm:mb-4 lg:mb-8 tracking-tight drop-shadow-xl text-white uppercase max-w-full text-center lg:text-left" dangerouslySetInnerHTML={{ __html: activeSliders[currentSlideIndex]?.title?.replace(/\n/g, '<br />') || '' }} />
+                  <p className="text-[11px] sm:text-lg lg:text-[19px] text-[#ffffff] italic font-normal mb-6 sm:mb-10 leading-relaxed mx-auto lg:ml-0 max-w-[90%] lg:max-w-2xl drop-shadow-md whitespace-nowrap md:whitespace-normal overflow-hidden text-ellipsis text-center lg:text-left">
                     {activeSliders[currentSlideIndex]?.subtitle}
                   </p>
                   
-                  <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+                  <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-4 w-[280px] sm:w-[320px] lg:w-auto lg:mx-0">
                     <button 
                       onClick={() => navigate('/login')}
-                      className="glow-button w-full sm:w-[260px] flex items-center justify-center gap-3 transition-all duration-300 hover:scale-105 active:scale-95 py-4 text-base"
+                      className="w-full sm:w-[260px] flex justify-center items-center gap-3 py-3.5 lg:py-4 px-6 rounded-full lg:rounded-2xl bg-gradient-to-r from-yellow-400 to-yellow-600 lg:bg-[var(--color-primary)] text-black font-bold shadow-[0_0_20px_rgba(250,204,21,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 text-sm lg:text-base uppercase tracking-wider glow-button"
                     >
                       Masuk
                       <motion.div
                         animate={{ x: [0, 5, 0] }}
                         transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
                       >
-                        <ArrowRight className="w-5 h-5" />
+                        <ArrowRight className="w-4 h-4 lg:w-5 lg:h-5" />
                       </motion.div>
                     </button>
                     <button 
                       onClick={() => navigate('/register-player')}
-                      className="w-full sm:w-[260px] bg-[#0c162d]/50 backdrop-blur-md border border-white/10 hover:bg-white/10 text-white font-bold tracking-widest uppercase transition-all duration-300 hover:scale-105 active:scale-95 py-4 text-sm rounded-2xl flex items-center justify-center gap-2 shadow-lg hover:border-white/20"
+                      className="w-full sm:w-[260px] flex justify-center items-center py-3.5 lg:py-4 px-6 rounded-full lg:rounded-2xl bg-[#0c162d]/50 lg:bg-white/5 backdrop-blur-md border border-white/10 text-white font-bold hover:bg-white/10 hover:border-white/20 active:scale-[0.98] transition-all duration-300 text-sm lg:text-base uppercase tracking-wider lg:hover:scale-105 shadow-lg"
                     >
                       Daftar Siswa Baru
                     </button>
@@ -239,39 +231,42 @@ export default function LandingPage() {
               </div>
             ) : (
               <motion.div
-                initial={{ opacity: 0, x: -30 }}
-                animate={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8 }}
+                className="w-full flex flex-col items-center lg:items-start text-center lg:text-left mx-auto lg:mx-0"
               >
-                <h1 className="text-6xl md:text-[5.5rem] font-display font-bold leading-[0.9] mb-8 tracking-tighter">
-                  BANGUN BINTANG <br /> 
-                  <span className="text-[var(--color-primary)] text-glow">MASA DEPAN</span>
-                </h1>
-                <p className="text-sm text-white mb-10 leading-relaxed font-light max-w-2xl">
-                  Program pembinaan sepak bola modern berbasis data, disiplin, dan performa tingkat nasional 
-                  <br className="hidden md:block" />
-                  Kami melatih teknik, fisik, dan mental calon atlet profesional
-                </p>
-                
-                <div className="flex flex-col sm:flex-row items-center gap-4">
-                  <button 
-                    onClick={() => navigate('/login')}
-                    className="glow-button w-full sm:w-[260px] flex items-center justify-center gap-3 transition-all duration-300 hover:scale-105 active:scale-95 py-4 text-base"
-                  >
-                    Masuk
-                    <motion.div
-                      animate={{ x: [0, 5, 0] }}
-                      transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                <div className="w-full flex flex-col items-center lg:block">
+                  <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-[5.5rem] font-display font-black leading-none mb-3 sm:mb-4 lg:mb-8 tracking-tight drop-shadow-xl text-white uppercase max-w-full text-center lg:text-left">
+                    BANGUN BINTANG <br /> 
+                    <span className="text-[var(--color-primary)] text-glow">MASA DEPAN</span>
+                  </h1>
+                  <p className="text-[11px] sm:text-lg lg:text-[19px] text-[#ffffff] italic font-normal mb-6 sm:mb-10 leading-relaxed mx-auto lg:ml-0 max-w-[90%] lg:max-w-2xl drop-shadow-md whitespace-nowrap md:whitespace-normal overflow-hidden text-ellipsis text-center lg:text-left">
+                    Program pembinaan sepak bola modern berbasis data, disiplin, dan performa tingkat nasional 
+                    <br className="hidden md:block" />
+                    Kami melatih teknik, fisik, dan mental calon atlet profesional
+                  </p>
+                  
+                  <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-4 w-[280px] sm:w-[320px] lg:w-auto lg:mx-0">
+                    <button 
+                      onClick={() => navigate('/login')}
+                      className="w-full sm:w-[260px] flex justify-center items-center gap-3 py-3.5 lg:py-4 px-6 rounded-full lg:rounded-2xl bg-gradient-to-r from-yellow-400 to-yellow-600 lg:bg-[var(--color-primary)] text-black font-bold shadow-[0_0_20px_rgba(250,204,21,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 text-sm lg:text-base uppercase tracking-wider glow-button"
                     >
-                      <ArrowRight className="w-5 h-5" />
-                    </motion.div>
-                  </button>
-                  <button 
-                    onClick={() => navigate('/register-player')}
-                    className="w-full sm:w-[260px] bg-[#0c162d]/50 backdrop-blur-md border border-white/10 hover:bg-white/10 text-white font-bold tracking-widest uppercase transition-all duration-300 hover:scale-105 active:scale-95 py-4 text-sm rounded-2xl flex items-center justify-center gap-2 shadow-lg hover:border-white/20"
-                  >
-                    Daftar Siswa Baru
-                  </button>
+                      Masuk
+                      <motion.div
+                        animate={{ x: [0, 5, 0] }}
+                        transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                      >
+                        <ArrowRight className="w-4 h-4 lg:w-5 lg:h-5" />
+                      </motion.div>
+                    </button>
+                    <button 
+                      onClick={() => navigate('/register-player')}
+                      className="w-full sm:w-[260px] flex justify-center items-center py-3.5 lg:py-4 px-6 rounded-full lg:rounded-2xl bg-[#0c162d]/50 lg:bg-white/5 backdrop-blur-md border border-white/10 text-white font-bold hover:bg-white/10 hover:border-white/20 active:scale-[0.98] transition-all duration-300 text-sm lg:text-base uppercase tracking-wider lg:hover:scale-105 shadow-lg"
+                    >
+                      Daftar Siswa Baru
+                    </button>
+                  </div>
                 </div>
               </motion.div>
             )}
@@ -279,8 +274,8 @@ export default function LandingPage() {
         </div>
 
         {/* Floating Stats */}
-        <div className="absolute bottom-10 right-10 hidden lg:block">
-          <div className="glass-card p-6 border-l-4 border-l-[var(--color-primary)]">
+        <div className="hidden lg:block absolute bottom-10 right-10 z-20">
+          <div className="bg-white/5 backdrop-blur-lg p-6 border-l-4 border-l-[var(--color-primary)] rounded-r-2xl border border-white/10 shadow-2xl">
             <div className="flex gap-10">
               <div>
                 <p className="text-sm text-white mb-1">Pemain Aktif</p>
@@ -298,7 +293,30 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <div className="absolute bottom-4 right-10 z-20">
+        {/* Mobile Stats Ribbon */}
+        <div className="lg:hidden absolute bottom-0 left-0 right-0 bg-[#0a0f1c]/80 backdrop-blur-md border-t border-white/10 flex flex-col z-20">
+          <div className="py-3 px-6 flex justify-between items-center">
+            <div className="text-center">
+              <p className="text-[10px] text-white/50 uppercase tracking-wider">Pemain Aktif</p>
+              <p className="text-lg font-display font-bold text-yellow-400">30+</p>
+            </div>
+            <div className="w-px h-8 bg-white/10" />
+            <div className="text-center">
+              <p className="text-[10px] text-white/50 uppercase tracking-wider">Pelatih Pro</p>
+              <p className="text-lg font-display font-bold text-yellow-400">3</p>
+            </div>
+            <div className="w-px h-8 bg-white/10" />
+            <div className="text-center">
+              <p className="text-[10px] text-white/50 uppercase tracking-wider">Turnamen</p>
+              <p className="text-lg font-display font-bold text-yellow-400">10+</p>
+            </div>
+          </div>
+          <div className="pb-2 text-center border-t border-white/5 pt-1">
+            <p className="text-[7px] font-bold text-white/30 uppercase tracking-[0.3em]">Support by Adadistro</p>
+          </div>
+        </div>
+
+        <div className="hidden lg:block absolute bottom-4 right-10 z-20">
           <p className="text-[10px] font-bold text-white uppercase tracking-[0.3em]">Support by Adadistro</p>
         </div>
       </section>
