@@ -235,140 +235,160 @@ export default function RegistrationAdmin() {
       </div>
 
       {/* DATA TABLE */}
-      <div className="bg-[#0c162d]/90 backdrop-blur-xl border border-white/5 rounded-3xl shadow-2xl overflow-hidden">
-         <div className="overflow-x-auto">
-           <table className="w-full text-left border-collapse min-w-[800px]">
-             <thead>
-               <tr className="border-b border-white/10 bg-[#080d19]/50">
-                 <th className="p-5 text-[10px] font-black uppercase tracking-widest text-white/40">Calon Siswa</th>
-                 <th className="p-5 text-[10px] font-black uppercase tracking-widest text-white/40">Kontak Wali</th>
-                 <th className="p-5 text-[10px] font-black uppercase tracking-widest text-white/40">Program</th>
-                 <th className="p-5 text-[10px] font-black uppercase tracking-widest text-white/40">Status Pendaftaran</th>
-                 <th className="p-5 text-[10px] font-black uppercase tracking-widest text-white/40">Dokumen</th>
-                 <th className="p-5 text-[10px] font-black uppercase tracking-widest text-white/40 text-right">Aksi</th>
-               </tr>
-             </thead>
-             <tbody className="divide-y divide-white/5">
-                {filteredData.length > 0 ? filteredData.map((reg, i) => {
-                  const regFullName = reg.fullName || reg.fullname || '';
-                  const regId = reg.registrationId || reg.registrationid || '';
-                  const regGender = reg.gender || '';
-                  const regParentName = reg.parentName || reg.parentname || '';
-                  const regPhone = reg.phone || '';
-                  const regAge = reg.ageCategory || reg.agecategory || '';
-                  const regPosition = reg.position || '';
-                  const regSchedule = reg.schedule || '';
-                  const regStatus = reg.status || '';
+      <div className="bg-[#0c162d]/90 backdrop-blur-xl border border-white/5 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.5)] overflow-hidden">
+         <table className="w-full text-center border-collapse">
+           <thead className="hidden lg:table-header-group border-b border-white/10 bg-[#080d19]/80">
+             <tr>
+               <th className="p-5 text-[11px] font-black uppercase tracking-widest text-white/50 align-middle">Calon Siswa</th>
+               <th className="p-5 text-[11px] font-black uppercase tracking-widest text-white/50 align-middle">Kontak Wali</th>
+               <th className="p-5 text-[11px] font-black uppercase tracking-widest text-white/50 align-middle">Program</th>
+               <th className="p-5 text-[11px] font-black uppercase tracking-widest text-white/50 align-middle">Status</th>
+               <th className="p-5 text-[11px] font-black uppercase tracking-widest text-white/50 align-middle">Dokumen</th>
+               <th className="p-5 text-[11px] font-black uppercase tracking-widest text-white/50 align-middle">Aksi</th>
+             </tr>
+           </thead>
+           <tbody className="flex flex-col lg:table-row-group gap-4 lg:gap-0 p-4 lg:p-0">
+              {filteredData.length > 0 ? filteredData.map((reg, i) => {
+                const regFullName = reg.fullName || reg.fullname || '';
+                const regId = reg.registrationId || reg.registrationid || '';
+                const regGender = reg.gender || '';
+                const regParentName = reg.parentName || reg.parentname || '';
+                const regPhone = reg.phone || '';
+                const regAge = reg.ageCategory || reg.agecategory || '';
+                const regPosition = reg.position || '';
+                const regSchedule = reg.schedule || '';
+                const regStatus = reg.status || '';
 
-                  // Document Status
-                  const kk = reg.kk_url || '';
-                  const akta = reg.akta_url || '';
-                  const hasAllRequired = kk && akta;
-                  const hasAny = kk || akta || reg.kia_url;
-                  
-                  let docStatusObj = { text: 'Belum Lengkap', color: 'text-red-400 bg-red-500/10 border-red-500/20' };
-                  if (hasAllRequired) {
-                    // if it has all, but maybe admin hasn't clicked accept yet
-                    docStatusObj = regStatus === 'Diterima' ? { text: 'Lengkap', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' } : { text: 'Menunggu Verifikasi', color: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20' };
-                  } else if (hasAny) {
-                    docStatusObj = { text: 'Belum Lengkap', color: 'text-red-400 bg-red-500/10 border-red-500/20' };
-                  }
+                // Document Status
+                const kk = reg.kk_url || '';
+                const akta = reg.akta_url || '';
+                const hasAllRequired = kk && akta;
+                const hasAny = kk || akta || reg.kia_url;
+                
+                let docStatusObj = { text: '⚠ Belum Lengkap', color: 'text-rose-400 bg-rose-500/10 border-rose-500/20 shadow-[0_0_15px_rgba(244,63,94,0.15)]' };
+                if (hasAllRequired) {
+                  // if it has all, but maybe admin hasn't clicked accept yet
+                  docStatusObj = regStatus === 'Diterima' ? { text: '✓ Lengkap', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.15)]' } : { text: '⚠ Verifikasi', color: 'text-amber-400 bg-amber-500/10 border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.15)]' };
+                } else if (hasAny) {
+                  docStatusObj = { text: '⚠ Belum Lengkap', color: 'text-rose-400 bg-rose-500/10 border-rose-500/20 shadow-[0_0_15px_rgba(244,63,94,0.15)]' };
+                }
 
-                  return (
-                  <tr key={reg.id || i} className="hover:bg-white/[0.02] transition-colors group">
-                    <td className="p-5">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-                           <UserPlus className="w-5 h-5 text-white/30" />
-                        </div>
-                        <div>
-                          <p className="font-bold text-sm text-white mb-0.5 tracking-tight">{regFullName}</p>
-                          <p className="text-[10px] text-white/50 uppercase tracking-widest font-mono mb-1">{regId} • {regGender}</p>
-                          {(reg.previousSSB || reg.previousssb) === 'Ya' && (
-                             <span className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 text-[9px] font-black uppercase tracking-widest border border-blue-500/20">Eks. {reg.previousSSBName || reg.previousssbname}</span>
-                          )}
+                return (
+                <tr key={reg.id || i} className="flex flex-col lg:table-row bg-[#0a0f1c] lg:bg-transparent border border-white/5 lg:border-t-0 lg:border-b lg:border-white/5 rounded-[2rem] lg:rounded-none overflow-hidden hover:bg-white/[0.03] transition-all duration-300 group">
+                  <td className="p-6 lg:p-5 align-middle border-b border-white/5 lg:border-0 relative">
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <div className="w-16 h-16 lg:w-12 lg:h-12 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center shrink-0 shadow-[0_0_20px_rgba(59,130,246,0.15)]">
+                         <UserPlus className="w-6 h-6 lg:w-5 lg:h-5 text-blue-400" />
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <p className="font-black text-base lg:text-sm text-white mb-0.5 tracking-tight text-center">{regFullName}</p>
+                        <p className="text-[10px] text-white/40 uppercase tracking-widest font-mono mb-2">{regId}</p>
+                        <div className="flex bg-[#080d19] items-center justify-center gap-2 p-1 rounded-full border border-white/5">
+                           <span className="px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 text-[9px] font-black uppercase tracking-widest">{regGender}</span>
+                           {(reg.previousSSB || reg.previousssb) === 'Ya' && (
+                              <span className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-[9px] font-black uppercase tracking-widest">Eks. {reg.previousSSBName || reg.previousssbname}</span>
+                           )}
                         </div>
                       </div>
-                    </td>
-                    <td className="p-5">
-                       <p className="font-bold text-xs text-white uppercase">{regParentName}</p>
-                       <p className="text-[10px] text-white/50 font-mono mt-0.5">{regPhone}</p>
-                    </td>
-                    <td className="p-5">
-                       <div className="flex items-center gap-2 mb-1">
-                          <span className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 text-[10px] font-black uppercase tracking-widest border border-blue-500/20">{regAge}</span>
-                          <span className="px-2 py-0.5 rounded-md bg-white/5 text-white/60 text-[10px] font-bold uppercase tracking-widest border border-white/10">{regPosition}</span>
-                       </div>
-                       <p className="text-[10px] text-white/40 truncate max-w-[150px]">{regSchedule}</p>
-                    </td>
-                    <td className="p-5">
-                       {/* Dropdown status for payment */}
-                       {(!isAdmin || ['Diterima', 'Ditolak'].includes(regStatus)) ? (
-                         <div className={cn(
-                           "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[10px] font-black uppercase tracking-widest",
-                           regStatus === 'Diterima' ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" : 
-                           regStatus === 'Ditolak' ? "bg-red-500/10 border-red-500/30 text-red-400" :
-                           "bg-slate-500/10 border-slate-500/30 text-slate-400"
-                         )}>
-                            {regStatus === 'Diterima' ? <CheckCircle2 className="w-3 h-3" /> : regStatus === 'Ditolak' ? <XCircle className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
-                            {regStatus}
-                         </div>
-                       ) : (
-                         <select 
-                           value={regStatus} 
-                           onChange={e => handlePaymentStatus(reg, e.target.value)}
-                           className={cn(
-                             "px-3 py-1.5 rounded-lg border text-[10px] font-black uppercase tracking-widest focus:outline-none appearance-none cursor-pointer",
-                             regStatus === 'Belum Bayar' ? "bg-slate-500/10 border-slate-500/30 text-slate-400" :
-                             regStatus === 'DP' ? "bg-yellow-500/10 border-yellow-500/30 text-yellow-500" :
-                             "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
-                           )}
-                         >
-                           <option value="Belum Bayar">Belum Bayar</option>
-                           <option value="DP">Cicilan / DP</option>
-                           <option value="Lunas">Lunas</option>
-                         </select>
-                       )}
-                    </td>
-                     <td className="p-5 align-middle">
+                    </div>
+                  </td>
+                  
+                  <td className="p-5 align-middle border-b border-white/5 lg:border-0">
+                     <div className="flex flex-col items-center justify-center gap-1.5">
+                        <span className="lg:hidden text-[9px] font-black uppercase tracking-widest text-white/30">Kontak Wali</span>
+                        <p className="font-bold text-xs lg:text-[13px] text-white uppercase text-center">{regParentName}</p>
+                        <p className="text-[11px] text-white/50 font-mono bg-white/[0.03] px-2.5 py-1 rounded-lg border border-white/5">{regPhone}</p>
+                     </div>
+                  </td>
+                  
+                  <td className="p-5 align-middle border-b border-white/5 lg:border-0">
+                     <div className="flex flex-col items-center justify-center gap-2">
+                        <span className="lg:hidden text-[9px] font-black uppercase tracking-widest text-white/30">Program</span>
+                        <div className="flex items-center justify-center gap-2">
+                           <span className="px-3 py-1.5 rounded-xl bg-indigo-500/10 text-indigo-400 text-[10px] font-black uppercase tracking-widest transform transition-all group-hover:scale-105 border border-indigo-500/20">{regAge}</span>
+                           <span className="px-3 py-1.5 rounded-xl bg-white/5 text-white/70 text-[10px] font-bold uppercase tracking-widest border border-white/10">{regPosition}</span>
+                        </div>
+                        <p className="text-[10px] text-white/40 truncate max-w-[180px] text-center">{regSchedule}</p>
+                     </div>
+                  </td>
+                  
+                  <td className="p-5 align-middle border-b border-white/5 lg:border-0">
+                     <div className="flex flex-col items-center justify-center gap-2">
+                        <span className="lg:hidden text-[9px] font-black uppercase tracking-widest text-white/30">Status Pendaftaran</span>
+                        {(!isAdmin || ['Diterima', 'Ditolak'].includes(regStatus)) ? (
+                          <div className={cn(
+                            "inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border",
+                            regStatus === 'Diterima' ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.15)]" : 
+                            regStatus === 'Ditolak' ? "bg-red-500/10 border-red-500/30 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.15)]" :
+                            "bg-slate-500/10 border-slate-500/30 text-slate-400"
+                          )}>
+                             {regStatus === 'Diterima' ? <CheckCircle2 className="w-4 h-4" /> : regStatus === 'Ditolak' ? <XCircle className="w-4 h-4" /> : <Clock className="w-4 h-4" />}
+                             {regStatus}
+                          </div>
+                        ) : (
+                          <select 
+                            value={regStatus} 
+                            onChange={e => handlePaymentStatus(reg, e.target.value)}
+                            className={cn(
+                              "px-4 py-2 text-center rounded-xl border text-[10px] font-black uppercase tracking-widest focus:outline-none appearance-none cursor-pointer transition-all",
+                              regStatus === 'Belum Bayar' ? "bg-slate-500/10 border-slate-500/30 text-slate-400" :
+                              regStatus === 'DP' ? "bg-amber-500/10 border-amber-500/30 text-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.15)]" :
+                              "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.15)]"
+                            )}
+                          >
+                            <option value="Belum Bayar">Belum Bayar</option>
+                            <option value="DP">Cicilan / DP</option>
+                            <option value="Lunas">Lunas</option>
+                          </select>
+                        )}
+                     </div>
+                  </td>
+                  
+                  <td className="p-5 align-middle border-b border-white/5 lg:border-0">
+                     <div className="flex flex-col items-center justify-center gap-2">
+                        <span className="lg:hidden text-[9px] font-black uppercase tracking-widest text-white/30">Dokumen</span>
                         <div className={cn(
-                          "inline-flex items-center justify-center px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest border",
+                          "inline-flex items-center justify-center px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all",
                           docStatusObj.color
                         )}>
                            {docStatusObj.text}
                         </div>
-                     </td>
-                    <td className="p-5 text-right flex justify-end gap-2 align-middle">
-                        <button onClick={() => handleOpenDocs(reg)} className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition-colors border border-blue-500/20 shadow-inner" title="Lihat Dokumen">
-                          <Eye className="w-3.5 h-3.5" /> <span className="text-[10px] font-black uppercase tracking-widest leading-none">Dokumen</span>
+                     </div>
+                  </td>
+                  
+                  <td className="p-5 align-middle lg:bg-transparent bg-white/[0.01]">
+                     <div className="flex items-center justify-center gap-3 flex-wrap">
+                        <button onClick={() => handleOpenDocs(reg)} className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition-all border border-blue-500/20 shadow-inner group-hover:shadow-[0_0_15px_rgba(59,130,246,0.3)]" title="Lihat Dokumen">
+                          <Eye className="w-4 h-4" /> <span className="text-[10px] font-black uppercase tracking-widest leading-none">Dokumen</span>
                         </button>
+                        
                        {isAdmin && !['Diterima', 'Ditolak'].includes(regStatus) && (
                          <>
-                           <button onClick={() => handleApprove(reg)} className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-black transition-colors" title="Terima & Masukkan ke Pemain">
-                             <CheckCircle2 className="w-4 h-4" />
+                           <button onClick={() => handleApprove(reg)} className="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-black hover:scale-110 transition-all border border-emerald-500/20" title="Terima & Masukkan ke Pemain">
+                             <CheckCircle2 className="w-5 h-5" />
                            </button>
-                           <button onClick={() => handleReject(reg)} className="p-2 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-black transition-colors" title="Tolak">
-                             <XCircle className="w-4 h-4" />
+                           <button onClick={() => handleReject(reg)} className="flex items-center justify-center w-10 h-10 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white hover:scale-110 transition-all border border-rose-500/20" title="Tolak">
+                             <XCircle className="w-5 h-5" />
                            </button>
                          </>
                        )}
                        {isAdmin && (
-                        <button onClick={() => handleDelete(reg)} className="p-2 rounded-xl bg-white/5 text-white/50 hover:bg-red-500 hover:text-white transition-colors" title="Hapus Permanen">
+                        <button onClick={() => handleDelete(reg)} className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/5 text-white/40 hover:bg-rose-500 hover:text-white hover:scale-110 transition-all border border-white/10" title="Hapus Permanen">
                           <Trash2 className="w-4 h-4" />
                         </button>
                        )}
-                    </td>
-                  </tr>
+                     </div>
+                  </td>
+                </tr>
                 )}) : (
-                  <tr>
-                    <td colSpan={5} className="p-8 text-center text-white/40 font-medium">
-                      Belum ada data pendaftar yang sesuai.
-                    </td>
-                  </tr>
-                )}
-             </tbody>
-           </table>
-         </div>
+                <tr className="block lg:table-row">
+                  <td colSpan={6} className="block lg:table-cell p-12 text-center text-white/40 font-medium">
+                    Belum ada data pendaftar yang sesuai.
+                  </td>
+                </tr>
+              )}
+           </tbody>
+         </table>
       </div>
       
       {/* DOCUMENT PREVIEW MODAL */}
