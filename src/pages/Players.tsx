@@ -14,6 +14,7 @@ import { uploadFile } from '../lib/supabase';
 import { Modal } from '../components/ui/Modal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 const initialPlayers = [
   { id: '1', name: 'Alvaro Morata', category: 'U14', position: 'Striker', age: 14, height: 178, weight: 68, jersey: 9, status: 'Active', photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200', dominantFoot: 'Right', dob: '2012-05-14', overall: 85, dribbling: 82, passing: 80, shooting: 88, stamina: 85, attendance: 95 },
@@ -110,30 +111,40 @@ export default function Players() {
     setIsModalOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const age = calculateAge(formData.dob);
-    // calculate overall from skills
-    const overall = Math.round((Number(formData.dribbling) + Number(formData.passing) + Number(formData.shooting) + Number(formData.stamina)) / 4);
+    const loadingToast = toast.loading(editingPlayer ? "Memperbarui data pemain..." : "Menambahkan pemain...");
     
-    const dataToSave = { 
-      ...formData, 
-      age,
-      dribbling: Number(formData.dribbling),
-      passing: Number(formData.passing),
-      shooting: Number(formData.shooting),
-      stamina: Number(formData.stamina),
-      attendance: Number(formData.attendance),
-      photo: formData.photo || `https://i.pravatar.cc/150?u=${Math.random()}`,
-      overall: overall || 0 
-    };
+    try {
+      const age = calculateAge(formData.dob);
+      // calculate overall from skills
+      const overall = Math.round((Number(formData.dribbling) + Number(formData.passing) + Number(formData.shooting) + Number(formData.stamina)) / 4);
+      
+      const dataToSave = { 
+        ...formData, 
+        age,
+        dribbling: Number(formData.dribbling),
+        passing: Number(formData.passing),
+        shooting: Number(formData.shooting),
+        stamina: Number(formData.stamina),
+        attendance: Number(formData.attendance),
+        photo: formData.photo || `https://i.pravatar.cc/150?u=${Math.random()}`,
+        overall: overall || 0 
+      };
 
-    if (editingPlayer) {
-      updateItem(editingPlayer.id, dataToSave);
-    } else {
-      addItems({ ...dataToSave, id: Date.now().toString() });
+      if (editingPlayer) {
+        await updateItem(editingPlayer.id, dataToSave);
+        toast.success("Data pemain berhasil diperbarui!", { id: loadingToast });
+      } else {
+        await addItems({ ...dataToSave, id: Date.now().toString() });
+        toast.success("Pemain berhasil ditambahkan!", { id: loadingToast });
+      }
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error("Gagal menyimpan pemain:", err);
+      toast.error("Gagal sinkronisasi ke cloud, data disimpan di lokal.", { id: loadingToast });
+      setIsModalOpen(false);
     }
-    setIsModalOpen(false);
   };
 
   const handleDelete = (id: string, name: string) => {

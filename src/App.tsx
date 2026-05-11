@@ -6,6 +6,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, createContext, useContext, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { Toaster } from 'sonner';
 import { supabase } from './lib/supabase';
 
 // Pages - I will create these shortly
@@ -265,6 +266,7 @@ export default function App() {
   return (
     <SettingsContext.Provider value={{ appName, setAppName, logoUrl, setLogoUrl, heroBgUrl, setHeroBgUrl }}>
       <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+        <Toaster position="top-right" expand={false} richColors closeButton theme="dark" />
         <Router>
           <div className="stadium-bg" />
           <div className="football-mesh" />

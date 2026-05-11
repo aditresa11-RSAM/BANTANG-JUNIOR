@@ -6,6 +6,7 @@ import { cn } from '../lib/utils';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/ui/Layout';
 import { useAuth } from '../App';
+import { toast } from 'sonner';
 
 export default function RegistrationAdmin() {
   const { data: registrations, updateItem, deleteItem } = useCMSData('registrations', []);
@@ -34,78 +35,78 @@ export default function RegistrationAdmin() {
 
   const handleApprove = async (reg: any) => {
     const regFullName = reg.fullName || reg.fullname || '';
-    if(window.confirm(`Terima pendaftaran ${regFullName} dan masukkan ke daftar pemain?`)) {
-      try {
-        // Extract data with fallback for lowercase keys (Supabase often lowercases columns)
-        const getVal = (primary: string, secondary: string) => reg[primary] !== undefined ? reg[primary] : reg[secondary];
-        
-        // Move to players
-        const newPlayerData = {
-          name: regFullName,
-          photo: getVal('photoUrl', 'photourl') || '',
-          category: getVal('ageCategory', 'agecategory') || 'U12',
-          position: getVal('position_main', 'position_main') || getVal('position', 'position') || 'Midfielder',
-          position_detail: getVal('position_detail', 'position_detail') || '',
-          dob: getVal('birthDate', 'birthdate') || '',
-          birthplace: getVal('birthPlace', 'birthplace') || '',
-          gender: getVal('gender', 'gender') || 'Laki-laki',
-          height: parseInt(getVal('height', 'height') || 0) || 150,
-          weight: parseInt(getVal('weight', 'weight') || 0) || 45,
-          overall: 60, // Better default starting rating
-          dribbling: 60,
-          passing: 60,
-          shooting: 60,
-          stamina: 60,
-          pace: 60,
-          vision: 60,
-          teamwork: 60,
-          tactical: 60,
-          jersey: Math.floor(Math.random() * 99) + 1, // temporary random jersey
-          status: 'Active',
-          kk_url: getVal('kk_url', 'kk_url') || '',
-          akta_url: getVal('akta_url', 'akta_url') || '',
-          kia_url: getVal('kia_url', 'kia_url') || '',
-          parent_name: getVal('parentName', 'parentname') || '',
-          parent_phone: getVal('phone', 'phone') || '',
-          address: getVal('address', 'address') || '',
-          has_medical_history: reg.has_medical_history === true || reg.has_medical_history === 'Ya',
-          medical_history: getVal('medical_history', 'medical_history') || '',
-          allergy_history: getVal('allergy_history', 'allergy_history') || '',
-          injury_history: getVal('injury_history', 'injury_history') || '',
-          medication_notes: getVal('medication_notes', 'medication_notes') || '',
-          health_notes: getVal('health_notes', 'health_notes') || '',
-          registration_id: getVal('registrationId', 'registrationid') || ''
-        };
+    
+    const loadingToast = toast.loading(`Memproses pendaftaran ${regFullName}...`);
+    
+    try {
+      // Extract data with fallback for lowercase keys (Supabase often lowercases columns)
+      const getVal = (primary: string, secondary: string) => reg[primary] !== undefined ? reg[primary] : reg[secondary];
+      
+      // Move to players
+      const newPlayerData = {
+        name: regFullName,
+        photo: getVal('photoUrl', 'photourl') || '',
+        category: getVal('ageCategory', 'agecategory') || 'U12',
+        position: getVal('position_main', 'position_main') || getVal('position', 'position') || 'Midfielder',
+        position_detail: getVal('position_detail', 'position_detail') || '',
+        dob: getVal('birthDate', 'birthdate') || '',
+        birthplace: getVal('birthPlace', 'birthplace') || '',
+        gender: getVal('gender', 'gender') || 'Laki-laki',
+        height: parseInt(getVal('height', 'height') || 0) || 150,
+        weight: parseInt(getVal('weight', 'weight') || 0) || 45,
+        overall: 60, // Better default starting rating
+        dribbling: 60,
+        passing: 60,
+        shooting: 60,
+        stamina: 60,
+        pace: 60,
+        vision: 60,
+        teamwork: 60,
+        tactical: 60,
+        jersey: Math.floor(Math.random() * 99) + 1, // temporary random jersey
+        status: 'Active',
+        kk_url: getVal('kk_url', 'kk_url') || '',
+        akta_url: getVal('akta_url', 'akta_url') || '',
+        kia_url: getVal('kia_url', 'kia_url') || '',
+        parent_name: getVal('parentName', 'parentname') || '',
+        parent_phone: getVal('phone', 'phone') || '',
+        address: getVal('address', 'address') || '',
+        has_medical_history: reg.has_medical_history === true || reg.has_medical_history === 'Ya',
+        medical_history: getVal('medical_history', 'medical_history') || '',
+        allergy_history: getVal('allergy_history', 'allergy_history') || '',
+        injury_history: getVal('injury_history', 'injury_history') || '',
+        medication_notes: getVal('medication_notes', 'medication_notes') || '',
+        health_notes: getVal('health_notes', 'health_notes') || '',
+        registration_id: getVal('registrationId', 'registrationid') || ''
+      };
 
-        await addPlayer(newPlayerData);
-        
-        // Mark as accepted
-        await updateItem(reg.id, { status: 'Diterima' });
-        
-        alert(`Berhasil! ${regFullName} telah ditambahkan ke database Pemain.`);
-      } catch (error) {
-        console.error("Gagal menerima pendaftaran:", error);
-        alert("Terjadi kesalahan saat memproses pendaftaran. Silahkan coba lagi.");
-      }
+      await addPlayer(newPlayerData);
+      
+      // Mark as accepted
+      await updateItem(reg.id, { status: 'Diterima' });
+      
+      toast.success(`Berhasil! ${regFullName} telah ditambahkan ke database Pemain.`, { id: loadingToast });
+    } catch (error) {
+      console.error("Gagal menerima pendaftaran:", error);
+      toast.error("Terjadi kesalahan saat memproses pendaftaran.", { id: loadingToast });
     }
   };
 
   const handleReject = (reg: any) => {
     const regFullName = reg.fullName || reg.fullname || '';
-    if(window.confirm(`Tolak pendaftaran ${regFullName}?`)) {
-      updateItem(reg.id, { status: 'Ditolak' });
-    }
+    updateItem(reg.id, { status: 'Ditolak' });
+    toast.error(`Pendaftaran ${regFullName} ditolak.`);
   };
 
   const handleDelete = (reg: any) => {
     const regFullName = reg.fullName || reg.fullname || '';
-    if(window.confirm(`Hapus data pendaftaran ${regFullName} secara permanen?`)) {
-      deleteItem(reg.id);
-    }
+    deleteItem(reg.id);
+    toast.info(`Data pendaftaran ${regFullName} dihapus.`);
   };
 
   const handlePaymentStatus = (reg: any, newStatus: string) => {
     updateItem(reg.id, { status: newStatus });
+    toast.success(`Status pendaftaran diperbarui menjadi ${newStatus}`);
   };
 
   return (

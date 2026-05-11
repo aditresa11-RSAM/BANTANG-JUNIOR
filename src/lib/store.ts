@@ -40,14 +40,20 @@ export function useCMSData<T extends { id: string }>(collectionName: string, ini
               let localData: any[] = [];
               try { localData = JSON.parse(localDataRaw || '[]'); } catch (e) {}
 
-              const enrichedData = supaData.map(item => {
+              // 1. Identify items currently in Supabase
+              const supaIds = new Set(supaData.map(s => s.id));
+              
+              // 2. Identify items that are LOCAL ONLY (not in Supabase)
+              // We keep these because they might be recent additions that failed to sync
+              const localOnly = localData.filter((l: any) => l.id && !supaIds.has(l.id));
+
+              // 3. Enrich Supabase data with any extra local metadata (like notes if they weren't synced yet)
+              const enrichedSupaData = supaData.map(item => {
                 const localItem = localData.find((l: any) => l.id === item.id) || {};
                 
                 const enriched = { ...localItem, ...item };
                 
                 if ((collectionName === 'players' || collectionName === 'registrations') && item.skillset && typeof item.skillset === 'object') {
-                  // Merge skillset properties back up to the main object
-                  // Ensure we don't overwrite true root properties
                   Object.keys(item.skillset).forEach(k => {
                     if (!(k in enriched) || enriched[k] === undefined || enriched[k] === null) {
                       enriched[k] = item.skillset[k];
@@ -56,9 +62,20 @@ export function useCMSData<T extends { id: string }>(collectionName: string, ini
                 }
                 return enriched;
               });
-              setData(enrichedData as T[]);
+
+              // 4. Combine: Local-only items go first (usually most recent), then the Supabase items
+              const combinedData = [...localOnly, ...enrichedSupaData];
+              
+              // Sort by date if possible (assuming date field exists)
+              combinedData.sort((a, b) => {
+                const dateA = a.date || a.created_at || 0;
+                const dateB = b.date || b.created_at || 0;
+                return new Date(dateB).getTime() - new Date(dateA).getTime();
+              });
+
+              setData(combinedData as T[]);
               try {
-                localStorage.setItem(`cms_${collectionName}`, JSON.stringify(enrichedData));
+                localStorage.setItem(`cms_${collectionName}`, JSON.stringify(combinedData));
               } catch (e) {
                 console.warn('Failed to cache Supabase data locally');
               }
@@ -102,7 +119,7 @@ export function useCMSData<T extends { id: string }>(collectionName: string, ini
 
   const addItems = async (newItem: any) => {
     // Basic sanitization: Ensure id exists
-    const item = { ...newItem, id: newItem.id || Math.random().toString(36).substring(2, 11) };
+    const item = { ...newItem, id: newItem.id || `local_${Math.random().toString(36).substring(2, 11)}`, created_at: new Date().toISOString() };
     
     // Optimistic Update
     setData(prev => {
@@ -120,49 +137,53 @@ export function useCMSData<T extends { id: string }>(collectionName: string, ini
         // Sanitize for Supabase: Lowercase keys to match DB schema
         const sanitizedItem: any = {};
         Object.keys(item).forEach(key => {
+          // Skip internal props if any
+          if (key.startsWith('_')) return;
           sanitizedItem[key.toLowerCase()] = item[key];
         });
         
+        // Ensure id is kept as is (Supabase usually case-insensitive but id is critical)
+        sanitizedItem.id = item.id;
+        
         let payload = { ...sanitizedItem };
         let attempt = 0;
-        while (attempt < 20) {
+        while (attempt < 5) { // Reduced attempts to be faster
           attempt++;
           const { error } = await supabase.from(collectionName).insert([payload]);
-          if (!error) break;
+          if (!error) {
+            console.log(`[Sync] Successfully added to ${collectionName}`);
+            break;
+          }
           
-          if (error.code === 'PGRST205' || error.message?.includes('schema cache')) {
-            console.warn(`[Pemberitahuan] Tabel '${collectionName}' belum dibuat di Supabase. Data disimpan di Local Storage. Buka menu 'Pengaturan -> Database Cloud' untuk menyinkronkan struktur tabel.`);
-            return; // Ignore gracefully without throwing red errors
+          // Graceful handling for missing tables or schema issues
+          const msg = error.message?.toLowerCase() || '';
+          if (error.code === 'PGRST205' || error.code === '42P01' || msg.includes('schema cache') || (msg.includes('relation') && msg.includes('does not exist'))) {
+            console.warn(`[Sync] Table '${collectionName}' missing. Saved only to Local Storage.`);
+            return; 
           }
 
-          if (error.code === 'PGRST204' || error.code === '42703' || error.message?.includes('does not exist')) {
-            const match = error.message && typeof error.message === 'string' ? error.message.match(/Could not find the ['"]([^'"]+)['"]/i) || error.message.match(/column\s+['"]?([^'"\s]+)['"]?\s+of\s+relation/i) : null;
+          if (error.code === 'PGRST204' || error.code === '42703' || msg.includes('does not exist')) {
+            const match = msg.match(/column\s+['"]?([^'"\s]+)['"]?\s+of\s+relation/i) || msg.match(/Could not find the ['"]([^'"]+)['"]/i);
             if (match && match[1]) {
               const missingColumn = match[1].toLowerCase();
               console.warn(`[Auto-Fix] Removing missing column '${missingColumn}' and retrying insert...`);
               if (payload.hasOwnProperty(missingColumn)) {
-                if ((collectionName === 'players' || collectionName === 'registrations') && missingColumn !== 'skillset') {
-                  payload.skillset = payload.skillset || {};
-                  payload.skillset[missingColumn] = payload[missingColumn];
-                }
                 delete payload[missingColumn];
                 if (Object.keys(payload).length === 0) break;
                 continue;
-              } else {
-                console.warn(`[Auto-Fix] Missing column '${missingColumn}' not found in payload. Stopping retries.`);
-                break;
               }
-            } else {
-              break;
             }
           }
+          
           if (attempt === 1) {
-            console.error(`[Sync] First attempt insert error on ${collectionName}:`, error);
+            console.warn(`[Sync] Insert error on ${collectionName}:`, error);
           }
-          throw error;
+          // If we can't fix it, just stop trying to sync but don't crash
+          if (attempt >= 5) break;
         }
-      } catch (err) {
-        console.error(`Failed to sync add to ${collectionName}:`, err);
+      } catch (err: any) {
+        console.warn(`[Sync] Non-fatal exception syncing to ${collectionName}:`, err);
+        // We don't throw anymore to ensure UI stays interactive and local state is maintained
       }
     }
   };
@@ -184,48 +205,40 @@ export function useCMSData<T extends { id: string }>(collectionName: string, ini
         // Sanitize for Supabase: Lowercase keys
         const sanitizedFields: any = {};
         Object.keys(updatedFields).forEach(key => {
+          if (key.startsWith('_')) return;
           sanitizedFields[key.toLowerCase()] = updatedFields[key];
         });
         
         let payload = { ...sanitizedFields };
         let attempt = 0;
-        while (attempt < 20) {
+        while (attempt < 5) {
           attempt++;
           const { error } = await supabase.from(collectionName).update(payload).eq('id', id);
           if (!error) break;
           
-          if (error.code === 'PGRST205' || error.message?.includes('schema cache')) {
-            return; // Ignore gracefully without throwing red errors
+          const msg = error.message?.toLowerCase() || '';
+          if (error.code === 'PGRST205' || error.code === '42P01' || msg.includes('schema cache') || (msg.includes('relation') && msg.includes('does not exist'))) {
+            return; // Ignore gracefully
           }
 
-          if (error.code === 'PGRST204' || error.code === '42703' || error.message?.includes('does not exist')) {
-            const match = error.message && typeof error.message === 'string' ? error.message.match(/Could not find the ['"]([^'"]+)['"]/i) || error.message.match(/column\s+['"]?([^'"\s]+)['"]?\s+of\s+relation/i) : null;
+          if (error.code === 'PGRST204' || error.code === '42703' || msg.includes('does not exist')) {
+            const match = msg.match(/column\s+['"]?([^'"\s]+)['"]?\s+of\s+relation/i) || msg.match(/Could not find the ['"]([^'"]+)['"]/i);
             if (match && match[1]) {
               const missingColumn = match[1].toLowerCase();
-              console.warn(`[Auto-Fix] Removing missing column '${missingColumn}' and retrying update...`);
               if (payload.hasOwnProperty(missingColumn)) {
-                if ((collectionName === 'players' || collectionName === 'registrations') && missingColumn !== 'skillset') {
-                  payload.skillset = payload.skillset || {};
-                  payload.skillset[missingColumn] = payload[missingColumn];
-                }
                 delete payload[missingColumn];
                 if (Object.keys(payload).length === 0) break;
                 continue;
-              } else {
-                console.warn(`[Auto-Fix] Missing column '${missingColumn}' not found in payload. Stopping retries.`);
-                break;
               }
-            } else {
-              break;
             }
           }
           if (attempt === 1) {
-            console.error(`[Sync] First attempt update error on ${collectionName}:`, error);
+            console.warn(`[Sync] Update error on ${collectionName}:`, error);
           }
-          throw error;
+          if (attempt >= 5) break;
         }
       } catch (err) {
-        console.error(`Failed to sync update to ${collectionName}:`, err);
+        console.warn(`[Sync] Non-fatal exception updating ${collectionName}:`, err);
       }
     }
   };
@@ -245,7 +258,7 @@ export function useCMSData<T extends { id: string }>(collectionName: string, ini
     if (checkSupabase()) {
       try {
         const { error } = await supabase.from(collectionName).delete().eq('id', id);
-        if (error && (error.code === 'PGRST205' || error.message?.includes('schema cache'))) return;
+        if (error && (error.code === 'PGRST205' || error.code === '42P01' || error.message?.includes('schema cache') || (error.message?.includes('relation') && error.message?.includes('does not exist')))) return;
         if (error) throw error;
       } catch (err) {
         console.error(`Failed to sync delete from ${collectionName}:`, err);

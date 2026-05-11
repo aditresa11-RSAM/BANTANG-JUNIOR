@@ -14,6 +14,7 @@ import { cn, formatCurrency } from '../lib/utils';
 import { useCMSData } from '../lib/store';
 import { Modal } from '../components/ui/Modal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
+import { toast } from 'sonner';
 
 const initialTransactions = [
   { id: 'TX-001', student_name: 'Alvaro Morata', title: '', amount: 850000, type: 'Income', category: 'Uang Pendaftaran', date: '2026-05-01', status: 'Lunas', method: 'Transfer Bank', notes: 'Lunas semester 1' },
@@ -44,10 +45,10 @@ export default function Financials() {
   });
 
   // Calculate Metrics
-  const totalIncome = transactions.filter((t: any) => t.type === 'Income' && t.status === 'Lunas').reduce((a: number, b: any) => a + Number(b.amount), 0);
-  const totalExpense = transactions.filter((t: any) => t.type === 'Expense').reduce((a: number, b: any) => a + Number(b.amount), 0);
+  const totalIncome = transactions.filter((t: any) => t.type === 'Income' && t.status === 'Lunas').reduce((a: number, b: any) => a + Number(b.amount || 0), 0);
+  const totalExpense = transactions.filter((t: any) => t.type === 'Expense').reduce((a: number, b: any) => a + Number(b.amount || 0), 0);
   const totalBalance = totalIncome - totalExpense;
-  const totalTunggakan = transactions.filter((t: any) => t.type === 'Income' && t.status === 'Terlambat').reduce((a: number, b: any) => a + Number(b.amount), 0);
+  const totalTunggakan = transactions.filter((t: any) => t.type === 'Income' && t.status === 'Terlambat').reduce((a: number, b: any) => a + Number(b.amount || 0), 0);
   const tunggakanCount = transactions.filter((t: any) => t.type === 'Income' && t.status === 'Terlambat').length;
   
   // Charts Data
@@ -104,15 +105,39 @@ export default function Financials() {
     setIsModalOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingItem) {
-      updateItem(editingItem.id, formData);
-    } else {
-      const id = `TX-${new Date().getFullYear().toString().substring(2)}${Math.floor(1000 + Math.random() * 9000)}`;
-      addItems({ ...formData, id });
+    const loadingToast = toast.loading(editingItem ? "Memperbarui transaksi..." : "Menyimpan transaksi...");
+    
+    try {
+      // Ensure numeric amount and student selection
+      const dataToSave = {
+        ...formData,
+        amount: Number(formData.amount),
+        // If expense, swap student_name with title if needed for display consistency
+        student_name: formData.type === 'Income' ? (formData.student_name || 'Non-Siswa / Umum') : ''
+      };
+
+      if (editingItem) {
+        await updateItem(editingItem.id, dataToSave);
+        toast.success("Transaksi berhasil diperbarui!", { id: loadingToast });
+      } else {
+        const id = `TX-${new Date().getFullYear().toString().substring(2)}${Math.floor(1000 + Math.random() * 9000)}`;
+        await addItems({ ...dataToSave, id });
+        toast.success("Transaksi berhasil disimpan!", { id: loadingToast });
+        
+        // Reset form to default
+        setFormData({ 
+          type: 'Income', student_name: '', title: '', amount: 0, category: 'Iuran Bulanan', 
+          date: new Date().toISOString().split('T')[0], status: 'Lunas', method: 'Transfer Bank', notes: '' 
+        });
+      }
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Gagal menyimpan transaksi", error);
+      toast.error("Terjadi kesalahan saat menyimpan data.", { id: loadingToast });
+      setIsModalOpen(false);
     }
-    setIsModalOpen(false);
   };
 
   const handleDelete = (id: string, name: string) => {
