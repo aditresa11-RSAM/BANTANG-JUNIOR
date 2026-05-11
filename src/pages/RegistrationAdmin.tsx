@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Filter, CheckCircle2, XCircle, Trash2, Edit2, Download, QrCode, UserPlus, Clock, CreditCard, ChevronRight, Users } from 'lucide-react';
+import { Search, Filter, CheckCircle2, XCircle, Trash2, Edit2, Download, QrCode, UserPlus, Clock, CreditCard, ChevronRight, Users, FileText, Maximize2, AlertCircle, Eye } from 'lucide-react';
 import { useCMSData } from '../lib/store';
 import { cn } from '../lib/utils';
 import { useNavigate } from 'react-router-dom';
@@ -18,6 +18,19 @@ export default function RegistrationAdmin() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
   const [filterAge, setFilterAge] = useState('All');
+  
+  const [selectedDocReg, setSelectedDocReg] = useState<any>(null);
+  const [isDocModalOpen, setIsDocModalOpen] = useState(false);
+
+  const handleOpenDocs = (reg: any) => {
+    setSelectedDocReg(reg);
+    setIsDocModalOpen(true);
+  };
+  
+  const handleDownloadDoc = (url: string, filename: string) => {
+     if (!url) return;
+     window.open(url, '_blank');
+  };
 
   // Filtering
   const filteredData = useMemo(() => {
@@ -35,12 +48,21 @@ export default function RegistrationAdmin() {
 
   const handleApprove = async (reg: any) => {
     const regFullName = reg.fullName || reg.fullname || '';
+    const getVal = (primary: string, secondary: string) => reg[primary] !== undefined ? reg[primary] : reg[secondary];
+    
+    // Document Validation
+    const kkUrl = getVal('kk_url', 'kk_url') || '';
+    const aktaUrl = getVal('akta_url', 'akta_url') || '';
+    
+    if (!kkUrl || !aktaUrl) {
+        toast.error("Dokumen siswa belum lengkap. Harap periksa Kartu Keluarga dan Akta Kelahiran terlebih dahulu.", { duration: 5000 });
+        return;
+    }
     
     const loadingToast = toast.loading(`Memproses pendaftaran ${regFullName}...`);
     
     try {
       // Extract data with fallback for lowercase keys (Supabase often lowercases columns)
-      const getVal = (primary: string, secondary: string) => reg[primary] !== undefined ? reg[primary] : reg[secondary];
       
       // Move to players
       const newPlayerData = {
@@ -222,6 +244,7 @@ export default function RegistrationAdmin() {
                  <th className="p-5 text-[10px] font-black uppercase tracking-widest text-white/40">Kontak Wali</th>
                  <th className="p-5 text-[10px] font-black uppercase tracking-widest text-white/40">Program</th>
                  <th className="p-5 text-[10px] font-black uppercase tracking-widest text-white/40">Status Pendaftaran</th>
+                 <th className="p-5 text-[10px] font-black uppercase tracking-widest text-white/40">Dokumen</th>
                  <th className="p-5 text-[10px] font-black uppercase tracking-widest text-white/40 text-right">Aksi</th>
                </tr>
              </thead>
@@ -236,6 +259,20 @@ export default function RegistrationAdmin() {
                   const regPosition = reg.position || '';
                   const regSchedule = reg.schedule || '';
                   const regStatus = reg.status || '';
+
+                  // Document Status
+                  const kk = reg.kk_url || '';
+                  const akta = reg.akta_url || '';
+                  const hasAllRequired = kk && akta;
+                  const hasAny = kk || akta || reg.kia_url;
+                  
+                  let docStatusObj = { text: 'Belum Lengkap', color: 'text-red-400 bg-red-500/10 border-red-500/20' };
+                  if (hasAllRequired) {
+                    // if it has all, but maybe admin hasn't clicked accept yet
+                    docStatusObj = regStatus === 'Diterima' ? { text: 'Lengkap', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' } : { text: 'Menunggu Verifikasi', color: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20' };
+                  } else if (hasAny) {
+                    docStatusObj = { text: 'Belum Lengkap', color: 'text-red-400 bg-red-500/10 border-red-500/20' };
+                  }
 
                   return (
                   <tr key={reg.id || i} className="hover:bg-white/[0.02] transition-colors group">
@@ -293,7 +330,18 @@ export default function RegistrationAdmin() {
                          </select>
                        )}
                     </td>
-                    <td className="p-5 text-right flex justify-end gap-2">
+                     <td className="p-5 align-middle">
+                        <div className={cn(
+                          "inline-flex items-center justify-center px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest border",
+                          docStatusObj.color
+                        )}>
+                           {docStatusObj.text}
+                        </div>
+                     </td>
+                    <td className="p-5 text-right flex justify-end gap-2 align-middle">
+                        <button onClick={() => handleOpenDocs(reg)} className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition-colors border border-blue-500/20 shadow-inner" title="Lihat Dokumen">
+                          <Eye className="w-3.5 h-3.5" /> <span className="text-[10px] font-black uppercase tracking-widest leading-none">Dokumen</span>
+                        </button>
                        {isAdmin && !['Diterima', 'Ditolak'].includes(regStatus) && (
                          <>
                            <button onClick={() => handleApprove(reg)} className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-black transition-colors" title="Terima & Masukkan ke Pemain">
@@ -322,6 +370,101 @@ export default function RegistrationAdmin() {
            </table>
          </div>
       </div>
+      
+      {/* DOCUMENT PREVIEW MODAL */}
+      <AnimatePresence>
+        {isDocModalOpen && selectedDocReg && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 pb-20 sm:pb-6">
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setIsDocModalOpen(false)}
+              className="absolute inset-0 bg-[#0a0f1c]/90 backdrop-blur-2xl"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-4xl bg-gradient-to-br from-[#0c162d] to-[#0a0f1c] border border-cyan-500/30 rounded-[2rem] shadow-[0_0_50px_rgba(6,182,212,0.15)] flex flex-col overflow-hidden max-h-full"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-white/10 shrink-0">
+                <div>
+                   <h3 className="text-xl font-display font-black text-white uppercase tracking-tight flex items-center gap-3">
+                     <FileText className="w-5 h-5 text-cyan-400" /> Dokumen Siswa
+                   </h3>
+                   <p className="text-sm text-cyan-400/60 font-bold mt-1">Review dokumen persyaratan: {selectedDocReg.fullName || selectedDocReg.fullname}</p>
+                </div>
+                <button onClick={() => setIsDocModalOpen(false)} className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/50 hover:bg-white/10 hover:text-white transition-all">
+                  <XCircle className="w-5 h-5" />
+                </button>
+              </div>
+              
+              {/* Content */}
+              <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                   {[
+                     { title: "Kartu Keluarga", url: selectedDocReg.kk_url, req: true },
+                     { title: "Akta Kelahiran", url: selectedDocReg.akta_url, req: true },
+                     { title: "KIA (Opsional)", url: selectedDocReg.kia_url, req: false }
+                   ].map((doc, idx) => (
+                     <div key={idx} className="bg-[#080d19] border border-white/5 rounded-2xl flex flex-col overflow-hidden group hover:border-cyan-500/30 transition-all duration-300">
+                        <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+                           <div>
+                             <p className="text-xs font-black text-white uppercase tracking-widest">{doc.title}</p>
+                             {doc.req ? <span className="text-[9px] text-red-400 uppercase font-black tracking-widest">Wajib</span> : <span className="text-[9px] text-white/40 uppercase font-black tracking-widest">Opsional</span>}
+                           </div>
+                           {doc.url ? <CheckCircle2 className="w-5 h-5 text-emerald-400" /> : <AlertCircle className="w-5 h-5 text-red-400/50" />}
+                        </div>
+                        
+                        <div className="flex-1 min-h-[200px] bg-black/40 relative flex items-center justify-center p-4">
+                           {doc.url ? (
+                             doc.url.toLowerCase().endsWith('.pdf') ? (
+                               <div className="text-center">
+                                  <FileText className="w-12 h-12 text-blue-400 mx-auto mb-3 opacity-50" />
+                                  <p className="text-[10px] text-white/40 uppercase font-bold tracking-widest">Dokumen PDF</p>
+                               </div>
+                             ) : (
+                               <img src={doc.url} alt={doc.title} className="max-w-full max-h-[200px] object-contain rounded-xl shadow-lg border border-white/10" />
+                             )
+                           ) : (
+                             <div className="text-center text-white/20">
+                               <FileText className="w-10 h-10 mx-auto mb-2 opacity-20" />
+                               <span className="text-[10px] uppercase font-black tracking-widest">Tidak Ada File</span>
+                             </div>
+                           )}
+                           
+                           {/* Hover Actions */}
+                           {doc.url && (
+                             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-sm">
+                                <button onClick={() => window.open(doc.url, '_blank')} className="w-12 h-12 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center hover:bg-cyan-500 hover:text-black hover:scale-110 transition-all">
+                                  <Maximize2 className="w-5 h-5" />
+                                </button>
+                                <button onClick={() => handleDownloadDoc(doc.url, `${doc.title}.pdf`)} className="w-12 h-12 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white hover:text-black hover:scale-110 transition-all">
+                                  <Download className="w-5 h-5" />
+                                </button>
+                             </div>
+                           )}
+                        </div>
+                        
+                        {doc.url && (
+                        <div className="p-3 bg-white/[0.02] border-t border-white/5 flex items-center justify-between lg:hidden">
+                            <button onClick={() => window.open(doc.url, '_blank')} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-cyan-500/10 text-cyan-400 text-[10px] font-black uppercase tracking-widest border border-cyan-500/20">
+                              <Maximize2 className="w-3 h-3" /> Fullscreen
+                            </button>
+                            <button onClick={() => handleDownloadDoc(doc.url, `${doc.title}`)} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 text-white text-[10px] font-black uppercase tracking-widest border border-white/10">
+                              <Download className="w-3 h-3" /> Download
+                            </button>
+                        </div>
+                        )}
+                     </div>
+                   ))}
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
     </div>
     </Layout>
   );

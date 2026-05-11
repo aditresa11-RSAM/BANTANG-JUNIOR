@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { ChevronLeft, Edit2, CheckCircle2, TrendingUp, Activity, Upload, Trash2, Loader2, FileText, Download, Eye, Image as ImageIcon, User, Scaling as Ruler, Scale, Footprints, Trophy, Handshake, Calendar } from 'lucide-react';
+import { ChevronLeft, Edit2, CheckCircle2, TrendingUp, Activity, Upload, Trash2, Loader2, FileText, Download, Eye, Image as ImageIcon, User, Scaling as Ruler, Scale, Footprints, Trophy, Handshake, Calendar, Wallet, CreditCard, TrendingDown } from 'lucide-react';
 import Layout from '../components/ui/Layout';
 import { useCMSData } from '../lib/store';
-import { cn } from '../lib/utils';
+  import { cn, formatCurrency } from '../lib/utils';
 import { uploadFile, uploadRawFile } from '../lib/supabase';
 import { 
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer,
@@ -17,6 +17,11 @@ export default function PlayerProfile() {
   // using any player list to find, in real app would get single item
   const { data: players, updateItem, deleteItem, isLoading } = useCMSData('players', []);
   const { data: gkStatsList, updateItem: updateGkStats, addItems: addGkStats } = useCMSData('goalkeeper_stats', []);
+  const { data: transactions } = useCMSData('financials', []);
+  
+  const playerTransactions = transactions.filter((t: any) => t.player_id === id).sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const totalPaid = playerTransactions.filter((t: any) => t.type === 'Income' && t.status === 'Lunas').reduce((a: number, b: any) => a + Number(b.amount || 0), 0);
+  const totalPending = playerTransactions.filter((t: any) => t.type === 'Income' && t.status === 'Terlambat').reduce((a: number, b: any) => a + Number(b.amount || 0), 0);
   
   const player = players.find((p: any) => p.id === id) || {
     id: id || 'placeholder',
@@ -853,6 +858,88 @@ export default function PlayerProfile() {
                     </div>
                  </div>
               ))}
+           </div>
+        </div>
+
+        {/* TRANSACTIONS SECTION */}
+        <div className="mt-6 bg-[#0a0f1c] border border-white/10 shadow-2xl rounded-[2.5rem] p-8">
+           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+             <h3 className="text-2xl font-display font-black text-white uppercase tracking-tight flex items-center gap-3">
+                <Wallet className="w-6 h-6 text-emerald-400" /> Riwayat Keuangan
+             </h3>
+             <div className="flex gap-4">
+                <div className="bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-xl text-right">
+                  <p className="text-[10px] uppercase font-black text-emerald-400/60 tracking-widest">Total Dibayar</p>
+                  <p className="font-display font-black text-emerald-400 text-lg">{formatCurrency(totalPaid)}</p>
+                </div>
+                {totalPending > 0 && (
+                <div className="bg-orange-500/10 border border-orange-500/20 px-4 py-2 rounded-xl text-right">
+                  <p className="text-[10px] uppercase font-black text-orange-400/60 tracking-widest">Tunggakan</p>
+                  <p className="font-display font-black text-orange-400 text-lg">{formatCurrency(totalPending)}</p>
+                </div>
+                )}
+             </div>
+           </div>
+
+           <div className="overflow-x-auto">
+             <table className="w-full text-left border-collapse min-w-[600px]">
+                <thead>
+                   <tr className="bg-white/[0.02]">
+                      <th className="px-5 py-4 text-[10px] font-black text-white/30 uppercase tracking-widest whitespace-nowrap">Tanggal</th>
+                      <th className="px-5 py-4 text-[10px] font-black text-white/30 uppercase tracking-widest">Keterangan</th>
+                      <th className="px-5 py-4 text-[10px] font-black text-white/30 uppercase tracking-widest">Kategori</th>
+                      <th className="px-5 py-4 text-[10px] font-black text-white/30 uppercase tracking-widest text-center">Status</th>
+                      <th className="px-5 py-4 text-[10px] font-black text-white/30 uppercase tracking-widest text-right">Nominal</th>
+                   </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                   {playerTransactions.length > 0 ? playerTransactions.map((tx: any) => (
+                     <tr key={tx.id} className="hover:bg-white/[0.03] transition-colors">
+                        <td className="px-5 py-4 align-middle">
+                           <p className="text-[11px] text-white/60 font-medium whitespace-nowrap">
+                              {new Date(tx.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                           </p>
+                        </td>
+                        <td className="px-5 py-4 align-middle">
+                           <p className="font-bold text-sm tracking-tight text-white/90">
+                             {tx.type === 'Income' ? 'Setoran Siswa' : (tx.title || 'Pengeluaran')}
+                           </p>
+                           {tx.notes && <p className="text-[10px] text-white/40 mt-0.5">{tx.notes}</p>}
+                        </td>
+                        <td className="px-5 py-4 align-middle">
+                           <span className="inline-block bg-[#080d19] border border-white/5 rounded-md px-2 py-1 text-[10px] font-bold text-white/60 uppercase tracking-wider whitespace-nowrap">
+                             {tx.category}
+                           </span>
+                        </td>
+                        <td className="px-5 py-4 align-middle text-center">
+                           <div className={cn(
+                             "inline-flex items-center justify-center px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest",
+                             tx.status === 'Lunas' ? "bg-emerald-500/10 text-emerald-400" :
+                             tx.status === 'Terlambat' ? "bg-orange-500/10 text-orange-400" :
+                             tx.status === 'Menunggu' ? "bg-yellow-500/10 text-amber-400" :
+                             "bg-blue-500/10 text-blue-400"
+                           )}>
+                             {tx.status}
+                           </div>
+                        </td>
+                        <td className="px-5 py-4 text-right align-middle">
+                           <p className={cn(
+                             "font-display font-black text-sm whitespace-nowrap",
+                             tx.type === 'Income' ? "text-emerald-400" : "text-rose-400"
+                           )}>
+                              {tx.type === 'Income' ? '+' : '-'}{formatCurrency(tx.amount)}
+                           </p>
+                        </td>
+                     </tr>
+                   )) : (
+                     <tr>
+                        <td colSpan={5} className="py-8 text-center">
+                           <p className="text-xs text-white/30 font-bold uppercase tracking-widest">Belum ada transaksi</p>
+                        </td>
+                     </tr>
+                   )}
+                </tbody>
+             </table>
            </div>
         </div>
 

@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   CreditCard, TrendingUp, TrendingDown, Search, Filter, Download, Plus,
   ArrowUpRight, Clock, CheckCircle2, AlertCircle, FileText, DollarSign,
-  Edit2, Trash2, Save, BarChart2, Briefcase, ChevronDown, Wallet, ArrowDownRight, Upload, Activity
+  Edit2, Trash2, Save, BarChart2, Briefcase, ChevronDown, Wallet, ArrowDownRight, Upload, Activity,
+  Users, UserPlus, Shirt, Trophy, Bus, Star, Flag, Box
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, 
@@ -15,18 +16,31 @@ import { useCMSData } from '../lib/store';
 import { Modal } from '../components/ui/Modal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { toast } from 'sonner';
+import { SearchableDropdown } from '../components/ui/SearchableDropdown';
 
 const initialTransactions = [
-  { id: 'TX-001', student_name: 'Alvaro Morata', title: '', amount: 850000, type: 'Income', category: 'Uang Pendaftaran', date: '2026-05-01', status: 'Lunas', method: 'Transfer Bank', notes: 'Lunas semester 1' },
-  { id: 'TX-002', student_name: 'Kevin De Bruyne', title: '', amount: 500000, type: 'Income', category: 'Iuran Bulanan', date: '2026-05-03', status: 'Lunas', method: 'QRIS', notes: '' },
-  { id: 'TX-003', student_name: '', title: 'Pemeliharaan Lapangan', amount: 1200000, type: 'Expense', category: 'Sewa Lapangan', date: '2026-05-05', status: 'Lunas', method: 'Transfer Bank', notes: 'Sewa lap bulan Mei' },
-  { id: 'TX-004', student_name: '', title: 'Honor Pelatih (U-12)', amount: 2500000, type: 'Expense', category: 'Honor Pelatih', date: '2026-05-06', status: 'Lunas', method: 'Transfer Bank', notes: 'Honor 2 pelatih' },
-  { id: 'TX-005', student_name: 'Pedri Gonzalez', title: '', amount: 500000, type: 'Income', category: 'Iuran Bulanan', date: '2026-05-08', status: 'Terlambat', method: '-', notes: 'Belum bayar bulan ini' },
-  { id: 'TX-006', student_name: 'Erling Haaland', title: '', amount: 1500000, type: 'Income', category: 'Biaya Turnamen', date: '2026-05-08', status: 'Menunggu', method: 'Transfer Bank', notes: 'Upload bukti belum divalidasi' },
+  { id: 'TX-001', player_id: '1', title: '', amount: 850000, type: 'Income', category: 'Uang Pendaftaran', date: '2026-05-01', status: 'Lunas', method: 'Transfer Bank', notes: 'Lunas semester 1' },
+  { id: 'TX-002', player_id: '2', title: '', amount: 500000, type: 'Income', category: 'SPP Bulanan', date: '2026-05-03', status: 'Lunas', method: 'QRIS', notes: '' },
+  { id: 'TX-003', player_id: '', title: 'Pemeliharaan Lapangan', amount: 1200000, type: 'Expense', category: 'Sewa Lapangan', date: '2026-05-05', status: 'Lunas', method: 'Transfer Bank', notes: 'Sewa lap bulan Mei' },
+  { id: 'TX-004', player_id: '', title: 'Honor Pelatih (U-12)', amount: 2500000, type: 'Expense', category: 'Honor Pelatih', date: '2026-05-06', status: 'Lunas', method: 'Transfer Bank', notes: 'Honor 2 pelatih' },
+  { id: 'TX-005', player_id: '3', title: '', amount: 500000, type: 'Income', category: 'SPP Bulanan', date: '2026-05-08', status: 'Terlambat', method: '-', notes: 'Belum bayar bulan ini' },
+  { id: 'TX-006', player_id: '4', title: '', amount: 1500000, type: 'Income', category: 'Turnamen', date: '2026-05-08', status: 'Menunggu', method: 'Transfer Bank', notes: 'Upload bukti belum divalidasi' },
 ];
 
-const INCOME_CATEGORIES = ['Uang Pendaftaran', 'Iuran Bulanan', 'Pembelian Jersey', 'Biaya Turnamen', 'Sponsorship', 'Donasi', 'Lainnya'];
-const EXPENSE_CATEGORIES = ['Pengeluaran Operasional', 'Honor Pelatih', 'Sewa Lapangan', 'Perlengkapan', 'Lainnya'];
+const CATEGORY_OPTIONS = [
+  { value: 'Uang Pendaftaran', label: 'Uang Pendaftaran', icon: <UserPlus className="w-4 h-4" /> },
+  { value: 'SPP Bulanan', label: 'SPP Bulanan', icon: <Box className="w-4 h-4" /> },
+  { value: 'Uniform Kit', label: 'Uniform Kit', icon: <Shirt className="w-4 h-4" /> },
+  { value: 'Iuran Anggota', label: 'Iuran Anggota', icon: <Users className="w-4 h-4" /> },
+  { value: 'Iuran Pertandingan Persahabatan', label: 'Iuran Pertandingan Persahabatan', icon: <Flag className="w-4 h-4" /> },
+  { value: 'Sponsorship', label: 'Sponsorship', icon: <Star className="w-4 h-4" /> },
+  { value: 'Turnamen', label: 'Turnamen', icon: <Trophy className="w-4 h-4" /> },
+  { value: 'Transportasi', label: 'Transportasi', icon: <Bus className="w-4 h-4" /> },
+  // Additional common expenses
+  { value: 'Honor Pelatih', label: 'Honor Pelatih', icon: <Briefcase className="w-4 h-4" /> },
+  { value: 'Sewa Lapangan', label: 'Sewa Lapangan', icon: <Box className="w-4 h-4" /> },
+  { value: 'Lainnya', label: 'Lainnya', icon: <CreditCard className="w-4 h-4" /> },
+];
 
 const COLORS = ['#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6', '#06b6d4', '#f43f5e'];
 
@@ -40,7 +54,7 @@ export default function Financials() {
   const [filterTab, setFilterTab] = useState('Semua');
   
   const [formData, setFormData] = useState({
-    type: 'Income', student_name: '', title: '', amount: 0, category: 'Iuran Bulanan', 
+    type: 'Income', player_id: '', title: '', amount: 0, category: 'SPP Bulanan', custom_category: '', 
     date: new Date().toISOString().split('T')[0], status: 'Lunas', method: 'Transfer Bank', notes: ''
   });
 
@@ -68,17 +82,20 @@ export default function Financials() {
   }, [transactions]);
 
   const pieData = useMemo(() => {
-    const expensesByCategory = EXPENSE_CATEGORIES.map(cat => ({
-      name: cat,
-      value: transactions.filter((t: any) => t.type === 'Expense' && t.category === cat).reduce((a: number, b: any) => a + Number(b.amount), 0)
-    })).filter(c => c.value > 0);
-    return expensesByCategory;
+    // Collect all expenses across all categories, grouping dynamically
+    const expenseDataMap: Record<string, number> = {};
+    transactions.filter((t: any) => t.type === 'Expense').forEach((t: any) => {
+        expenseDataMap[t.category] = (expenseDataMap[t.category] || 0) + Number(t.amount);
+    });
+    return Object.entries(expenseDataMap).map(([name, value]) => ({ name, value }));
   }, [transactions]);
 
   const filteredTransactions = transactions.filter((tx: any) => {
-    const matchesSearch = (tx.student_name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          (tx.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (tx.id || '').toLowerCase().includes(searchTerm.toLowerCase());
+      const matchedPlayer = players.find((p: any) => p.id === tx.player_id);
+      const playerName = matchedPlayer ? matchedPlayer.name : (tx.student_name || '');
+      const matchesSearch = playerName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                            (tx.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            (tx.id || '').toLowerCase().includes(searchTerm.toLowerCase());
     if (!matchesSearch) return false;
     
     if (filterTab === 'Semua') return true;
@@ -93,15 +110,23 @@ export default function Financials() {
   const handleOpenAdd = () => {
     setEditingItem(null);
     setFormData({ 
-      type: 'Income', student_name: '', title: '', amount: 0, category: 'Iuran Bulanan', 
+      type: 'Income', player_id: '', title: '', amount: 0, category: 'SPP Bulanan', custom_category: '',
       date: new Date().toISOString().split('T')[0], status: 'Lunas', method: 'Transfer Bank', notes: '' 
     });
     setIsModalOpen(true);
   };
 
   const handleOpenEdit = (item: any) => {
+    // Check if category is standard
+    const isStandard = CATEGORY_OPTIONS.some(o => o.value === item.category);
+    
     setEditingItem(item);
-    setFormData(item);
+    setFormData({
+      ...item,
+      category: isStandard ? item.category : 'Lainnya',
+      custom_category: isStandard ? '' : item.category,
+      player_id: item.player_id || 'non-siswa'
+    });
     setIsModalOpen(true);
   };
 
@@ -110,12 +135,16 @@ export default function Financials() {
     const loadingToast = toast.loading(editingItem ? "Memperbarui transaksi..." : "Menyimpan transaksi...");
     
     try {
-      // Ensure numeric amount and student selection
+      // Ensure numeric amount
+      const finalCategory = formData.category === 'Lainnya' && formData.custom_category ? formData.custom_category : formData.category;
+      
       const dataToSave = {
         ...formData,
+        category: finalCategory,
         amount: Number(formData.amount),
-        // If expense, swap student_name with title if needed for display consistency
-        student_name: formData.type === 'Income' ? (formData.student_name || 'Non-Siswa / Umum') : ''
+        player_id: formData.type === 'Income' ? (formData.player_id === 'non-siswa' ? '' : formData.player_id) : '',
+        // Clean up unneeded fields
+        custom_category: undefined
       };
 
       if (editingItem) {
@@ -128,7 +157,7 @@ export default function Financials() {
         
         // Reset form to default
         setFormData({ 
-          type: 'Income', student_name: '', title: '', amount: 0, category: 'Iuran Bulanan', 
+          type: 'Income', player_id: '', title: '', amount: 0, category: 'SPP Bulanan', custom_category: '', 
           date: new Date().toISOString().split('T')[0], status: 'Lunas', method: 'Transfer Bank', notes: '' 
         });
       }
@@ -356,7 +385,11 @@ export default function Financials() {
                     </tr>
                  </thead>
                  <tbody className="divide-y divide-white/5">
-                    {filteredTransactions.map((tx: any) => (
+                    {filteredTransactions.map((tx: any) => {
+                      const matchedPlayer = players.find((p: any) => p.id === tx.player_id);
+                      const displayPlayerName = matchedPlayer ? matchedPlayer.name : (tx.student_name || 'Tanpa Nama');
+                      
+                      return (
                       <tr key={tx.id} className="hover:bg-white/[0.03] transition-colors group">
                          <td className="px-6 py-4 align-top">
                             <p className="font-mono text-xs text-white/70 font-bold tracking-wider">{tx.id}</p>
@@ -374,10 +407,10 @@ export default function Financials() {
                               </div>
                               <div>
                                 <p className="font-bold text-sm tracking-tight text-white mb-0.5 whitespace-nowrap overflow-hidden text-ellipsis">
-                                  {tx.type === 'Income' ? (tx.student_name ? tx.student_name : 'Pemasukan (Tanpa Nama)') : (tx.title || 'Pengeluaran')}
+                                  {tx.type === 'Income' ? displayPlayerName : (tx.title || 'Pengeluaran')}
                                 </p>
                                 {tx.notes && <p className="text-[10px] text-white/50 leading-relaxed line-clamp-2">{tx.notes}</p>}
-                                {tx.type === 'Income' && !tx.student_name && <span className="text-[10px] text-rose-400 font-bold uppercase tracking-widest inline-block mt-1 bg-red-900/40 px-1 border border-red-500/20 rounded">No Student</span>}
+                                {tx.type === 'Income' && !matchedPlayer && !tx.student_name && <span className="text-[10px] text-rose-400 font-bold uppercase tracking-widest inline-block mt-1 bg-red-900/40 px-1 border border-red-500/20 rounded">No Student</span>}
                               </div>
                             </div>
                          </td>
@@ -416,13 +449,13 @@ export default function Financials() {
                                <button onClick={() => handleOpenEdit(tx)} className="p-2 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition-all border border-blue-500/20" title="Edit">
                                  <Edit2 className="w-4 h-4"/>
                                </button>
-                               <button onClick={() => handleDelete(tx.id, tx.student_name || tx.title)} className="p-2 rounded-xl bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white transition-all border border-rose-500/20" title="Hapus">
+                               <button onClick={() => handleDelete(tx.id, tx.type === 'Income' ? displayPlayerName : tx.title)} className="p-2 rounded-xl bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white transition-all border border-rose-500/20" title="Hapus">
                                  <Trash2 className="w-4 h-4"/>
                                </button>
                             </div>
                          </td>
                       </tr>
-                    ))}
+                    )})}
                     {filteredTransactions.length === 0 && (
                       <tr>
                         <td colSpan={6} className="py-12 text-center text-white/40">
@@ -470,36 +503,36 @@ export default function Financials() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2 md:col-span-2">
-              <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold block">{formData.type === 'Income' ? 'Nama Siswa' : 'Judul Pengeluaran'}</label>
+              <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold block">{formData.type === 'Income' ? 'Pilih Pemain (Siswa)' : 'Judul Pengeluaran'}</label>
               {formData.type === 'Income' ? (
-                <select 
-                  required 
-                  value={formData.student_name} 
-                  onChange={(e) => setFormData({...formData, student_name: e.target.value})} 
-                  className="w-full bg-[#080d19] border border-white/10 rounded-xl py-3 px-4 text-sm text-white outline-none focus:border-blue-500 appearance-none shadow-inner"
-                >
-                  <option value="" disabled>-- Pilih Siswa --</option>
-                  {players.length > 0 ? (
-                    players.map((p: any) => (
-                      <option key={p.id} value={p.name}>{p.name} - {p.category}</option>
-                    ))
-                  ) : (
-                    <option value="" disabled>Belum ada data siswa</option>
-                  )}
-                  <option value="Non-Siswa / Umum">Non-Siswa / Umum</option>
-                </select>
+                <SearchableDropdown
+                   options={[
+                     { value: 'non-siswa', label: 'Non-Siswa / Umum' },
+                     ...players.map((p: any) => ({ value: p.id, label: `${p.name} - ${p.category || 'Pemain'}` }))
+                   ]}
+                   value={formData.player_id}
+                   onChange={(val) => setFormData({...formData, player_id: val})}
+                   placeholder="-- Cari & Pilih Pemain --"
+                   searchPlaceholder="Cari nama pemain..."
+                />
               ) : (
                 <input type="text" required value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} className="w-full bg-[#080d19] border border-white/10 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-blue-500 shadow-inner" placeholder="Misal: Pembelian bola latihan" />
               )}
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 md:col-span-2">
               <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold block">Kategori Biaya</label>
-              <select value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} className="w-full bg-[#080d19] border border-white/10 rounded-xl py-3 px-4 text-sm text-white outline-none focus:border-blue-500 appearance-none shadow-inner">
-                {(formData.type === 'Income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES).map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
+              <SearchableDropdown
+                options={CATEGORY_OPTIONS}
+                value={formData.category}
+                onChange={(val) => setFormData({...formData, category: val, custom_category: ''})}
+                placeholder="Pilih Kategori"
+              />
+              {formData.category === 'Lainnya' && (
+                <div className="mt-2">
+                  <input type="text" required placeholder="Tuliskan kategori biaya..." value={formData.custom_category || ''} onChange={(e) => setFormData({...formData, custom_category: e.target.value})} className="w-full bg-[#080d19] border border-white/10 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-blue-500 shadow-inner" />
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
