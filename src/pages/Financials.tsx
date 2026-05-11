@@ -31,6 +31,7 @@ const COLORS = ['#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6', '#06b6d4'
 
 export default function Financials() {
   const { data: transactions, addItems, updateItem, deleteItem } = useCMSData('financials', initialTransactions);
+  const { data: players } = useCMSData('players', []);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, id: '', title: '' });
@@ -446,7 +447,22 @@ export default function Financials() {
             <div className="space-y-2 md:col-span-2">
               <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold block">{formData.type === 'Income' ? 'Nama Siswa' : 'Judul Pengeluaran'}</label>
               {formData.type === 'Income' ? (
-                <input type="text" required value={formData.student_name} onChange={(e) => setFormData({...formData, student_name: e.target.value})} className="w-full bg-[#080d19] border border-white/10 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-blue-500 shadow-inner" placeholder="Misal: Alvaro Morata" />
+                <select 
+                  required 
+                  value={formData.student_name} 
+                  onChange={(e) => setFormData({...formData, student_name: e.target.value})} 
+                  className="w-full bg-[#080d19] border border-white/10 rounded-xl py-3 px-4 text-sm text-white outline-none focus:border-blue-500 appearance-none shadow-inner"
+                >
+                  <option value="" disabled>-- Pilih Siswa --</option>
+                  {players.length > 0 ? (
+                    players.map((p: any) => (
+                      <option key={p.id} value={p.name}>{p.name} - {p.category}</option>
+                    ))
+                  ) : (
+                    <option value="" disabled>Belum ada data siswa</option>
+                  )}
+                  <option value="Non-Siswa / Umum">Non-Siswa / Umum</option>
+                </select>
               ) : (
                 <input type="text" required value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} className="w-full bg-[#080d19] border border-white/10 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-blue-500 shadow-inner" placeholder="Misal: Pembelian bola latihan" />
               )}
@@ -465,7 +481,7 @@ export default function Financials() {
               <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold block">Nominal (Rp)</label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 font-bold">Rp</span>
-                <input type="number" required value={formData.amount} onChange={(e) => setFormData({...formData, amount: Number(e.target.value)})} className="w-full bg-[#080d19] border border-white/10 rounded-xl py-3 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-blue-500 shadow-inner font-mono font-bold" />
+                <input type="number" required min="1" value={formData.amount === 0 ? '' : formData.amount} onChange={(e) => setFormData({...formData, amount: parseInt(e.target.value) || 0})} className="w-full bg-[#080d19] border border-white/10 rounded-xl py-3 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-blue-500 shadow-inner font-mono font-bold" />
               </div>
             </div>
 
