@@ -132,8 +132,6 @@ export default function Financials() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const loadingToast = toast.loading(editingItem ? "Memperbarui transaksi..." : "Menyimpan transaksi...");
-    
     try {
       // Ensure numeric amount
       const finalCategory = formData.category === 'Lainnya' && formData.custom_category ? formData.custom_category : formData.category;
@@ -142,18 +140,17 @@ export default function Financials() {
         ...formData,
         category: finalCategory,
         amount: Number(formData.amount),
-        player_id: formData.type === 'Income' ? (formData.player_id === 'non-siswa' ? '' : formData.player_id) : '',
-        // Clean up unneeded fields
+        // player_id is no longer manually selected
         custom_category: undefined
       };
 
       if (editingItem) {
-        await updateItem(editingItem.id, dataToSave);
-        toast.success("Transaksi berhasil diperbarui!", { id: loadingToast });
+        updateItem(editingItem.id, dataToSave);
+        toast.success("Transaksi berhasil diperbarui!");
       } else {
         const id = `TX-${new Date().getFullYear().toString().substring(2)}${Math.floor(1000 + Math.random() * 9000)}`;
-        await addItems({ ...dataToSave, id });
-        toast.success("Transaksi berhasil disimpan!", { id: loadingToast });
+        addItems({ ...dataToSave, id });
+        toast.success("Transaksi berhasil disimpan!");
         
         // Reset form to default
         setFormData({ 
@@ -164,7 +161,7 @@ export default function Financials() {
       setIsModalOpen(false);
     } catch (error) {
       console.error("Gagal menyimpan transaksi", error);
-      toast.error("Terjadi kesalahan saat menyimpan data.", { id: loadingToast });
+      toast.error("Terjadi kesalahan saat menyimpan data.");
       setIsModalOpen(false);
     }
   };
@@ -387,7 +384,7 @@ export default function Financials() {
                  <tbody className="divide-y divide-white/5">
                     {filteredTransactions.map((tx: any) => {
                       const matchedPlayer = players.find((p: any) => p.id === tx.player_id);
-                      const displayPlayerName = matchedPlayer ? matchedPlayer.name : (tx.student_name || 'Tanpa Nama');
+                      const displayPlayerName = matchedPlayer ? matchedPlayer.name : (tx.student_name || 'Uang Masuk');
                       
                       return (
                       <tr key={tx.id} className="hover:bg-white/[0.03] transition-colors group">
@@ -410,7 +407,7 @@ export default function Financials() {
                                   {tx.type === 'Income' ? displayPlayerName : (tx.title || 'Pengeluaran')}
                                 </p>
                                 {tx.notes && <p className="text-[10px] text-white/50 leading-relaxed line-clamp-2">{tx.notes}</p>}
-                                {tx.type === 'Income' && !matchedPlayer && !tx.student_name && <span className="text-[10px] text-rose-400 font-bold uppercase tracking-widest inline-block mt-1 bg-red-900/40 px-1 border border-red-500/20 rounded">No Student</span>}
+                                {tx.type === 'Income' && !matchedPlayer && !tx.student_name && <span className="text-[9px] text-blue-400/80 font-bold uppercase tracking-widest inline-block mt-1 bg-blue-900/20 px-1.5 py-0.5 border border-blue-500/20 rounded">Umum</span>}
                               </div>
                             </div>
                          </td>
@@ -502,23 +499,12 @@ export default function Financials() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2 md:col-span-2">
-              <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold block">{formData.type === 'Income' ? 'Pilih Pemain (Siswa)' : 'Judul Pengeluaran'}</label>
-              {formData.type === 'Income' ? (
-                <SearchableDropdown
-                   options={[
-                     { value: 'non-siswa', label: 'Non-Siswa / Umum' },
-                     ...players.map((p: any) => ({ value: p.id, label: `${p.name} - ${p.category || 'Pemain'}` }))
-                   ]}
-                   value={formData.player_id}
-                   onChange={(val) => setFormData({...formData, player_id: val})}
-                   placeholder="-- Cari & Pilih Pemain --"
-                   searchPlaceholder="Cari nama pemain..."
-                />
-              ) : (
+            {formData.type === 'Expense' && (
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold block">Judul Pengeluaran</label>
                 <input type="text" required value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} className="w-full bg-[#080d19] border border-white/10 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-blue-500 shadow-inner" placeholder="Misal: Pembelian bola latihan" />
-              )}
-            </div>
+              </div>
+            )}
 
             <div className="space-y-2 md:col-span-2">
               <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold block">Kategori Biaya</label>
