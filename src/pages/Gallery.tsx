@@ -19,13 +19,13 @@ import {
 import Layout from '../components/ui/Layout';
 import { cn } from '../lib/utils';
 import { useCMSData } from '../lib/store';
-import { uploadFile } from '../lib/supabase';
+import { uploadFile, uploadRawFile } from '../lib/supabase';
 import { Modal } from '../components/ui/Modal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { Loader2, X } from 'lucide-react';
 
 const getMediaDetails = (url: string, type: string) => {
-  let category: 'youtube' | 'drive' | 'image' = 'image';
+  let category = type || 'image';
   let thumbnailUrl = '';
   let embedUrl = url;
 
@@ -108,9 +108,16 @@ export default function Gallery() {
     if (file) {
       setIsUploading(true);
       try {
-        const publicUrl = await uploadFile(file, 'gallery');
+        let publicUrl;
+        if (file.type.startsWith('video/')) {
+          publicUrl = await uploadRawFile(file, 'gallery');
+        } else {
+          publicUrl = await uploadFile(file, 'gallery');
+        }
+        
         if (publicUrl) {
-          setFormData({ ...formData, media_url: publicUrl, thumbnail_url: publicUrl, type: 'image' });
+          const type = file.type.startsWith('video/') ? 'video' : 'image';
+          setFormData({ ...formData, media_url: publicUrl, thumbnail_url: publicUrl, type });
         }
       } catch (error) {
         console.error("Upload failed:", error);
@@ -200,15 +207,24 @@ export default function Gallery() {
                   className="glass-card group overflow-hidden relative cursor-pointer"
                   onClick={() => { setSelectedMedia({...item, embedUrl}); setIsDetailModalOpen(true); }}
                 >
-                   <div className="aspect-[4/5] overflow-hidden relative">
-                      <img 
-                         src={displayThumbnail || null} 
-                         alt={item.title} 
-                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-                         onError={(e) => {
-                           (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1543351611-58f69d7c1781?auto=format&fit=crop&q=80&w=1000';
-                         }}
-                      />
+                     <div className="aspect-[4/5] overflow-hidden relative">
+                      {item.type === 'video' && !item.media_url?.includes('youtube.com') && !item.media_url?.includes('youtu.be') && !item.media_url?.includes('drive.google.com') ? (
+                          <video 
+                             src={item.media_url} 
+                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                             muted
+                             playsInline
+                          />
+                      ) : (
+                          <img 
+                             src={displayThumbnail || null} 
+                             alt={item.title} 
+                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                             onError={(e) => {
+                               (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1543351611-58f69d7c1781?auto=format&fit=crop&q=80&w=1000';
+                             }}
+                          />
+                      )}
                       
                       {/* Overlay */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -271,19 +287,23 @@ export default function Gallery() {
                   </div>
                 )}
                 {formData.media_url ? (
-                  <img src={getMediaDetails(formData.media_url, formData.type).thumbnailUrl || formData.thumbnail_url || null} alt="Preview" className="w-full h-full object-cover" />
+                  formData.type === 'video' && !formData.media_url.includes('youtube.com') && !formData.media_url.includes('youtu.be') && !formData.media_url.includes('drive.google.com') ? (
+                    <video src={formData.media_url} className="w-full h-full object-cover" muted playsInline />
+                  ) : (
+                    <img src={getMediaDetails(formData.media_url, formData.type).thumbnailUrl || formData.thumbnail_url || null} alt="Preview" className="w-full h-full object-cover" />
+                  )
                 ) : (
                   <div className="w-full h-full bg-white/5 flex flex-col items-center justify-center text-white/20">
                     <ImageIcon className="w-8 h-8 mb-2" />
-                    <span className="text-xs">Pilih Gambar / Link Video</span>
+                    <span className="text-xs">Pilih Gambar atau Video</span>
                   </div>
                 )}
               </div>
-              <label className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+              <label className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer z-10">
                 <div className="bg-[var(--color-primary)] text-black px-4 py-2 rounded-xl font-bold flex items-center gap-2">
                   <Plus className="w-4 h-4" /> Pilih File
                 </div>
-                <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                <input type="file" accept="image/*,video/*" className="hidden" onChange={handleImageUpload} />
               </label>
             </div>
           </div>
@@ -359,13 +379,15 @@ export default function Gallery() {
                  <X className="w-5 h-5" />
                </button>
 
-               {selectedMedia.type !== 'image' ? (
+               {selectedMedia.type === 'youtube' || selectedMedia.type === 'drive' ? (
                  <iframe 
                    src={selectedMedia.embedUrl} 
                    className="w-full h-full border-none" 
                    allow="autoplay; encrypted-media; gyroscope; picture-in-picture"
                    allowFullScreen
                  />
+               ) : selectedMedia.type === 'video' ? (
+                 <video src={selectedMedia.media_url} className="w-full h-full object-contain" controls autoPlay playsInline />
                ) : (
                  <img src={selectedMedia.media_url || null} className="w-full h-full object-contain" alt={selectedMedia.title} />
                )}

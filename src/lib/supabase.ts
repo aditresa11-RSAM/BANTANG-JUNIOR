@@ -42,22 +42,14 @@ export async function uploadFile(file: File, bucket: string = 'images'): Promise
 
   // 1. NATIVE SUPABASE UPLOAD (High Quality, Prevents Pixelation/Black Backgrounds)
   if (isSupabase) {
-    let timeoutId: any;
     try {
       const fileExt = file.name.split('.').pop() || 'png';
       const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
       
-      const uploadPromise = supabase.storage.from(bucket).upload(fileName, file, {
+      const { data, error } = await supabase.storage.from(bucket).upload(fileName, file, {
         upsert: true,
         contentType: file.type || 'image/jpeg'
       });
-
-      const timeoutPromise = new Promise<{data: any, error: any}>((_, reject) => {
-        timeoutId = setTimeout(() => reject(new Error('Upload timeout after 15 seconds')), 15000);
-      });
-
-      const { data, error } = await Promise.race([uploadPromise, timeoutPromise]);
-      clearTimeout(timeoutId);
       
       if (!error) {
         const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(fileName);
@@ -67,7 +59,6 @@ export async function uploadFile(file: File, bucket: string = 'images'): Promise
         console.warn('Falling back to local base64 compression...');
       }
     } catch (e: any) {
-      if (timeoutId) clearTimeout(timeoutId);
       console.error('Supabase upload exception:', e);
       console.warn('Falling back to local base64 compression...');
     }
