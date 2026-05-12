@@ -370,7 +370,12 @@ export default function Gallery() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="relative w-full max-w-5xl aspect-video bg-black rounded-3xl overflow-hidden border border-white/10 shadow-2xl"
+              className={cn(
+                "relative bg-black rounded-3xl overflow-hidden border border-white/10 shadow-2xl flex items-center justify-center",
+                (selectedMedia.type === 'youtube' || selectedMedia.type === 'drive') 
+                  ? "w-full max-w-5xl aspect-video" 
+                  : "w-auto h-auto max-w-[95vw] max-h-[90vh] md:max-w-5xl"
+              )}
             >
                <button 
                  onClick={() => setIsDetailModalOpen(false)}
@@ -387,9 +392,9 @@ export default function Gallery() {
                    allowFullScreen
                  />
                ) : selectedMedia.type === 'video' ? (
-                 <video src={selectedMedia.media_url} className="w-full h-full object-contain" controls autoPlay playsInline />
+                 <video src={selectedMedia.media_url} className="max-w-[95vw] max-h-[90vh] md:max-w-5xl object-contain rounded-3xl" controls autoPlay playsInline />
                ) : (
-                 <img src={selectedMedia.media_url || null} className="w-full h-full object-contain" alt={selectedMedia.title} />
+                 <img src={selectedMedia.media_url || null} className="max-w-[95vw] max-h-[90vh] md:max-w-5xl object-contain rounded-3xl" alt={selectedMedia.title} />
                )}
 
                <div className="absolute bottom-0 inset-x-0 p-8 bg-gradient-to-t from-black via-black/50 to-transparent pointer-events-none">
