@@ -41,6 +41,7 @@ export default function TrainingSchedule() {
   const [formData, setFormData] = useState({
     title: '', date: new Date().toISOString().split('T')[0], time: '16:00 - 18:00', category: 'U15', coach: '', location: '', status: 'Upcoming', description: '', notes: ''
   });
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
 
   const formattedDate = `${months[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
 
@@ -76,6 +77,10 @@ export default function TrainingSchedule() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.category) {
+      alert("Silakan pilih minimal 1 kategori usia.");
+      return;
+    }
     const payload = {
       id: editingSession ? editingSession.id : undefined,
       title: formData.title,
@@ -106,7 +111,10 @@ export default function TrainingSchedule() {
   });
 
   const filteredSessions = currentMonthSessions.filter((s:any) => {
-     if (filterCat !== 'Semua Tim' && s.category !== filterCat) return false;
+     if (filterCat !== 'Semua Tim') {
+        const cats = s.category ? s.category.split(',').map((c:string) => c.trim()) : [];
+        if (!cats.includes(filterCat)) return false;
+     }
      return true;
   }).sort((a:any, b:any) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
@@ -220,9 +228,11 @@ export default function TrainingSchedule() {
                           <span className="text-[10px] font-black uppercase tracking-widest mt-1">{months[parseInt(session.date.split('-')[1]) - 1].substring(0, 3)}</span>
                         </div>
                         <div className="flex-1 min-w-0 py-2 pr-12">
-                          <div className="flex items-center gap-3 mb-2">
-                            <span className={cn("px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border", section === 'Completed' ? "border-white/10 text-white/30 bg-white/5" : "border-blue-500/30 text-blue-400 bg-blue-500/10")}>{session.category}</span>
-                            <div className="flex items-center gap-1.5 text-[10px] font-bold text-white/40 uppercase tracking-widest"><Clock className="w-3.5 h-3.5 text-yellow-500" /> {session.time}</div>
+                          <div className="flex flex-wrap items-center gap-1.5 mb-2">
+                             {session.category?.split(',').map((cat:string, i:number) => (
+                                <span key={i} className={cn("px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest border", section === 'Completed' ? "border-white/10 text-white/30 bg-white/5" : "border-blue-500/30 text-blue-400 bg-blue-500/10")}>{cat.trim()}</span>
+                             ))}
+                            <div className="flex items-center gap-1.5 text-[10px] font-bold text-white/40 uppercase tracking-widest ml-1"><Clock className="w-3.5 h-3.5 text-yellow-500" /> {session.time}</div>
                           </div>
                           <h4 className="text-lg font-black tracking-tight text-white group-hover:text-amber-400 transition-colors mb-4">{session.title}</h4>
                           <div className="flex flex-wrap gap-4 mt-auto">
@@ -289,12 +299,37 @@ export default function TrainingSchedule() {
               <label className="text-[10px] uppercase tracking-widest text-white/40 font-black mb-2 block">Waktu / Jam</label>
               <input type="text" required value={formData.time} onChange={(e) => setFormData({...formData, time: e.target.value})} className="w-full bg-black/60 border border-white/10 rounded-2xl py-4 px-5 text-sm text-white focus:outline-none focus:border-blue-500 transition-all font-bold" placeholder="16:00 - 18:00" />
             </div>
-            <div>
+            <div className="relative">
               <label className="text-[10px] uppercase tracking-widest text-white/40 font-black mb-2 block">Kategori</label>
-              <select required value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} className="w-full bg-black/60 border border-white/10 rounded-2xl py-4 px-5 text-sm text-white focus:outline-none focus:border-blue-500 transition-all font-bold appearance-none">
-                <option value="" disabled>Pilih Kategori</option>
-                {CATEGORIES.filter(c => c !== 'Semua Tim').map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
+              <div 
+                className="w-full bg-black/60 border border-white/10 rounded-2xl py-4 px-5 text-sm text-white focus-within:border-blue-500 transition-all font-bold cursor-pointer relative flex items-center justify-between"
+                onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+              >
+                 <span className="truncate pr-4">{formData.category ? formData.category : 'Pilih Kategori'}</span>
+                 <ChevronDown className="w-4 h-4 text-white/40 shrink-0" />
+              </div>
+              {isCategoryDropdownOpen && (
+                 <div className="absolute top-full left-0 right-0 mt-2 bg-[#0c162d] border border-white/10 rounded-2xl overflow-hidden z-[100] shadow-2xl">
+                    <div className="max-h-56 overflow-y-auto w-full">
+                       {CATEGORIES.filter(c => c !== 'Semua Tim').map(c => {
+                         const catArray = formData.category ? formData.category.split(',').map(item => item.trim()).filter(Boolean) : [];
+                         const isSelected = catArray.includes(c);
+                         return (
+                           <label key={c} className="flex items-center gap-3 px-5 py-3.5 hover:bg-white/5 cursor-pointer border-b border-white/5 last:border-0" onClick={e => e.stopPropagation()}>
+                             <input type="checkbox" checked={isSelected} onChange={(e) => {
+                                 if (e.target.checked) {
+                                     setFormData({...formData, category: [...catArray, c].join(', ')});
+                                 } else {
+                                     setFormData({...formData, category: catArray.filter(item => item !== c).join(', ')});
+                                 }
+                             }} className="w-4 h-4 rounded border-white/20 text-blue-500 focus:ring-blue-500 bg-black/40" />
+                             <span className="text-sm font-bold text-white uppercase tracking-widest">{c}</span>
+                           </label>
+                         );
+                       })}
+                    </div>
+                 </div>
+              )}
             </div>
             <div>
               <label className="text-[10px] uppercase tracking-widest text-white/40 font-black mb-2 block">Pelatih</label>

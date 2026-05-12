@@ -13,7 +13,8 @@ import {
   Mail,
   Instagram,
   Facebook,
-  Trophy
+  Trophy,
+  Award
 } from 'lucide-react';
 
 import { useAuth, useSettings } from '../App';
@@ -61,6 +62,7 @@ export default function LandingPage() {
   const { user } = useAuth();
   const { data: programs, isLoading } = useCMSData('programs', academyPrograms);
   const { data: heroSlidersData } = useCMSData<HeroManagement>('hero_management', []);
+  const { data: coaches, isLoading: isLoadingCoaches } = useCMSData('coaches', []);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const navigate = useNavigate();
 
@@ -444,6 +446,75 @@ export default function LandingPage() {
             )}
           </div>
 
+        </div>
+      </section>
+
+      {/* Pelatih Section */}
+      <section id="pelatih" className="py-32 px-6 bg-gradient-to-b from-transparent to-[#080d19]/50 relative z-10">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-20">
+            <h2 className="font-bold mb-4" style={{ fontSize: 'clamp(40px, 6vw, 71px)' }}>STAFF PELATIH</h2>
+            <div className="w-24 h-1 bg-[var(--color-primary)] mx-auto rounded-full shadow-[0_0_10px_var(--color-primary)]" />
+            <p className="mt-6 text-white/50 max-w-2xl mx-auto text-sm leading-relaxed">Dilatih oleh para profesional dengan lisensi resmi dan pengalaman di tingkat elit, yang membimbing karir sepakbola muda ke arah yang tepat.</p>
+          </div>
+
+          {isLoadingCoaches ? (
+            <div 
+              className="flex overflow-x-auto snap-x snap-mandatory md:grid gap-6 md:gap-8 pb-8 md:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] w-full"
+              style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}
+            >
+              {[1, 2, 3, 4].map(n => (
+                <div key={n} className="w-[85vw] md:w-auto shrink-0 snap-center h-[450px] bg-white/5 rounded-[2.5rem] animate-pulse" />
+              ))}
+            </div>
+          ) : coaches && coaches.length > 0 ? (
+            <div 
+              className="flex overflow-x-auto snap-x snap-mandatory md:grid gap-6 md:gap-8 pb-8 md:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] w-full"
+              style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}
+            >
+              {coaches.map((coach: any) => (
+                <motion.div
+                  key={coach.id}
+                  whileHover={{ y: -8, scale: 1.02 }}
+                  className="w-[85vw] md:w-auto shrink-0 snap-center bg-gradient-to-br from-[#0c162d]/90 to-[#0a0f1c]/95 backdrop-blur-xl border border-white/10 hover:border-cyan-500/30 group overflow-hidden rounded-[2.5rem] relative flex flex-col shadow-xl hover:shadow-[0_8px_30px_rgba(34,211,238,0.15)] transition-all duration-300"
+                >
+                  <div className="h-80 overflow-hidden relative bg-[#080d19]/80 flex items-center justify-center">
+                    {coach.photo ? (
+                       <img src={coach.photo} alt={coach.name} className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500 ease-out" />
+                    ) : (
+                       <div className="w-full h-full flex items-center justify-center bg-[#080d19]">
+                         <Users className="w-20 h-20 text-white/10" />
+                       </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f1c] via-[#0a0f1c]/10 to-transparent opacity-100" />
+                  </div>
+                  <div className="p-8 relative text-center flex-1 flex flex-col items-center justify-end -mt-8 z-10">
+                    <h3 className="text-2xl font-display font-black text-white uppercase tracking-wider mb-1.5 drop-shadow-md">{coach.name}</h3>
+                    <p className="text-sm font-black tracking-widest text-cyan-400 uppercase mb-4 drop-shadow-[0_0_10px_rgba(34,211,238,0.3)]">{coach.specialty}</p>
+
+                    <div className="flex items-center justify-center gap-2 mb-6">
+                       <span className="px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-[10px] font-black text-blue-400 uppercase tracking-widest shadow-[0_0_15px_rgba(59,130,246,0.15)]">
+                         {coach.license || 'Lisensi'}
+                       </span>
+                    </div>
+
+                    <div className="flex flex-wrap justify-center gap-2 mt-auto">
+                      {((coach.activeTeams || coach.activeteams || []) as string[]).map((team: string, idx: number) => (
+                        <span key={idx} className="px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/5 text-[9px] font-black text-white/50 uppercase tracking-widest hover:border-white/20 transition-colors">
+                          {team}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-20 bg-white/5 rounded-3xl border border-white/10">
+              <Users className="w-16 h-16 text-white/20 mx-auto mb-4" />
+              <p className="text-white/40">Data pelatih sedang diperbarui.</p>
+            </div>
+          )}
         </div>
       </section>
 
