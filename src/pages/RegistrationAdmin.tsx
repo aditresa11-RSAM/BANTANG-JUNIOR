@@ -21,9 +21,11 @@ export default function RegistrationAdmin() {
   
   const [selectedDocReg, setSelectedDocReg] = useState<any>(null);
   const [isDocModalOpen, setIsDocModalOpen] = useState(false);
+  const [docModalTab, setDocModalTab] = useState<'profil' | 'medis' | 'dokumen'>('profil');
 
   const handleOpenDocs = (reg: any) => {
     setSelectedDocReg(reg);
+    setDocModalTab('profil');
     setIsDocModalOpen(true);
   };
   
@@ -281,8 +283,8 @@ export default function RegistrationAdmin() {
                          <UserPlus className="w-6 h-6 lg:w-5 lg:h-5 text-blue-400" />
                       </div>
                       <div className="flex flex-col items-center">
-                        <p className="font-black text-base lg:text-sm text-white mb-0.5 tracking-tight text-center">{regFullName}</p>
-                        <p className="text-[10px] text-white/40 uppercase tracking-widest font-mono mb-2">{regId}</p>
+                        <button onClick={() => handleOpenDocs(reg)} className="font-black text-base lg:text-sm text-cyan-400 hover:text-cyan-300 transition-colors mb-0.5 tracking-tight text-center">{regFullName}</button>
+                        <p className="text-[10px] text-white/40 uppercase tracking-widest font-mono mb-2 w-full text-center">{regId}</p>
                         <div className="flex bg-[#080d19] items-center justify-center gap-2 p-1 rounded-full border border-white/5">
                            <span className="px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 text-[9px] font-black uppercase tracking-widest">{regGender}</span>
                            {(reg.previousSSB || reg.previousssb) === 'Ya' && (
@@ -358,8 +360,8 @@ export default function RegistrationAdmin() {
                   
                   <td className="p-5 align-middle lg:bg-transparent bg-white/[0.01]">
                      <div className="flex items-center justify-center gap-3 flex-wrap">
-                        <button onClick={() => handleOpenDocs(reg)} className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition-all border border-blue-500/20 shadow-inner group-hover:shadow-[0_0_15px_rgba(59,130,246,0.3)]" title="Lihat Dokumen">
-                          <Eye className="w-4 h-4" /> <span className="text-[10px] font-black uppercase tracking-widest leading-none">Dokumen</span>
+                        <button onClick={() => handleOpenDocs(reg)} className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500 hover:text-black transition-all border border-cyan-500/20 shadow-inner group-hover:shadow-[0_0_15px_rgba(34,211,238,0.3)]" title="Lihat Detail">
+                          <Eye className="w-4 h-4" /> <span className="text-[10px] font-black uppercase tracking-widest leading-none">Detail</span>
                         </button>
                         
                        {isAdmin && !['Diterima', 'Ditolak'].includes(regStatus) && (
@@ -407,20 +409,159 @@ export default function RegistrationAdmin() {
               className="relative w-full max-w-4xl bg-gradient-to-br from-[#0c162d] to-[#0a0f1c] border border-cyan-500/30 rounded-[2rem] shadow-[0_0_50px_rgba(6,182,212,0.15)] flex flex-col overflow-hidden max-h-full"
             >
               {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-white/10 shrink-0">
-                <div>
-                   <h3 className="text-xl font-display font-black text-white uppercase tracking-tight flex items-center gap-3">
-                     <FileText className="w-5 h-5 text-cyan-400" /> Dokumen Siswa
-                   </h3>
-                   <p className="text-sm text-cyan-400/60 font-bold mt-1">Review dokumen persyaratan: {selectedDocReg.fullName || selectedDocReg.fullname}</p>
+              <div className="flex flex-col border-b border-white/10 shrink-0 bg-white/[0.01]">
+                <div className="flex items-center justify-between p-6">
+                  <div>
+                     <h3 className="text-xl font-display font-black text-white uppercase tracking-tight flex items-center gap-3">
+                       <UserPlus className="w-5 h-5 text-cyan-400" /> Detail Pendaftaran Siswa
+                     </h3>
+                     <p className="text-sm text-cyan-400/60 font-bold mt-1">{selectedDocReg.fullName || selectedDocReg.fullname}</p>
+                  </div>
+                  <button onClick={() => setIsDocModalOpen(false)} className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/50 hover:bg-white/10 hover:text-white transition-all">
+                    <XCircle className="w-5 h-5" />
+                  </button>
                 </div>
-                <button onClick={() => setIsDocModalOpen(false)} className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/50 hover:bg-white/10 hover:text-white transition-all">
-                  <XCircle className="w-5 h-5" />
-                </button>
+                
+                {/* Tabs */}
+                <div className="flex items-center px-6 gap-6">
+                   <button 
+                     onClick={() => setDocModalTab('profil')} 
+                     className={cn("pb-4 text-xs font-black uppercase tracking-widest border-b-2 transition-all", docModalTab === 'profil' ? "text-cyan-400 border-cyan-400" : "text-white/40 border-transparent hover:text-white/70")}
+                   >Data Profil</button>
+                   <button 
+                     onClick={() => setDocModalTab('medis')} 
+                     className={cn("pb-4 text-xs font-black uppercase tracking-widest border-b-2 transition-all", docModalTab === 'medis' ? "text-rose-400 border-rose-400" : "text-white/40 border-transparent hover:text-white/70")}
+                   >Riwayat Medis</button>
+                   <button 
+                     onClick={() => setDocModalTab('dokumen')} 
+                     className={cn("pb-4 text-xs font-black uppercase tracking-widest border-b-2 transition-all", docModalTab === 'dokumen' ? "text-amber-400 border-amber-400" : "text-white/40 border-transparent hover:text-white/70")}
+                   >Dokumen Siswa</button>
+                </div>
               </div>
               
               {/* Content */}
               <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
+                {docModalTab === 'profil' && (
+                   <div className="space-y-8">
+                     <div className="flex items-center gap-6">
+                        <div className="w-24 h-24 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center shrink-0">
+                           {selectedDocReg.photoUrl || selectedDocReg.photourl ? (
+                             <img src={selectedDocReg.photoUrl || selectedDocReg.photourl} alt="Profile" className="w-full h-full object-cover rounded-2xl" />
+                           ) : (
+                             <UserPlus className="w-10 h-10 text-cyan-400/50" />
+                           )}
+                        </div>
+                        <div>
+                           <p className="text-2xl font-black text-white">{selectedDocReg.fullName || selectedDocReg.fullname}</p>
+                           <p className="text-cyan-400 font-mono text-sm mt-1">{selectedDocReg.registrationId || selectedDocReg.registrationid}</p>
+                           <div className="flex gap-2 mt-3">
+                             <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-bold text-white/70">{selectedDocReg.gender}</span>
+                             <span className="px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-xs font-bold text-cyan-400">{selectedDocReg.ageCategory || selectedDocReg.agecategory}</span>
+                             <span className="px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-xs font-bold text-indigo-400">{selectedDocReg.position_main || selectedDocReg.position}</span>
+                           </div>
+                        </div>
+                     </div>
+                     
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="bg-white/5 border border-white/10 rounded-2xl p-5">
+                           <h4 className="text-[10px] uppercase font-black tracking-widest text-white/40 mb-4 border-b border-white/10 pb-2">Data Diri</h4>
+                           <div className="space-y-4">
+                             <div>
+                               <p className="text-[10px] text-white/40 mb-1">Tempat, Tanggal Lahir</p>
+                               <p className="text-sm text-white font-medium">{selectedDocReg.birthPlace || selectedDocReg.birthplace}, {new Date(selectedDocReg.birthDate || selectedDocReg.birthdate).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}</p>
+                             </div>
+                             <div>
+                               <p className="text-[10px] text-white/40 mb-1">Sekolah</p>
+                               <p className="text-sm text-white font-medium">{selectedDocReg.school || '-'}</p>
+                             </div>
+                             <div>
+                               <p className="text-[10px] text-white/40 mb-1">Alamat Lengkap</p>
+                               <p className="text-sm text-white font-medium">{selectedDocReg.address}</p>
+                             </div>
+                           </div>
+                        </div>
+                        
+                        <div className="bg-white/5 border border-white/10 rounded-2xl p-5">
+                           <h4 className="text-[10px] uppercase font-black tracking-widest text-white/40 mb-4 border-b border-white/10 pb-2">Kontak & Program</h4>
+                           <div className="space-y-4">
+                             <div>
+                               <p className="text-[10px] text-white/40 mb-1">Nama Wali</p>
+                               <p className="text-sm text-white font-medium">{selectedDocReg.parentName || selectedDocReg.parentname} ({selectedDocReg.parentRelation || 'Wali'})</p>
+                             </div>
+                             <div>
+                               <p className="text-[10px] text-white/40 mb-1">No. WhatsApp</p>
+                               <p className="text-sm text-white font-medium font-mono bg-black/20 inline-block px-2 py-0.5 rounded">{selectedDocReg.phone || selectedDocReg.parent_phone}</p>
+                             </div>
+                             <div>
+                               <p className="text-[10px] text-white/40 mb-1">Jadwal Latihan</p>
+                               <p className="text-sm text-white font-medium">{selectedDocReg.schedule}</p>
+                             </div>
+                             <div>
+                               <p className="text-[10px] text-white/40 mb-1">Posisi Spesifik</p>
+                               <p className="text-sm text-white font-medium">{selectedDocReg.position_detail || '-'}</p>
+                             </div>
+                           </div>
+                        </div>
+                     </div>
+                   </div>
+                )}
+                
+                {docModalTab === 'medis' && (
+                   <div className="space-y-6">
+                      <div className="grid grid-cols-2 gap-4">
+                         <div className="bg-[#080d19] border border-white/10 rounded-2xl p-5 flex flex-col items-center justify-center text-center">
+                            <span className="text-[10px] uppercase font-black tracking-widest text-white/40 mb-2">Tinggi Badan</span>
+                            <div className="flex items-baseline gap-1">
+                               <span className="text-3xl font-black text-rose-400">{selectedDocReg.height || '-'}</span>
+                               <span className="text-sm text-rose-400/50 font-bold">cm</span>
+                            </div>
+                         </div>
+                         <div className="bg-[#080d19] border border-white/10 rounded-2xl p-5 flex flex-col items-center justify-center text-center">
+                            <span className="text-[10px] uppercase font-black tracking-widest text-white/40 mb-2">Berat Badan</span>
+                            <div className="flex items-baseline gap-1">
+                               <span className="text-3xl font-black text-rose-400">{selectedDocReg.weight || '-'}</span>
+                               <span className="text-sm text-rose-400/50 font-bold">kg</span>
+                            </div>
+                         </div>
+                      </div>
+                      
+                      <div className="bg-rose-500/5 border border-rose-500/20 rounded-2xl p-6 space-y-6">
+                         <div className="flex items-center gap-3 border-b border-rose-500/10 pb-4">
+                            <AlertCircle className="w-5 h-5 text-rose-500" />
+                            <h4 className="text-sm font-black uppercase tracking-widest text-rose-400">Riwayat Kesehatan Dasar</h4>
+                         </div>
+                         
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                           <div>
+                             <p className="text-[10px] uppercase font-bold tracking-widest text-white/40 mb-1">Riwayat Penyakit</p>
+                             <div className="bg-black/20 border border-white/5 rounded-xl p-4 min-h-[80px]">
+                               {selectedDocReg.medical_history || '-'}
+                             </div>
+                           </div>
+                           <div>
+                             <p className="text-[10px] uppercase font-bold tracking-widest text-white/40 mb-1">Riwayat Alergi</p>
+                             <div className="bg-black/20 border border-white/5 rounded-xl p-4 min-h-[80px]">
+                               {selectedDocReg.allergy_history || '-'}
+                             </div>
+                           </div>
+                           <div>
+                             <p className="text-[10px] uppercase font-bold tracking-widest text-white/40 mb-1">Pernah Cedera Berat?</p>
+                             <div className="bg-black/20 border border-white/5 rounded-xl p-4 min-h-[80px]">
+                               {selectedDocReg.injury_history || '-'}
+                             </div>
+                           </div>
+                           <div>
+                             <p className="text-[10px] uppercase font-bold tracking-widest text-white/40 mb-1">Catatan Tambahan (Obat/Asma dll)</p>
+                             <div className="bg-black/20 border border-white/5 rounded-xl p-4 min-h-[80px]">
+                               {selectedDocReg.medication_notes || selectedDocReg.health_notes || '-'}
+                             </div>
+                           </div>
+                         </div>
+                      </div>
+                   </div>
+                )}
+                
+                {docModalTab === 'dokumen' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                    {[
                      { title: "Kartu Keluarga", url: selectedDocReg.kk_url, req: true },
@@ -479,6 +620,7 @@ export default function RegistrationAdmin() {
                      </div>
                    ))}
                 </div>
+                )}
               </div>
             </motion.div>
           </div>
