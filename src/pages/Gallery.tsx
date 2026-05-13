@@ -23,6 +23,7 @@ import { uploadFile, uploadRawFile } from '../lib/supabase';
 import { Modal } from '../components/ui/Modal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { Loader2, X } from 'lucide-react';
+import { useAuth } from '../App';
 
 const getMediaDetails = (url: string, type: string) => {
   let category = type || 'image';
@@ -55,6 +56,7 @@ const getMediaDetails = (url: string, type: string) => {
 const categories = ['All', 'Training', 'Matches', 'Events', 'Highlights', 'Documentation'];
 
 export default function Gallery() {
+  const { user } = useAuth();
   const { data: media, addItems, updateItem, deleteItem, isLoading } = useCMSData('gallery', []);
   const [activeTab, setActiveTab] = useState('All');
   const [mediaTypeFilter, setMediaTypeFilter] = useState('All');
@@ -142,9 +144,11 @@ export default function Gallery() {
             <p className="text-white/40 text-sm">CMS Admin: Data tersimpan permanen di database Supabase.</p>
           </div>
           <div className="flex items-center gap-3">
-             <button onClick={handleOpenAdd} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-[0_0_20px_rgba(37,99,235,0.3)] !py-2 px-6 rounded-xl flex items-center gap-2 transition-all font-semibold uppercase tracking-wider text-xs">
-                <Plus className="w-4 h-4" /> Upload Media
-             </button>
+             {user?.role === 'admin' && (
+               <button onClick={handleOpenAdd} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-[0_0_20px_rgba(37,99,235,0.3)] !py-2 px-6 rounded-xl flex items-center gap-2 transition-all font-semibold uppercase tracking-wider text-xs">
+                  <Plus className="w-4 h-4" /> Upload Media
+               </button>
+             )}
           </div>
         </div>
 
@@ -228,14 +232,16 @@ export default function Gallery() {
                       
                       {/* Overlay */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                         <div className="absolute top-4 right-4 flex flex-col gap-2">
-                            <button onClick={(e) => handleOpenEdit(item, e)} className="p-2 backdrop-blur-md bg-black/40 rounded-xl border border-white/20 hover:bg-blue-500 hover:text-white transition-all text-blue-400">
-                               <Edit2 className="w-4 h-4" />
-                            </button>
-                            <button onClick={(e) => handleDelete(item.id, item.title, e)} className="p-2 backdrop-blur-md bg-black/40 rounded-xl border border-white/20 hover:bg-red-500 hover:text-white transition-all text-red-400">
-                               <Trash2 className="w-4 h-4" />
-                            </button>
-                         </div>
+                         {user?.role === 'admin' && (
+                           <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
+                              <button onClick={(e) => handleOpenEdit(item, e)} className="p-2 backdrop-blur-md bg-black/40 rounded-xl border border-white/20 hover:bg-blue-500 hover:text-white transition-all text-blue-400">
+                                 <Edit2 className="w-4 h-4" />
+                              </button>
+                              <button onClick={(e) => handleDelete(item.id, item.title, e)} className="p-2 backdrop-blur-md bg-black/40 rounded-xl border border-white/20 hover:bg-red-500 hover:text-white transition-all text-red-400">
+                                 <Trash2 className="w-4 h-4" />
+                              </button>
+                           </div>
+                         )}
                          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-4 bg-white/20 backdrop-blur-md rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
                            <Play className="w-6 h-6 text-white fill-white" />
                          </div>
@@ -377,12 +383,32 @@ export default function Gallery() {
                   : "w-auto h-auto max-w-[95vw] max-h-[90vh] md:max-w-5xl"
               )}
             >
-               <button 
-                 onClick={() => setIsDetailModalOpen(false)}
-                 className="absolute top-4 right-4 z-20 w-10 h-10 flex items-center justify-center rounded-full bg-black/40 border border-white/10 text-white/50 hover:text-white hover:bg-red-500/20 transition-all"
-               >
-                 <X className="w-5 h-5" />
-               </button>
+               <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
+                 {user?.role === 'admin' && (
+                   <>
+                     <button 
+                       onClick={(e) => { setIsDetailModalOpen(false); handleOpenEdit(selectedMedia, e as any); }}
+                       className="p-3 rounded-full bg-black/40 border border-white/10 text-blue-400 hover:text-white hover:bg-blue-500/20 backdrop-blur-md transition-all"
+                       title="Edit"
+                     >
+                       <Edit2 className="w-4 h-4" />
+                     </button>
+                     <button 
+                       onClick={(e) => { setIsDetailModalOpen(false); handleDelete(selectedMedia.id, selectedMedia.title, e as any); }}
+                       className="p-3 rounded-full bg-black/40 border border-white/10 text-red-500 hover:text-white hover:bg-red-500/20 backdrop-blur-md transition-all"
+                       title="Delete"
+                     >
+                       <Trash2 className="w-4 h-4" />
+                     </button>
+                   </>
+                 )}
+                 <button 
+                   onClick={() => setIsDetailModalOpen(false)}
+                   className="p-3 rounded-full bg-black/40 border border-white/10 text-white/50 hover:text-white hover:bg-white/20 backdrop-blur-md transition-all"
+                 >
+                   <X className="w-5 h-5" />
+                 </button>
+               </div>
 
                {selectedMedia.type === 'youtube' || selectedMedia.type === 'drive' ? (
                  <iframe 

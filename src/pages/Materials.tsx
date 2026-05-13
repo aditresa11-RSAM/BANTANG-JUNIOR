@@ -5,13 +5,13 @@ import {
   BookOpen, Plus, Search, Filter, Edit2, Trash2, Clock, 
   Dumbbell, Brain, HeartPulse, Shield, Star, PlayCircle, 
   FileText, ChevronRight, Loader2, Image as ImageIcon,
-  MoreVertical, Calendar, User, Download, Share2, X, Target, StickyNote, Activity, Target as Goal
+  MoreVertical, Calendar, User, Download, Share2, X, Target, StickyNote, Activity, Target as Goal, Maximize
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useCMSData } from '../lib/store';
 import { useAuth } from '../App';
 import { Modal } from '../components/ui/Modal';
-import { uploadFile } from '../lib/supabase';
+import { uploadFile, uploadRawFile } from '../lib/supabase';
 
 const getEmbedUrl = (url: string) => {
   if (!url) return '';
@@ -41,6 +41,24 @@ const isVideoUrl = (url: string) => {
   return videoExts.some(ext => url.includes(ext));
 };
 
+const isNativeVideoUrl = (url: string) => {
+  if (!url) return false;
+  const videoExts = ['.mp4', '.webm', '.ogg'];
+  return videoExts.some(ext => url.includes(ext));
+};
+
+const getThumbnailUrl = (url: string) => {
+  if (!url) return "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=600";
+  if (url.includes('youtube.com') || url.includes('youtu.be')) {
+    let videoId = '';
+    if (url.includes('v=')) videoId = url.split('v=')[1]?.split('&')[0];
+    else if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1]?.split('?')[0];
+    else if (url.includes('embed/')) videoId = url.split('embed/')[1]?.split('?')[0];
+    if (videoId) return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+  }
+  return url;
+};
+
 const TRAINING_CATEGORIES = [
   { id: 'technique', name: 'Teknik Dasar', icon: Star, color: 'text-blue-400', bg: 'bg-blue-400/10' },
   { id: 'physical', name: 'Fisik', icon: Dumbbell, color: 'text-red-400', bg: 'bg-red-400/10' },
@@ -64,12 +82,33 @@ export default function Materials() {
     title: '', category: 'technique', description: '', duration: '60 mnt', age_group: 'U12', level: 'Beginner', media_url: ''
   });
 
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const toggleFullscreen = () => {
+    const el = document.getElementById('media-container');
+    if (!document.fullscreenElement) {
+      el?.requestFullscreen().catch(err => {
+        console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+      });
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setIsUploading(true);
       try {
-        const publicUrl = await uploadFile(file, 'materials');
+        let publicUrl;
+        if (file.type.startsWith('video/')) {
+          publicUrl = await uploadRawFile(file, 'materials');
+        } else {
+          publicUrl = await uploadFile(file, 'materials');
+        }
+        
         if (publicUrl) {
           setFormData({ ...formData, media_url: publicUrl });
         }
@@ -190,11 +229,20 @@ export default function Materials() {
                   className="glass-card group rounded-[2rem] overflow-hidden border border-white/5 hover:border-[var(--color-primary)]/30 transition-all duration-500 flex flex-col h-full shadow-xl"
                 >
                   <div className="h-48 bg-black/40 relative overflow-hidden">
-                    <img 
-                      src={m.media_url || "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=600"} 
-                      className="w-full h-full object-cover opacity-60 group-hover:scale-110 group-hover:opacity-80 transition-all duration-1000" 
-                      alt={m.title} 
-                    />
+                    {isNativeVideoUrl(m.media_url) ? (
+                      <video 
+                        src={m.media_url} 
+                        className="w-full h-full object-cover opacity-60 group-hover:scale-110 group-hover:opacity-80 transition-all duration-1000" 
+                        muted 
+                        playsInline
+                      />
+                    ) : (
+                      <img 
+                        src={getThumbnailUrl(m.media_url)} 
+                        className="w-full h-full object-cover opacity-60 group-hover:scale-110 group-hover:opacity-80 transition-all duration-1000" 
+                        alt={m.title} 
+                      />
+                    )}
                     <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#0a0a0c] to-transparent" />
                     
                     <div className="absolute top-4 left-4 flex gap-2">
@@ -300,7 +348,11 @@ export default function Materials() {
                       </div>
                     )}
                     {formData.media_url ? (
-                      <img src={formData.media_url} className="w-full h-full object-cover" alt="" />
+                      isNativeVideoUrl(formData.media_url) ? (
+                        <video src={formData.media_url} className="w-full h-full object-cover" muted playsInline />
+                      ) : (
+                        <img src={getThumbnailUrl(formData.media_url)} className="w-full h-full object-cover" alt="" />
+                      )
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-white/5"><ImageIcon className="w-8 h-8" /></div>
                     )}
@@ -360,38 +412,59 @@ export default function Materials() {
                 </button>
 
                 {/* Cover Image/Video Area */}
-                <div className="relative h-64 md:h-96 w-full bg-black">
+                <div id="media-container" className="relative h-64 md:h-96 w-full bg-black group/media">
                    {isVideoUrl(selectedMaterial.media_url) ? (
-                     <iframe 
-                       src={getEmbedUrl(selectedMaterial.media_url)} 
-                       className="w-full h-full border-none" 
-                       allow="autoplay; encrypted-media; gyroscope; picture-in-picture"
-                       allowFullScreen
-                     />
+                     isNativeVideoUrl(selectedMaterial.media_url) ? (
+                       <video 
+                         src={selectedMaterial.media_url} 
+                         className="w-full h-full object-contain" 
+                         controls
+                         playsInline
+                         autoPlay
+                       />
+                     ) : (
+                       <iframe 
+                         src={getEmbedUrl(selectedMaterial.media_url)} 
+                         className="w-full h-full border-none" 
+                         allow="autoplay; encrypted-media; gyroscope; picture-in-picture"
+                         allowFullScreen
+                       />
+                     )
                    ) : (
                      <>
                        <img 
                           src={selectedMaterial.media_url || "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=1200"} 
-                          className="w-full h-full object-cover opacity-60" 
+                          className={cn("w-full h-full cursor-pointer transition-all", isFullscreen ? "object-contain relative z-50 bg-black" : "object-cover opacity-60")} 
                           alt={selectedMaterial.title} 
+                          onClick={toggleFullscreen}
                        />
-                       <div className="absolute inset-0 bg-gradient-to-t from-[#09152b] via-[#09152b]/50 to-transparent" />
+                       {!isFullscreen && <div className="absolute inset-0 bg-gradient-to-t from-[#09152b] via-[#09152b]/50 to-transparent pointer-events-none" />}
                      </>
                    )}
                    
-                   <div className="absolute bottom-6 md:bottom-10 left-6 md:left-12 right-6 md:right-12 text-white pointer-events-none">
-                      <div className="flex gap-2 mb-4">
-                        <span className="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest backdrop-blur-xl border border-[var(--color-primary)]/30 bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
-                          {TRAINING_CATEGORIES.find(c => c.id === selectedMaterial.category)?.name}
-                        </span>
-                        <span className="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest backdrop-blur-xl border border-white/10 bg-white/5 text-white/60">
-                          {selectedMaterial.level}
-                        </span>
-                      </div>
-                      <h2 className="text-3xl md:text-5xl font-display font-black uppercase tracking-tight leading-none text-transparent bg-clip-text bg-gradient-to-r from-white to-white/60 shadow-sm drop-shadow-lg mb-2">
-                         {selectedMaterial.title}
-                      </h2>
-                   </div>
+                   <button
+                     onClick={toggleFullscreen}
+                     className="absolute top-6 left-6 z-20 w-10 h-10 flex items-center justify-center rounded-full bg-black/40 border border-white/10 text-white/50 hover:text-white hover:bg-white/20 hover:border-white/50 backdrop-blur-md opacity-0 group-hover/media:opacity-100 transition-all"
+                     title="Toggle Fullscreen"
+                   >
+                     <Maximize className="w-4 h-4" />
+                   </button>
+                   
+                   {!isFullscreen && (
+                     <div className="absolute bottom-6 md:bottom-10 left-6 md:left-12 right-6 md:right-12 text-white pointer-events-none">
+                        <div className="flex gap-2 mb-4">
+                          <span className="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest backdrop-blur-xl border border-[var(--color-primary)]/30 bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+                            {TRAINING_CATEGORIES.find(c => c.id === selectedMaterial.category)?.name}
+                          </span>
+                          <span className="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest backdrop-blur-xl border border-white/10 bg-white/5 text-white/60">
+                            {selectedMaterial.level}
+                          </span>
+                        </div>
+                        <h2 className="text-3xl md:text-5xl font-display font-black uppercase tracking-tight leading-none text-transparent bg-clip-text bg-gradient-to-r from-white to-white/60 shadow-sm drop-shadow-lg mb-2">
+                           {selectedMaterial.title}
+                        </h2>
+                     </div>
+                   )}
                 </div>
 
                 {/* Content Area */}
