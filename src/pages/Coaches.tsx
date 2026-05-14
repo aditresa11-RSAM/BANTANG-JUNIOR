@@ -12,44 +12,7 @@ import { uploadFile } from '../lib/supabase';
 import { Modal } from '../components/ui/Modal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 
-const initialCoaches = [
-  { 
-    id: '1', 
-    name: 'Andre Wijaya', 
-    license: 'Lisensi B', 
-    specialty: 'Head Coach', 
-    experience: '12', 
-    photo: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&q=80&w=600',
-    activeTeams: ['U14-Pro', 'U15-Pro']
-  },
-  { 
-    id: '2', 
-    name: 'Sarah Kurniawan', 
-    license: 'Lisensi C', 
-    specialty: 'Assistant Coach', 
-    experience: '8', 
-    photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=600',
-    activeTeams: ['U12-Junior', 'U13-Dev']
-  },
-  { 
-    id: '3', 
-    name: 'Mike Tyson', 
-    license: 'Lisensi D', 
-    specialty: 'Fitness Coach', 
-    experience: '15', 
-    photo: 'https://images.unsplash.com/photo-1533227268408-a7746955c711?auto=format&fit=crop&q=80&w=600',
-    activeTeams: ['All Categories']
-  },
-  { 
-    id: '4', 
-    name: 'Budi Hartono', 
-    license: 'Coaching Clinic', 
-    specialty: 'Goalkeeper Coach', 
-    experience: '10', 
-    photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=600',
-    activeTeams: ['GK Academy']
-  },
-];
+const initialCoaches: any[] = [];
 
 export default function Coaches() {
   const { user } = useAuth();
@@ -90,7 +53,7 @@ export default function Coaches() {
     if (editingCoach) {
       updateItem(editingCoach.id, formData);
     } else {
-      addItems({ ...formData, id: Date.now().toString(), photo: formData.photo || 'https://images.unsplash.com/photo-1544168190-79c15427015f?auto=format&fit=crop&q=80&w=600' });
+      addItems({ ...formData, id: Date.now().toString(), photo: formData.photo || '' });
     }
     setIsModalOpen(false);
   };
