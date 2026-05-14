@@ -217,7 +217,7 @@ export default function LandingPage() {
             {activeSliders.length > 0 ? (
               <div className="w-full flex flex-col items-center lg:items-start text-center lg:text-left mx-auto lg:mx-0">
                 <div key={currentSlideIndex} className="animate-in fade-in slide-in-from-bottom-8 duration-700 w-full flex flex-col items-center lg:block">
-                  <h1 style={{ fontSize: '62px' }} className="text-4xl sm:text-5xl md:text-6xl lg:text-[5.5rem] font-display font-black leading-none mb-3 sm:mb-4 lg:mb-8 tracking-tight drop-shadow-xl text-white uppercase max-w-full text-center lg:text-left" dangerouslySetInnerHTML={{ __html: activeSliders[currentSlideIndex]?.title?.replace(/\n/g, '<br />') || '' }} />
+                  <h1 style={{ fontSize: '50px' }} className="text-4xl sm:text-5xl md:text-6xl lg:text-[5.5rem] font-display font-black leading-none mb-3 sm:mb-4 lg:mb-8 tracking-tight drop-shadow-xl text-white uppercase max-w-full text-center lg:text-left" dangerouslySetInnerHTML={{ __html: activeSliders[currentSlideIndex]?.title?.replace(/\n/g, '<br />') || '' }} />
                   <p className="text-[11px] sm:text-lg lg:text-[19px] text-[#ffffff] italic font-normal mb-6 sm:mb-10 leading-relaxed mx-auto lg:ml-0 max-w-[90%] lg:max-w-2xl drop-shadow-md whitespace-nowrap md:whitespace-normal overflow-hidden text-ellipsis text-center lg:text-left">
                     {activeSliders[currentSlideIndex]?.subtitle}
                   </p>
@@ -252,7 +252,7 @@ export default function LandingPage() {
                 className="w-full flex flex-col items-center lg:items-start text-center lg:text-left mx-auto lg:mx-0"
               >
                 <div className="w-full flex flex-col items-center lg:block">
-                  <h1 style={{ fontSize: '62px' }} className="text-4xl sm:text-5xl md:text-6xl lg:text-[5.5rem] font-display font-black leading-none mb-3 sm:mb-4 lg:mb-8 tracking-tight drop-shadow-xl text-white uppercase max-w-full text-center lg:text-left">
+                  <h1 style={{ fontSize: '50px' }} className="text-4xl sm:text-5xl md:text-6xl lg:text-[5.5rem] font-display font-black leading-none mb-3 sm:mb-4 lg:mb-8 tracking-tight drop-shadow-xl text-white uppercase max-w-full text-center lg:text-left">
                     BANGUN BINTANG <br /> 
                     <span className="text-[var(--color-primary)] text-glow">MASA DEPAN</span>
                   </h1>
