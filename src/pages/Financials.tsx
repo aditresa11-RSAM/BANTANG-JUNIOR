@@ -18,14 +18,7 @@ import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { toast } from 'sonner';
 import { SearchableDropdown } from '../components/ui/SearchableDropdown';
 
-const initialTransactions = [
-  { id: 'TX-001', player_id: '1', title: '', amount: 850000, type: 'Income', category: 'Uang Pendaftaran', date: '2026-05-01', status: 'Lunas', method: 'Transfer Bank', notes: 'Lunas semester 1' },
-  { id: 'TX-002', player_id: '2', title: '', amount: 500000, type: 'Income', category: 'SPP Bulanan', date: '2026-05-03', status: 'Lunas', method: 'QRIS', notes: '' },
-  { id: 'TX-003', player_id: '', title: 'Pemeliharaan Lapangan', amount: 1200000, type: 'Expense', category: 'Sewa Lapangan', date: '2026-05-05', status: 'Lunas', method: 'Transfer Bank', notes: 'Sewa lap bulan Mei' },
-  { id: 'TX-004', player_id: '', title: 'Honor Pelatih (U-12)', amount: 2500000, type: 'Expense', category: 'Honor Pelatih', date: '2026-05-06', status: 'Lunas', method: 'Transfer Bank', notes: 'Honor 2 pelatih' },
-  { id: 'TX-005', player_id: '3', title: '', amount: 500000, type: 'Income', category: 'SPP Bulanan', date: '2026-05-08', status: 'Terlambat', method: '-', notes: 'Belum bayar bulan ini' },
-  { id: 'TX-006', player_id: '4', title: '', amount: 1500000, type: 'Income', category: 'Turnamen', date: '2026-05-08', status: 'Menunggu', method: 'Transfer Bank', notes: 'Upload bukti belum divalidasi' },
-];
+const initialTransactions: any[] = [];
 
 const CATEGORY_OPTIONS = [
   { value: 'Uang Pendaftaran', label: 'Uang Pendaftaran', icon: <UserPlus className="w-4 h-4" /> },

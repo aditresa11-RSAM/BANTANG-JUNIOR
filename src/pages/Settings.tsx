@@ -623,14 +623,28 @@ END $$;
 CREATE TABLE IF NOT EXISTS financials (
     id TEXT PRIMARY KEY, 
     player TEXT, 
+    player_id TEXT,
+    title TEXT,
     date TEXT, 
     amount NUMERIC, 
     type TEXT, 
     status TEXT, 
     description TEXT,
     category TEXT,
+    method TEXT,
+    notes TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
+DO $$ 
+BEGIN 
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='financials') THEN
+        ALTER TABLE public.financials ADD COLUMN IF NOT EXISTS player_id TEXT;
+        ALTER TABLE public.financials ADD COLUMN IF NOT EXISTS title TEXT;
+        ALTER TABLE public.financials ADD COLUMN IF NOT EXISTS method TEXT;
+        ALTER TABLE public.financials ADD COLUMN IF NOT EXISTS notes TEXT;
+    END IF;
+END $$;
 
 CREATE TABLE IF NOT EXISTS scouting (
     id TEXT PRIMARY KEY, 
@@ -916,7 +930,7 @@ WITH CHECK (bucket_id IN ('players', 'settings', 'gallery', 'coaches', 'dashboar
         upcoming_matches: ['id', 'tournament', 'rival', 'rivallogo', 'date', 'time', 'venue', 'category', 'result', 'created_at'],
         match_results: ['id', 'tournament', 'rival', 'rivallogo', 'score', 'date', 'category', 'result', 'scorers', 'created_at'],
         gallery: ['id', 'type', 'media_url', 'title', 'category', 'thumbnail_url', 'created_at'],
-        financials: ['id', 'player', 'date', 'amount', 'type', 'status', 'description', 'category', 'created_at'],
+        financials: ['id', 'player', 'player_id', 'title', 'date', 'amount', 'type', 'status', 'description', 'category', 'method', 'notes', 'created_at'],
         training_schedule: ['id', 'title', 'date', 'time', 'category', 'coach', 'location', 'description', 'status', 'notes', 'created_at'],
         match_analysis: ['id', 'match_date', 'rival', 'score', 'status', 'highlights_count', 'created_at'],
         scouting: ['id', 'name', 'position', 'currentteam', 'price', 'status', 'rating', 'match_rating', 'photo', 'notes', 'age', 'created_at'],

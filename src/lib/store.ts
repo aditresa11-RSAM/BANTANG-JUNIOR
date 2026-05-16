@@ -8,7 +8,7 @@ export function useCMSData<T extends { id: string }>(collectionName: string, ini
       const saved = localStorage.getItem(`cms_${collectionName}`);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed)) {
           return parsed;
         }
       }
